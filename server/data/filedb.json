@@ -1,0 +1,100 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "lesnar@example.com",
+      "name": "lesnar",
+      "password_hash": "$2b$10$soNavvqD/FOLfJ/OM6WZIuhzLOt9cUkXLpA/vUGL.ASY3AALEwy3W"
+    },
+    {
+      "id": 2,
+      "email": "demo21@example.com",
+      "name": "kjg",
+      "password_hash": "$2b$10$maR4P05rNElt416s80FSy.2vIZu9bJcDRkVuNnR0Sl/4JnqXzqZO6"
+    },
+    {
+      "id": 3,
+      "email": "de@example.com",
+      "name": "lejkej",
+      "password_hash": "$2b$10$M1O.rcY2c9d23xkvrhXGguACOSaqXYsl3ivi3NWTw.Uf1YEqT27kK"
+    },
+    {
+      "id": 4,
+      "email": "1@example.com",
+      "name": "lesnar",
+      "password_hash": "$2b$10$GNua2jVHQ4w99eW8S81/rOw.JyXQ8SMBXZpGAtsSS3vhj4aRLII6i"
+    },
+    {
+      "id": 5,
+      "email": "12@example.com",
+      "name": "lesss",
+      "password_hash": "$2b$10$hQTZgS31g/NypJ7grQTr6.KjSNhZffwO6dpXfND0EKCCYh6mR2S9m"
+    },
+    {
+      "id": 6,
+      "email": "123@example.com",
+      "name": "lesnar",
+      "password_hash": "$2b$10$8cjYjxonPHFrL3Zbi2dbbe446hODm26AKob9O9Pyjch2lfxSz9qlO"
+    },
+    {
+      "id": 7,
+      "email": "ltosh289@example.com",
+      "name": "lesnar",
+      "password_hash": "$2b$10$Ugw.a6lsKcWk52mgTiuQje0hH8z3TJQ46kFO9ImPE0nk6klAObggm"
+    },
+    {
+      "id": 8,
+      "email": "q@example.com",
+      "name": "lesbb",
+      "password_hash": "$2b$10$TkTlL/NmBHT449xTaQZ7D.2pQG4nM9u0HuKk/NraLBJ2P1aef5rdO"
+    },
+    {
+      "id": 9,
+      "email": "les@gmail.com",
+      "name": "lrd",
+      "password_hash": "$2b$10$m4D4vcSeppGAB9h3gCEMguqTJvXt1oDKQK3GxYYRM01ZjNYum2zom"
+    }
+  ],
+  "listings": [
+    {
+      "id": 4,
+      "owner_id": 9,
+      "title": "bandage",
+      "description": "1 roll",
+      "quantity": 1,
+      "location_wkt": "POINT(36.8821895 -1.2184053)",
+      "created_at": "2025-10-13T18:19:47.073Z"
+    },
+    {
+      "id": 3,
+      "owner_id": 5,
+      "title": "supplement",
+      "description": "6packs",
+      "quantity": 6,
+      "location_wkt": "POINT(36.8835342 -1.2160537)",
+      "created_at": "2025-10-04T06:15:23.986Z"
+    },
+    {
+      "id": 2,
+      "owner_id": 4,
+      "title": "bandages",
+      "description": "expired",
+      "quantity": 1,
+      "location_wkt": "POINT(36.884602 -1.210115)",
+      "created_at": "2025-10-03T06:47:29.698Z"
+    },
+    {
+      "id": 1,
+      "owner_id": 3,
+      "title": "bandages",
+      "description": "1 roll",
+      "quantity": 1,
+      "location_wkt": "POINT(36.884773985061514 -1.2102359651435268)",
+      "created_at": "2025-09-26T16:00:49.030Z"
+    }
+  ],
+  "matches": [],
+  "nextUserId": 10,
+  "nextListingId": 5,
+  "nextMatchId": 1
+}

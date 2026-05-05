@@ -1,0 +1,50 @@
+@startuml
+title MediMatch – DFD Level 2 (Matching and Notification Subsystem)
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+  BackgroundColor #F8FBFF
+  BorderColor #1E4B8E
+}
+
+' === External Entities ===
+actor "Donor Facility" as Donor
+actor "Recipient Facility" as Recipient
+actor "Administrator" as Admin
+
+' === Processes ===
+rectangle "4.1 Retrieve Active Listings" as P1
+rectangle "4.2 Retrieve Active Requests" as P2
+rectangle "4.3 Run Matching Algorithm" as P3
+rectangle "4.4 Validate Match & Store Record" as P4
+rectangle "5.1 Generate Notifications" as P5
+rectangle "5.2 Send Reports / Alerts" as P6
+
+' === Data Stores ===
+database "D2: Listings/Requests Repository" as DB2
+database "D3: Match Records" as DB3
+database "D4: Notification Logs" as DB4
+
+' === Flows: Listings and Requests ===
+Donor --> P1 : Surplus Listings
+Recipient --> P2 : Supply Requests
+P1 --> DB2 : Store Listings
+P2 --> DB2 : Store Requests
+DB2 --> P3 : Retrieve Listings & Requests
+P3 --> P4 : Match Results
+
+' === Matching Results ===
+P4 --> DB3 : Save Validated Match
+P4 --> P5 : Trigger Notification Event
+
+' === Notifications ===
+P5 --> DB4 : Record Notification
+P5 --> Donor : Match Confirmation
+P5 --> Recipient : Match Suggestion
+P6 --> Admin : Reports & Audit Logs
+
+' === Feedback Loops ===
+Donor --> P4 : Approve / Decline Match
+Recipient --> P4 : Accept / Counter Proposal
+Admin --> P6 : Request Report Summary
+
+@enduml

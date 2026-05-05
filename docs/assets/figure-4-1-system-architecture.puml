@@ -1,0 +1,70 @@
+@startuml
+' Figure 4.1 (Revised) — MediMatch System Architecture
+
+title Figure 4.1 (Revised) — MediMatch System Architecture
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+    BorderColor #2563EB
+    BackgroundColor #F0F9FF
+    FontColor #1A202C
+}
+skinparam component {
+    BorderColor #1D4ED8
+    BackgroundColor #FFFFFF
+    FontColor #1A202C
+}
+skinparam actor {
+    BorderColor #047857
+    BackgroundColor #ECFDF5
+}
+skinparam database {
+    BorderColor #9A3412
+    BackgroundColor #FFFAF6
+}
+
+actor "Healthcare User" as User
+
+' Presentation Layer (Client)
+rectangle "Presentation Layer\n(React + TypeScript)" as WebApp #White
+
+' Application & Data Layers (Server-Side)
+node "MediMatch System (Backend)" {
+    
+    rectangle "Application Layer (Node.js / Express API)" as API {
+        
+        component "Auth Service\n(JWT, Validation)" as AuthService
+        component "Listing Service\n(CRUD for Supplies/Requests)" as ListingService
+        component "Matching Service\n(Core Matching Logic)" as MatchService
+        component "Notification Service\n(In-App/Email Alerts)" as NotifyService
+        component "Location Service\n(Geospatial Queries)" as LocationService
+    }
+
+    database "Data Layer\n(PostgreSQL + PostGIS)" as DB
+}
+
+' Define Relationships
+User -[#047857,bold]-> WebApp : Uses (via Browser)
+
+WebApp -[#2563EB,bold]-> API : Makes API Calls\n(HTTPS / REST)
+
+' Define internal service relationships
+API --> AuthService
+API --> ListingService
+API --> MatchService
+API --> NotifyService
+API --> LocationService
+
+' Internal API Services to DB
+AuthService .[#9A3412,dotted].> DB : Reads/Writes Users
+ListingService .[#9A3412,dotted].> DB : Reads/Writes Listings
+MatchService .[#9A3412,dotted].> DB : Reads Listings/Matches
+LocationService .[#9A3412,dotted].> DB : Runs PostGIS Queries
+
+' Service-to-service communication
+MatchService ..> NotifyService : Triggers Notifications
+MatchService ..> LocationService : Gets Nearby Facilities
+ListingService ..> LocationService : Gets Facility Location
+
+@enduml

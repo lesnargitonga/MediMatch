@@ -1,0 +1,95 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Typecheck server TS",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"args": [],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck server TS (build config)",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"args": [],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Typecheck server TS",
+			"type": "shell",
+			"command": "npm --prefix server run build"
+		},
+		{
+			"label": "Build server (after admin rules)",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		},
+		{
+			"label": "Build server (admin listing policy)",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		},
+		{
+			"label": "Promote admin user",
+			"type": "shell",
+			"command": "npm --prefix server exec cross-env ADMIN_EMAIL=lesnar@admin.com node dist/tools/bootstrapAdmin.js"
+		},
+		{
+			"label": "Build server tools",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		},
+		{
+			"label": "Build server tools (env load fix)",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		},
+		{
+			"label": "Build server after schema changes",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		},
+		{
+			"label": "Build server (org at signup)",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		},
+		{
+			"label": "Run DB migration for org fields",
+			"type": "shell",
+			"command": "npm --prefix server run build && npm --prefix server run migrate",
+			"group": "build"
+		},
+		{
+			"label": "Build and run migration",
+			"type": "shell",
+			"command": "npm --prefix server run build && npm --prefix server run migrate",
+			"group": "build"
+		},
+		{
+			"label": "Rebuild server after DB env fix",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		},
+		{
+			"label": "Rebuild server after env path tweak",
+			"type": "shell",
+			"command": "npm --prefix server run build",
+			"group": "build"
+		}
+	]
+}

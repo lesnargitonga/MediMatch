@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgis/postgis:15-3.4
+    environment:
+      POSTGRES_USER: medimatch
+      POSTGRES_PASSWORD: medimatchpass
+      POSTGRES_DB: medimatchdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+  adminer:
+    image: adminer:4
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+volumes:
+  db-data:

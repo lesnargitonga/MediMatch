@@ -1,0 +1,38 @@
+@startuml
+title MediMatch – Admin Sequence Diagram
+skinparam backgroundColor #FFFFFF
+skinparam sequence {
+  ArrowColor #1E4B8E
+  LifeLineBorderColor #1E4B8E
+  LifeLineBackgroundColor #F8FBFF
+  ParticipantBorderColor #1E4B8E
+  ParticipantBackgroundColor #FFFFFF
+}
+
+actor "Administrator" as Admin
+participant "Frontend (UI)" as UI
+participant "Backend Server" as Server
+database "Database" as DB
+participant "Notification Service" as Notify
+
+== Login ==
+Admin -> UI : Enter Credentials
+UI -> Server : Authenticate(Admin Credentials)
+Server -> DB : Validate Admin Account
+DB --> Server : Auth Successful
+Server --> UI : Admin Dashboard Loaded
+
+== Manage Data ==
+Admin -> UI : Request Facility Report
+UI -> Server : Fetch Facility Data
+Server -> DB : Retrieve Listings & Requests
+DB --> Server : Data Set
+Server -> UI : Display Analytics & Graphs
+
+== Reporting ==
+Admin -> Server : Generate Summary Report
+Server -> DB : Save Report Entry
+Server -> Notify : Send Report Ready Notification
+Notify -> Admin : "Report Generated Successfully"
+
+@enduml

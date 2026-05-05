@@ -1,0 +1,66 @@
+@startuml
+' ===== Styling =====
+skinparam backgroundColor #FFFFFF
+skinparam shadowing true
+skinparam usecase {
+  BackgroundColor #F8FBFF
+  BorderColor #1E4B8E
+  ArrowColor #1E4B8E
+  wrapWidth 180
+  minWidth 100
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+title MediMatch – Use Case Diagram
+left to right direction
+
+' ===== Actors =====
+actor "Administrator" as Admin
+actor "Donor Facility" as Donor
+actor "Recipient Facility" as Recipient
+
+' ===== System Boundary =====
+rectangle "MediMatch System" as System {
+  usecase "Register / Login" as UC_Auth
+  usecase "Manage Facility Profile" as UC_Profile
+  usecase "Create Surplus Listing" as UC_List
+  usecase "Create Need Request" as UC_Request
+  usecase "Browse & Filter Catalogue" as UC_Browse
+  usecase "Generate Match Suggestions" as UC_Suggest
+  usecase "Propose / Accept / Decline Match" as UC_Confirm
+  usecase "Receive Notifications" as UC_Notify
+  usecase "View Reports & Audit Trail" as UC_Report
+  usecase "Validate Input" as UC_Validate
+  usecase "Counter-proposal" as UC_Counter
+}
+
+' ===== Associations =====
+Admin --> UC_Auth
+Admin --> UC_Profile
+Admin --> UC_Report
+
+Donor --> UC_Auth
+Donor --> UC_Profile
+Donor --> UC_List
+Donor --> UC_Browse
+Donor --> UC_Confirm
+Donor --> UC_Notify
+
+Recipient --> UC_Auth
+Recipient --> UC_Profile
+Recipient --> UC_Request
+Recipient --> UC_Browse
+Recipient --> UC_Suggest
+Recipient --> UC_Confirm
+Recipient --> UC_Notify
+
+' ===== Include / Extend =====
+UC_List --> UC_Validate : <<include>>
+UC_Request --> UC_Validate : <<include>>
+UC_Validate --> UC_Auth : requires auth
+UC_Confirm <|-- UC_Counter : <<extend>>
+UC_Suggest --> UC_Browse : feeds results
+
+@enduml

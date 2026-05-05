@@ -1,0 +1,85 @@
+@startuml
+' MediMatch – Class Diagram
+
+title MediMatch – Class Diagram
+skinparam backgroundColor #FFFFFF
+skinparam class {
+  BackgroundColor #F8FBFF
+  BorderColor #1E4B8E
+  FontColor #000000
+  ArrowColor #1E4B8E
+}
+
+' ==== Core Classes ====
+class User {
+  +userID : int
+  +username : string
+  +email : string
+  +passwordHash : string
+  +role : string
+  +login()
+  +logout()
+}
+
+class Facility {
+  +facilityID : int
+  +name : string
+  +location : string
+  +contactInfo : string
+  +updateProfile()
+}
+
+class Listing {
+  +listingID : int
+  +itemName : string
+  +quantity : int
+  +expiryDate : date
+  +status : string
+  +createListing()
+  +updateListing()
+  +deleteListing()
+}
+
+class Request {
+  +requestID : int
+  +itemName : string
+  +quantity : int
+  +urgencyLevel : string
+  +createRequest()
+  +cancelRequest()
+}
+
+class Match {
+  +matchID : int
+  +listingID : int
+  +requestID : int
+  +status : string
+  +generateMatch()
+  +updateStatus()
+}
+
+class Notification {
+  +notificationID : int
+  +message : string
+  +dateSent : date
+  +markAsRead()
+}
+
+class Administrator {
+  +adminID : int
+  +generateReport()
+  +approveFacility()
+  +auditTransactions()
+}
+
+' ==== Relationships ====
+User "1" -- "1" Facility : manages >
+Facility "1" -- "many" Listing : owns >
+Facility "1" -- "many" Request : submits >
+Listing "1" -- "many" Match : matchedWith >
+Request "1" -- "many" Match : linkedTo >
+User "1" -- "many" Notification : receives >
+Administrator "1" -- "many" Facility : supervises >
+Administrator "1" -- "many" Match : monitors >
+
+@enduml

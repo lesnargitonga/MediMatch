@@ -1,0 +1,88 @@
+@startuml
+title MediMatch – Entity Relationship Diagram (ERD)
+skinparam backgroundColor #FFFFFF
+skinparam entity {
+  BackgroundColor #F8FBFF
+  BorderColor #1E4B8E
+  FontColor #000000
+}
+
+entity "User" as User {
+  * user_id : int
+  --
+  username : varchar
+  email : varchar
+  password_hash : varchar
+  role : varchar
+  facility_id : int
+}
+
+entity "Facility" as Facility {
+  * facility_id : int
+  --
+  name : varchar
+  location : varchar
+  contact_info : varchar
+  county : varchar
+}
+
+entity "Listing" as Listing {
+  * listing_id : int
+  --
+  item_name : varchar
+  quantity : int
+  expiry_date : date
+  condition : varchar
+  status : varchar
+  facility_id : int
+}
+
+entity "Request" as Request {
+  * request_id : int
+  --
+  item_name : varchar
+  quantity : int
+  urgency : varchar
+  status : varchar
+  facility_id : int
+}
+
+entity "Match" as Match {
+  * match_id : int
+  --
+  listing_id : int
+  request_id : int
+  match_score : float
+  status : varchar
+  date_created : date
+}
+
+entity "Notification" as Notification {
+  * notification_id : int
+  --
+  user_id : int
+  message : varchar
+  date_sent : datetime
+  is_read : boolean
+}
+
+entity "TransactionLog" as TransactionLog {
+  * transaction_id : int
+  --
+  match_id : int
+  sender_facility : int
+  receiver_facility : int
+  date_completed : datetime
+  remarks : text
+}
+
+' ==== Relationships ====
+User ||--o{ Facility : "belongs to"
+Facility ||--o{ Listing : "creates"
+Facility ||--o{ Request : "submits"
+Listing ||--o{ Match : "linked with"
+Request ||--o{ Match : "linked with"
+User ||--o{ Notification : "receives"
+Match ||--o{ TransactionLog : "recorded in"
+
+@enduml
