@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  db:
+    image: postgis/postgis:15-3.4
+    environment:
+      POSTGRES_DB: medimatchdb
+      POSTGRES_USER: medimatch
+      POSTGRES_PASSWORD: medimatchpass
+    volumes:
+      - medimatch_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "medimatch"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      USE_FILE_DB: "false"
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: medimatchdb
+      DB_USER: medimatch
+      DB_PASSWORD: medimatchpass
+      JWT_SECRET: ${JWT_SECRET:-change_me}
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+
+volumes:
+  medimatch_data:

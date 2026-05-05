@@ -1,0 +1,44 @@
+@startuml
+title MediMatch – User Sequence Diagram (Donor & Recipient Flow)
+skinparam backgroundColor #FFFFFF
+skinparam sequence {
+  ArrowColor #1E4B8E
+  LifeLineBorderColor #1E4B8E
+  LifeLineBackgroundColor #F8FBFF
+  ParticipantBorderColor #1E4B8E
+  ParticipantBackgroundColor #FFFFFF
+}
+
+actor "Donor Facility" as Donor
+actor "Recipient Facility" as Recipient
+participant "Frontend (UI)" as UI
+participant "Backend Server" as Server
+database "Database" as DB
+participant "Notification Service" as Notify
+
+== Step 1: Request & Listing ==
+Donor -> UI : Create Surplus Listing
+UI -> Server : Submit Listing Data
+Server -> DB : Save Listing
+
+Recipient -> UI : Submit Supply Request
+UI -> Server : Send Request Data
+Server -> DB : Store Request Record
+
+== Step 2: Match & Validation ==
+Server -> DB : Retrieve Listings & Requests
+Server -> Server : Run Matching Algorithm
+Server -> DB : Save Match Record
+DB --> Server : Match Confirmed
+
+== Step 3: Notifications ==
+Server -> Notify : Notify Donor & Recipient
+Notify -> Donor : "Recipient Request Found"
+Notify -> Recipient : "Matching Listing Found"
+
+== Step 4: Confirmation ==
+Donor -> Server : Approve / Decline Match
+Server -> DB : Update Status
+Server -> Notify : Send Confirmation to Recipient
+
+@enduml

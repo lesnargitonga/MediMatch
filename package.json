@@ -1,0 +1,33 @@
+{
+  "name": "medimatch",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "server",
+    "client",
+    "shared"
+  ],
+  "scripts": {
+    "start:server": "npm --prefix server run dev",
+    "start:client": "npm --prefix client run dev",
+    "predev": "node scripts/sync-assets.js",
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "start": "npm run dev",
+    "up": "npm install && npm run dev",
+    "db:import:file": "npm --prefix server run build && npm --prefix server run db:import:file",
+    "start:all": "npm install --no-fund --no-audit && npm run dev",
+    "db:up": "cd db && docker compose up -d",
+    "start:stack": "npm run db:up && npm run start:all",
+    "demo:reset-seed": "npm run db:up; npm --prefix server run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "md-to-pdf": "^5.2.5",
+    "pdf-lib": "^1.17.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.76.1",
+    "cookie-parser": "^1.4.7",
+    "use-debounce": "^10.0.6"
+  }
+}

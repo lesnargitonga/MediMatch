@@ -1,0 +1,55 @@
+@startuml
+' MediMatch – System Flow Chart
+
+title MediMatch – System Flow Chart
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+  BackgroundColor #F8FBFF
+  BorderColor #1E4B8E
+  FontColor #000000
+}
+skinparam arrow {
+  Color #1E4B8E
+}
+
+start
+partition "User Session" {
+  :User Opens MediMatch Platform;
+  :Login / Register;
+  if (Valid Credentials?) then (Yes)
+    :Access Granted;
+  else (No)
+    :Display Error Message;
+    stop
+  endif
+  :Update / Manage Profile;
+  :Select Action;
+}
+
+partition "Action Selection" {
+  if (Action?) then (Surplus Listing)
+    :Enter Item Details; :Validate Input; :Save to Database;
+  elseif (Supply Request)
+    :Enter Request Details; :Validate Input; :Save to Database;
+  else (Browse Catalogue)
+    :View Listings & Filter Options;
+  endif
+}
+
+partition "Matching & Outcome" {
+  :Run Matching Algorithm;
+  if (Match Found?) then (Yes)
+    :Notify Donor & Recipient;
+    :Await Response (Accept / Decline / Counter);
+    if (Accepted?) then (Yes)
+      :Confirm Transfer; :Update Inventory;
+    else (No)
+      :Record Decline or Counter;
+    endif
+  else (No)
+    :Continue Monitoring for Future Matches;
+  endif
+  :Generate Reports & Audit Logs;
+  stop
+}
+@enduml

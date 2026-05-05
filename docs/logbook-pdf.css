@@ -1,0 +1,30 @@
+@page {
+  size: A4;
+  margin: 20mm;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.4;
+  color: #111;
+}
+
+h1, h2, h3 {
+  color: #0a58ff;
+  break-after: avoid;
+}
+
+h1 { font-size: 20pt; margin-bottom: 8px; }
+h2 { font-size: 16pt; margin-top: 18px; }
+h3 { font-size: 13pt; margin-top: 14px; }
+
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #ddd; padding: 6px 8px; }
+th { background: #f6f8fa; }
+
+hr { border: none; border-top: 1px solid #e1e4e8; margin: 16px 0; }
+
+ul { margin: 6px 0 6px 18px; }

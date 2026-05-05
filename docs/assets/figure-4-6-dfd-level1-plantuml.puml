@@ -1,0 +1,51 @@
+@startuml
+title MediMatch – DFD Level 1
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+  BackgroundColor #F8FBFF
+  BorderColor #1E4B8E
+}
+
+' External entities
+actor "Donor Facility" as Donor
+actor "Recipient Facility" as Recipient
+actor "Administrator" as Admin
+
+' Processes
+rectangle "1.0 User Authentication" as Auth
+rectangle "2.0 Profile Management" as Profile
+rectangle "3.0 Listing & Request Handling" as Listings
+rectangle "4.0 Matching Engine" as Match
+rectangle "5.0 Notifications & Reporting" as Notify
+
+' Data Stores
+database "D1: User Database" as DB1
+database "D2: Listings/Requests Repository" as DB2
+database "D3: Match Records" as DB3
+
+' Donor interactions
+Donor --> Auth : Login / Register
+Auth --> DB1 : Verify / Store Credentials
+Donor --> Listings : Create Surplus Listing
+Listings --> DB2 : Save Listing Data
+Match --> Listings : Update Match Status
+Notify --> Donor : Send Notifications
+
+' Recipient interactions
+Recipient --> Auth : Login / Register
+Recipient --> Listings : Submit Request
+Listings --> DB2 : Save Request Data
+Match --> Recipient : Send Match Suggestions
+Notify --> Recipient : Notify Updates
+
+' Administrator interactions
+Admin --> Notify : Request Reports
+Notify --> Admin : Generate Reports / Audit Logs
+
+' Internal Data Flows
+Auth --> Profile : Pass Authenticated User Info
+Listings --> Match : Provide Active Listings & Requests
+Match --> DB3 : Store Match Results
+DB3 --> Notify : Retrieve Match Data
+
+@enduml

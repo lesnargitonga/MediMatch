@@ -1,0 +1,27 @@
+@startuml
+title MediMatch – DFD Level 0 (Context Diagram)
+skinparam backgroundColor #FFFFFF
+skinparam rectangle {
+  BackgroundColor #F8FBFF
+  BorderColor #1E4B8E
+}
+
+' External entities
+actor "Donor Facility" as Donor
+actor "Recipient Facility" as Recipient
+actor "Administrator" as Admin
+
+' Main system process
+rectangle "MediMatch System" as System {
+}
+
+' Data Flows
+Donor --> System : Registration Data\nSurplus Listing Info
+Recipient --> System : Registration Data\nSupply Requests
+Admin --> System : Access Credentials\nSystem Configurations
+
+System --> Donor : Notifications\nMatch Confirmations
+System --> Recipient : Notifications\nMatch Suggestions
+System --> Admin : Reports\nAudit Logs
+
+@enduml
