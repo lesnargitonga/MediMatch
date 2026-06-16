@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import API from '../services/api';
 import MapModal from '../components/MapModal';
 import ChatModal from '../components/ChatModal';
 import RatingModal from '../components/RatingModal';
+import AICoordinatorBrief from '../components/AICoordinatorBrief';
+import AIExplanation from '../components/AIExplanation';
+import AICompletenessCheck from '../components/AICompletenessCheck';
+import AI from '../services/ai';
 import { useDebounce } from 'use-debounce';
 
 // Local Listing type to avoid cross-package path issues in this minimal scaffold
@@ -13,20 +18,95 @@ type Listing = {
   title: string;
   description?: string | null;
   quantity?: number;
+  category?: string;
+  is_urgent?: boolean;
   created_at?: string;
   location_wkt?: string;
   location?: { lat: number; lon: number } | string;
+  owner_id?: number;
+  owner_name?: string;
+  owner_email?: string;
+  org_name?: string;
+  org_verified?: boolean;
+  average_rating?: number;
+  total_ratings?: number;
 };
 
+const LISTING_CATEGORIES = ['general', 'medication', 'equipment', 'supplies', 'other'] as const;
+type ListingCategory = typeof LISTING_CATEGORIES[number];
+
+const DEMO_COORDS = { lat: -1.286389, lon: 36.817223 };
+const DEMO_LOCATIONS = [
+  { label: 'Kenyatta National Hospital', detail: 'Upper Hill supply hub', lat: -1.3018, lon: 36.8073 },
+  { label: 'Kibera South Health Centre', detail: 'Urgent community care need', lat: -1.3151, lon: 36.7858 },
+  { label: 'Mbagathi County Hospital', detail: 'Available equipment site', lat: -1.3088, lon: 36.8099 },
+  { label: 'Mama Lucy Kibaki Hospital', detail: 'Verified county facility', lat: -1.2617, lon: 36.8944 },
+  { label: 'Mathare North Health Centre', detail: 'High-priority medication need', lat: -1.2522, lon: 36.8648 },
+  { label: 'Nairobi County Operations Center', detail: 'Demo coordinator point', lat: DEMO_COORDS.lat, lon: DEMO_COORDS.lon },
+];
+
+const DEMO_MAP_LISTINGS: Listing[] = [
+  {
+    id: -101,
+    title: 'Surplus nitrile gloves',
+    description: 'Facility A has unopened gloves ready for redistribution.',
+    quantity: 800,
+    category: 'supplies',
+    is_urgent: false,
+    org_name: 'Kenyatta National Hospital',
+    org_verified: true,
+    location_wkt: 'POINT(36.8073 -1.3018)',
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: -102,
+    title: 'Urgent wound-care supplies needed',
+    description: 'Facility B reports an immediate dressing and bandage shortfall.',
+    quantity: 120,
+    category: 'supplies',
+    is_urgent: true,
+    org_name: 'Kibera South Health Centre',
+    org_verified: false,
+    location_wkt: 'POINT(36.7858 -1.3151)',
+    created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+  },
+  {
+    id: -103,
+    title: 'Portable oxygen concentrator available',
+    description: 'Facility C has working equipment available for short-term transfer.',
+    quantity: 2,
+    category: 'equipment',
+    is_urgent: false,
+    org_name: 'Mbagathi County Hospital',
+    org_verified: true,
+    location_wkt: 'POINT(36.8099 -1.3088)',
+    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: -104,
+    title: 'Emergency medication stock request',
+    description: 'Facility D is farther away but verified and marked urgent.',
+    quantity: 60,
+    category: 'medication',
+    is_urgent: true,
+    org_name: 'Mama Lucy Kibaki Hospital',
+    org_verified: true,
+    location_wkt: 'POINT(36.8944 -1.2617)',
+    created_at: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
+  },
+];
+
 export default function Dashboard() {
+  const location = useLocation();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loadingListings, setLoadingListings] = useState(false);
-  const [tab, setTab] = useState<'overview'|'create'|'browse'|'suggested'|'messages'|'account'|'admin'>('overview');
+  const [tab, setTab] = useState<'overview'|'create'|'browse'|'suggested'|'map'|'messages'|'account'|'admin'>('overview');
   const { user } = useAuth();
   const role = user?.role;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState<number>(1);
+  const [category, setCategory] = useState<ListingCategory>('general');
   const [isUrgent, setIsUrgent] = useState(false);
   const [lat, setLat] = useState<string>('');
   const [lon, setLon] = useState<string>('');
@@ -43,7 +123,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{title?:string; lat?:string; lon?:string}>({});
-  const [userCoords, setUserCoords] = useState<{lat:number; lon:number} | null>(null);
+  const [userCoords, setUserCoords] = useState<{lat:number; lon:number} | null>(DEMO_COORDS);
   const [filterText, setFilterText] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'nearest'>('newest');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -79,23 +159,47 @@ export default function Dashboard() {
     const c = 2*Math.atan2(Math.sqrt(aa), Math.sqrt(1-aa));
     return R*c;
   }
+  function applyDemoLocation(place: typeof DEMO_LOCATIONS[number]) {
+    setLat(String(place.lat));
+    setLon(String(place.lon));
+    setLocationQuery(`${place.label} - ${place.detail}`);
+    setSuggestions([]);
+    setFieldErrors(prev => ({ ...prev, lat: undefined, lon: undefined }));
+  }
   const [mapOpen, setMapOpen] = useState<{lat:number; lon:number; title?:string} | null>(null);
 
   useEffect(() => {
-    if (!debouncedLocationQuery) {
+    const params = new URLSearchParams(location.search);
+    const demoTab = params.get('demoTab');
+    if (demoTab && ['overview','create','browse','suggested','map','messages','account','admin'].includes(demoTab)) {
+      setTab(demoTab as any);
+    }
+
+    const query = debouncedLocationQuery.trim().toLowerCase();
+    if (!query) {
       setSuggestions([]);
       return;
     }
 
     const fetchSuggestions = async () => {
       setIsSuggestionsLoading(true);
+      const localMatches = DEMO_LOCATIONS
+        .filter(place => `${place.label} ${place.detail}`.toLowerCase().includes(query))
+        .map(place => ({
+          place_id: `demo-${place.label}`,
+          lat: String(place.lat),
+          lon: String(place.lon),
+          display_name: `${place.label} - ${place.detail}`,
+          isDemoPreset: true,
+        }));
+      setSuggestions(localMatches);
       try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(debouncedLocationQuery)}&format=json&limit=5`);
         const data = await response.json();
-        setSuggestions(data);
+        setSuggestions([...localMatches, ...data]);
       } catch (error) {
         console.error('Error fetching location suggestions:', error);
-        setSuggestions([]);
+        setSuggestions(localMatches);
       } finally {
         setIsSuggestionsLoading(false);
       }
@@ -105,12 +209,12 @@ export default function Dashboard() {
   }, [debouncedLocationQuery]);
 
   useEffect(() => {
-    if (tab !== 'browse') return;
+    if (!['overview', 'browse', 'map'].includes(tab)) return;
     let cancelled = false;
     (async () => {
       setLoadingListings(true);
       try {
-  const res = await API.get('/listings');
+        const res = await API.get('/listings');
         if (!cancelled) setListings(res.data);
       } catch (e: any) {
         if (!cancelled) setError('Failed to load listings');
@@ -141,6 +245,7 @@ export default function Dashboard() {
         title,
         description,
         quantity,
+        category,
         is_urgent: isUrgent,
         location: { lat: latNum, lon: lonNum }
       };
@@ -150,9 +255,11 @@ export default function Dashboard() {
       setTitle('');
       setDescription('');
       setQuantity(1);
+      setCategory('general');
       setIsUrgent(false);
       setLat('');
       setLon('');
+      setLocationQuery('');
       setFieldErrors({});
       setSuccess('Listing created');
       toast.success('Listing created');
@@ -168,12 +275,12 @@ export default function Dashboard() {
     e.preventDefault();
     if (!editingId) return;
     try {
-      const payload: any = { title, description, quantity };
-  const res = await API.patch(`/listings?id=eq.${editingId}`, payload);
-  setListings(prev => prev.map(l => (l.id === editingId ? { ...l, ...res.data } : l)));
+      const payload: any = { title, description, quantity, category };
+      const res = await API.put(`/listings/${editingId}`, payload);
+      setListings(prev => prev.map(l => (l.id === editingId ? { ...l, ...res.data } : l)));
       toast.success('Listing updated');
       setEditingId(null);
-      setTitle(''); setDescription(''); setQuantity(1); setLat(''); setLon('');
+      setTitle(''); setDescription(''); setQuantity(1); setCategory('general'); setLat(''); setLon(''); setLocationQuery('');
       setTab('browse');
     } catch (err: any) {
       toast.error(err?.response?.data?.error || 'Update failed');
@@ -182,7 +289,7 @@ export default function Dashboard() {
 
   async function removeListing(id: number) {
     try {
-  await API.delete(`/listings?id=eq.${id}`);
+      await API.delete(`/listings/${id}`);
       setListings(prev => prev.filter(l => l.id !== id));
       toast.success('Listing deleted');
     } catch (err: any) {
@@ -190,51 +297,116 @@ export default function Dashboard() {
     }
   }
 
+  const listingsForSnapshot = listings.length ? listings : DEMO_MAP_LISTINGS;
+  const listingsWithDistance = listingsForSnapshot
+    .map(l => {
+      const coords = extractLatLon((l as any).location_wkt || (l as any).location || '');
+      const distanceKm = userCoords && coords.lat != null && coords.lon != null
+        ? haversineKm(userCoords, { lat: coords.lat!, lon: coords.lon! })
+        : undefined;
+      return { listing: l, coords, distanceKm };
+    })
+    .filter(item => item.coords.lat != null && item.coords.lon != null);
+  const nearestListing = listingsWithDistance
+    .filter(item => typeof item.distanceKm === 'number')
+    .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity))[0];
+  const averageRadius = listingsWithDistance.length
+    ? listingsWithDistance.reduce((sum, item) => sum + (item.distanceKm ?? 0), 0) / listingsWithDistance.length
+    : 0;
+  const recentActivity = listingsForSnapshot.filter(l => {
+    if (!l.created_at) return false;
+    return Date.now() - new Date(l.created_at).getTime() < 7 * 24 * 60 * 60 * 1000;
+  }).length;
+  const verifiedOrgs = new Set(
+    listingsForSnapshot
+      .filter(l => (l as any).org_verified)
+      .map(l => (l as any).org_name || (l as any).owner_name || (l as any).owner_id || l.id)
+  ).size;
+  const urgentNeeds = listingsForSnapshot.filter(l => (l as any).is_urgent).length;
+  const availableSupplies = Math.max(0, listingsForSnapshot.length - urgentNeeds);
+
   return (
     <div>
-      <div className="hero bg-image" style={{ marginBottom: 12, ['--hero-bg' as any]: 'url(/images/pic-3.jpeg)' }}>
-        <div className="hero-copy glass-card">
-          <div className="heading" style={{ marginTop: 0 }}>Dashboard</div>
-          <div className="muted" style={{ maxWidth: 640 }}>Manage your listings, explore nearby posts, and connect with others. Your organization’s reputation helps build trust.</div>
+      <div className="hero bg-image command-dashboard-hero" style={{ marginBottom: 12, ['--hero-bg' as any]: 'url(/images/pic-3.jpeg)' }}>
+        <div className="hero-copy">
+          <span className="demo-pill" style={{ marginBottom: 10 }}>Conference demo — synthetic data</span>
+          <div className="heading" style={{ marginTop: 0 }}>Redistribution Command Center</div>
+          <div className="muted" style={{ maxWidth: 680 }}>This view uses synthetic demo data for a Nairobi County case study — no real patient or facility data is included.</div>
         </div>
       </div>
-      <div style={{ display:'flex', gap:8, marginBottom: 14 }}>
+      <div className="research-banner" style={{ marginBottom: 14 }}>
+        <strong>Conference Demo Mode:</strong> Synthetic demo data only — no real patient or facility data is included.
+      </div>
+      <div style={{ display:'flex', gap:8, marginBottom: 14, flexWrap: 'wrap' }}>
         <button className={`btn ${tab==='overview'?'btn-primary':''}`} onClick={()=>setTab('overview')}>Overview</button>
         {role !== 'admin' && (
-          <button className={`btn ${tab==='create'?'btn-primary':''}`} onClick={()=>setTab('create')}>Create</button>
+          <button className={`btn ${tab==='create'?'btn-primary':''}`} onClick={()=>setTab('create')}>Post Supply / Need</button>
         )}
         <button className={`btn ${tab==='browse'?'btn-primary':''}`} onClick={()=>setTab('browse')}>Browse</button>
-        <button className={`btn ${tab==='suggested'?'btn-primary':''}`} onClick={()=>setTab('suggested')}>Suggested</button>
+        <button className={`btn ${tab==='suggested'?'btn-primary':''}`} onClick={()=>setTab('suggested')}>Priority Matches</button>
+        <button className={`btn ${tab==='map'?'btn-primary':''}`} onClick={()=>setTab('map')}>Map</button>
         <button className={`btn ${tab==='messages'?'btn-primary':''}`} onClick={()=>setTab('messages')}>Messages</button>
         <button className={`btn ${tab==='account'?'btn-primary':''}`} onClick={()=>setTab('account')}>Account</button>
         {role === 'admin' && (
-          <button className={`btn ${tab==='admin'?'btn-primary':''}`} onClick={()=>setTab('admin')}>Admin</button>
+          <button className={`btn ${tab==='admin'?'btn-primary':''}`} onClick={()=>setTab('admin')}>Coordinator Review</button>
         )}
       </div>
 
       {tab==='overview' && (
-        <section className="card" style={{ marginBottom: 20 }}>
-          <div className="subtle" style={{ marginBottom: 8 }}>What would you like to do?</div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
-            <div className="card">
-              <strong>Create a listing</strong>
-              <p className="muted">Post available medical supplies with quantity and location.</p>
-              <button className="btn btn-primary" onClick={()=>setTab('create')}>Create</button>
+        <section style={{ marginBottom: 20 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+            <div>
+              <div className="heading" style={{ marginBottom: 4 }}>Today&apos;s Redistribution Snapshot</div>
+              <div className="muted-small">Live listing signals ranked around the Nairobi County demo coordinator point. Demo Data — synthetic Nairobi County scenario.</div>
             </div>
-            <div className="card">
-              <strong>Browse listings</strong>
-              <p className="muted">See what’s available nearby. Listings load when you open Browse.</p>
-              <button className="btn btn-primary" onClick={()=>setTab('browse')}>Browse</button>
+            {loadingListings && <span className="muted-small">Refreshing snapshot...</span>}
+          </div>
+          <div className="snapshot-grid">
+            <div className="metric-card alert">
+              <span>Urgent needs</span>
+              <strong>{urgentNeeds}</strong>
+              <small>Marked for immediate redistribution</small>
             </div>
-            <div className="card">
-              <strong>Account</strong>
-              <p className="muted">Manage your profile and settings.</p>
-              <button className="btn btn-primary" onClick={()=>setTab('account')}>Open Account</button>
+            <div className="metric-card supply">
+              <span>Available supplies</span>
+              <strong>{availableSupplies}</strong>
+              <small>Open supply-side listings</small>
             </div>
-            {role === 'admin' && (
-              <div className="card">
-                <strong>Export report</strong>
-                <p className="muted">Download CSV admin summary of users, listings, and categories.</p>
+            <div className="metric-card">
+              <span>Nearest match</span>
+              <strong>{nearestListing?.distanceKm != null ? `${nearestListing.distanceKm.toFixed(1)} km` : 'Set location'}</strong>
+              <small>{nearestListing?.listing.title || 'Using Nairobi demo center'}</small>
+            </div>
+            <div className="metric-card trust">
+              <span>Verified organizations</span>
+              <strong>{verifiedOrgs}</strong>
+              <small>Trusted facilities in active flow</small>
+            </div>
+            <div className="metric-card">
+              <span>Average match radius</span>
+              <strong>{averageRadius ? `${averageRadius.toFixed(1)} km` : '0 km'}</strong>
+              <small>Across visible geospatial listings</small>
+            </div>
+            <div className="metric-card">
+              <span>Recent activity</span>
+              <strong>{recentActivity}</strong>
+              <small>Listings updated in the last 7 days</small>
+            </div>
+          </div>
+          {/* AI-assisted coordinator brief (local, deterministic prototype) */}
+          <AICoordinatorBrief
+            stats={{ urgentNeeds, availableSupplies, verifiedOrgs, averageRadius, recentActivity }}
+            topListing={nearestListing?.listing}
+          />
+          <div className="command-strip" style={{ marginTop: 14 }}>
+            <div>
+              <strong>Coordinate the next redistribution decision</strong>
+              <div className="muted-small">Open the map or priority queue to inspect proximity, urgency, trust, and supply adequacy together.</div>
+            </div>
+            <div style={{ display:'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" onClick={()=>setTab('map')}>Open Redistribution Map</button>
+              <button className="btn btn-outline" onClick={()=>setTab('suggested')}>View Priority Matches</button>
+              {role === 'admin' && (
                 <button className="btn" onClick={async ()=>{
                   try {
                     const res = await API.get('/admin/reports/summary.csv', { responseType: 'blob' });
@@ -248,16 +420,16 @@ export default function Dashboard() {
                   } catch (e:any) {
                     toast.error(e?.response?.data?.error || 'Failed to download report');
                   }
-                }}>Download CSV</button>
-              </div>
-            )}
+                }}>Export Report</button>
+              )}
+            </div>
           </div>
         </section>
       )}
 
   {tab==='create' && role !== 'admin' && (
       <section className="card" style={{ marginBottom: 20 }}>
-        <div className="subtle" style={{ marginBottom: 8 }}>{editingId ? 'Edit Listing' : 'Create Listing'}</div>
+        <div className="subtle" style={{ marginBottom: 8 }}>{editingId ? 'Edit Listing' : 'Post Supply / Need'}</div>
         <p className="muted" style={{ marginTop: 0 }}>Provide a clear title, optional description, quantity, and where the items are located.</p>
         <form onSubmit={editingId ? saveEdit : createListing} style={{ maxWidth: 560 }}>
           <div className="form-group">
@@ -272,6 +444,14 @@ export default function Dashboard() {
           <div className="form-group">
             <label>Quantity</label>
             <input type="number" value={quantity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(Math.max(1, Number(e.target.value)))} min={1} step={1} />
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <select value={category} onChange={e => setCategory(e.target.value as ListingCategory)}>
+              {LISTING_CATEGORIES.map(c => (
+                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+              ))}
+            </select>
           </div>
           <div className="form-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
@@ -316,6 +496,20 @@ export default function Dashboard() {
                   }}>Use my organization's address</button>
                 )}
               </div>
+              <div style={{ marginTop: 8 }}>
+                <select
+                  value=""
+                  onChange={e => {
+                    const place = DEMO_LOCATIONS.find(p => p.label === e.target.value);
+                    if (place) applyDemoLocation(place);
+                  }}
+                >
+                  <option value="">Research demo location presets</option>
+                  {DEMO_LOCATIONS.map(place => (
+                    <option key={place.label} value={place.label}>{place.label} - {place.detail}</option>
+                  ))}
+                </select>
+              </div>
               {isSuggestionsLoading && <div className="muted-small" style={{ marginTop: 4 }}>Searching...</div>}
               {suggestions.length > 0 && (
                 <div style={{ border: '1px solid var(--card-border)', borderRadius: 'var(--radius-sm)', marginTop: 6 }}>
@@ -340,9 +534,11 @@ export default function Dashboard() {
           )}
           {error && <div className="text-danger" style={{ marginTop: 8 }}>{error}</div>}
           {success && <div className="success" style={{ marginTop: 8 }}>{success}</div>}
+          {/* AI completeness check for the post form */}
+          <AICompletenessCheck title={title} description={description} quantity={quantity} category={category} lat={lat} lon={lon} />
           <div style={{ marginTop: 12 }}>
-            <button className="btn btn-primary" type="submit" disabled={!title.trim() || (!editingId && (lat==='' || lon===''))}>{editingId ? 'Save' : 'Create'}</button>
-            {editingId && <button type="button" className="btn" style={{ marginLeft: 8 }} onClick={() => { setEditingId(null); setTitle(''); setDescription(''); setQuantity(1); setLat(''); setLon(''); }}>Cancel</button>}
+            <button className="btn btn-primary" type="submit" disabled={!title.trim() || (!editingId && (lat==='' || lon===''))}>{editingId ? 'Save' : 'Post Supply / Need'}</button>
+            {editingId && <button type="button" className="btn" style={{ marginLeft: 8 }} onClick={() => { setEditingId(null); setTitle(''); setDescription(''); setQuantity(1); setCategory('general'); setLat(''); setLon(''); setLocationQuery(''); }}>Cancel</button>}
           </div>
         </form>
       </section>
@@ -543,7 +739,7 @@ export default function Dashboard() {
                       </button>
                       {isOwner && (
                         <>
-                          <button className="btn btn-outline" onClick={() => { setEditingId(l.id); setTitle(l.title); setDescription(l.description || ''); setQuantity((l as any).quantity ?? 1); setTab('create'); }}>Edit</button>
+                          <button className="btn btn-outline" onClick={() => { setEditingId(l.id); setTitle(l.title); setDescription(l.description || ''); setQuantity((l as any).quantity ?? 1); setCategory(((l as any).category || 'general') as ListingCategory); setTab('create'); }}>Edit</button>
                           <button className="btn btn-ghost" onClick={() => removeListing(l.id)}>Delete</button>
                         </>
                       )}
@@ -599,10 +795,22 @@ export default function Dashboard() {
           recRadius={recRadius}
           setRecRadius={setRecRadius}
           onOpenMap={(lat:number, lon:number, title?:string)=> setMapOpen({ lat, lon, title })}
+          onOpenShowcaseMap={()=>setTab('map')}
           onOpenChat={(otherUserId:number, otherUserName:string, listingId?:number)=> setChatOpen({ otherUserId, otherUserName, listingId } as any)}
           onOpenRate={(userId:number, userName:string, listingId?:number)=> setRatingOpen({ userId, userName, listingId })}
           favorites={favorites}
           toggleFavorite={toggleFavorite}
+        />
+      )}
+
+      {tab==='map' && (
+        <RedistributionMapSection
+          listings={listings.length ? listings : DEMO_MAP_LISTINGS}
+          recs={recs}
+          userCoords={userCoords || DEMO_COORDS}
+          onUseDemoCenter={() => setUserCoords(DEMO_COORDS)}
+          onOpenListingMap={(lat:number, lon:number, title?:string)=> setMapOpen({ lat, lon, title })}
+          onOpenPriorityMatches={() => setTab('suggested')}
         />
       )}
 
@@ -761,7 +969,22 @@ function AdminSection() {
   const l = await API.get('/admin/listings');
   setListings(l.data);
       } catch (e: any) {
-        setErr(e?.response?.data?.error || 'Failed to load admin data');
+        const msg = e?.response?.data?.error || 'Failed to load admin data';
+        setErr(msg);
+        // Fallback to demo data when running the conference demo (query param present)
+        try {
+          if (typeof window !== 'undefined' && window.location?.search?.includes('demo')) {
+            setStats({ users: 2, listings: 2, matches: 0 });
+            setUsers([
+              { id: 1, email: 'test@example.com', name: 'Test User', role: 'user', org_name: 'Kenyatta National Hospital', org_verified: true },
+              { id: 2, email: 'lesnar@admin.com', name: 'MediMatch Admin', role: 'admin', org_name: 'MediMatch Coordination Desk', org_verified: true },
+            ]);
+            setListings([
+              { id: 1, owner_id: 1, title: 'Surplus nitrile gloves', category: 'supplies', quantity: 800, is_hidden: false, created_at: new Date().toISOString() },
+              { id: 2, owner_id: 1, title: 'Urgent wound-care supplies needed', category: 'supplies', quantity: 120, is_hidden: false, created_at: new Date().toISOString() },
+            ]);
+          }
+        } catch {}
       }
     })();
   }, []);
@@ -1004,14 +1227,16 @@ function SuggestedSection(props: {
   recRadius: number;
   setRecRadius: (v:number)=>void;
   onOpenMap: (lat:number, lon:number, title?:string)=>void;
+  onOpenShowcaseMap: ()=>void;
   onOpenChat: (otherUserId:number, otherUserName:string, listingId?:number)=>void;
   onOpenRate: (userId:number, userName:string, listingId?:number)=>void;
   favorites: number[];
   toggleFavorite: (id:number)=>void;
 }) {
-  const { userCoords, setUserCoords, recs, setRecs, loadingRecs, setLoadingRecs, recCategory, setRecCategory, recRadius, setRecRadius, onOpenMap, onOpenChat, onOpenRate, favorites, toggleFavorite } = props;
+  const { userCoords, setUserCoords, recs, setRecs, loadingRecs, setLoadingRecs, recCategory, setRecCategory, recRadius, setRecRadius, onOpenMap, onOpenShowcaseMap, onOpenChat, onOpenRate, favorites, toggleFavorite } = props;
   const { user } = useAuth();
   const [error, setError] = useState<string|null>(null);
+  const [explanations, setExplanations] = useState<Record<number,string|undefined>>({});
   const [lastFetched, setLastFetched] = useState<number>(0);
   const [autoRefresh, setAutoRefresh] = useState(false);
 
@@ -1032,24 +1257,41 @@ function SuggestedSection(props: {
     }
   }
 
-  useEffect(() => { fetchRecs(); /* initial */ }, []);
+  useEffect(() => { fetchRecs(); }, [userCoords?.lat, userCoords?.lon, recCategory, recRadius]);
   useEffect(() => {
     if (!autoRefresh) return;
     const iv = setInterval(() => fetchRecs(), 15000);
     return () => clearInterval(iv);
   }, [autoRefresh, userCoords, recCategory, recRadius]);
 
+  // If demo URL requests AI explanation, prefetch for the top suggestion
+  useEffect(() => {
+    if (!window.location.search.includes('ai_explain_demo')) return;
+    if (!recs || recs.length === 0) return;
+    (async () => {
+      try {
+        const first = recs[0];
+        setExplanations(prev => ({ ...prev, [first.id]: 'Loading…' }));
+        const t = await AI.explainMatch(first);
+        setExplanations(prev => ({ ...prev, [first.id]: t }));
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, [recs]);
+
   return (
     <section className="card">
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 12 }}>
         <div>
-          <div className="subtle">Suggested Listings</div>
-          <div className="muted-small">Ranked by distance, urgency, reputation, recency, verification, category match & quantity</div>
+          <div className="subtle">Priority Redistribution Matches</div>
+          <div className="muted-small">Ranked by proximity, need severity, trust, recency, verification, category fit, and supply adequacy</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <label style={{ display:'flex', alignItems:'center', gap:4, fontSize:'0.75rem' }}>
             <input type="checkbox" checked={autoRefresh} onChange={e=>setAutoRefresh(e.target.checked)} /> Auto refresh
           </label>
+          <button className="btn btn-outline" onClick={onOpenShowcaseMap}>Open Map</button>
           <button className="btn btn-outline" onClick={fetchRecs} disabled={loadingRecs}>{loadingRecs? 'Loading…':'Refresh'}</button>
         </div>
       </div>
@@ -1075,6 +1317,7 @@ function SuggestedSection(props: {
             () => toast.error('Could not get location')
           );
         }}>{userCoords ? 'Location set' : 'Use my location'}</button>
+        <button className="btn btn-outline" onClick={() => setUserCoords(DEMO_COORDS)}>Use demo center</button>
         <div className="muted-small" style={{ alignSelf:'center' }}>{lastFetched ? `Updated ${new Date(lastFetched).toLocaleTimeString()}` : ''}</div>
       </div>
       {error && <div className="text-danger" style={{ marginBottom: 8 }}>{error}</div>}
@@ -1088,26 +1331,38 @@ function SuggestedSection(props: {
             return Number.isFinite(n) ? n : 0;
           };
           const fav = favorites.includes(r.id);
-          // Score breakdown
+          const score = toNum(r.score);
+          const distanceKm = toNum(r.distance_km);
+          const reasonParts = [
+            distanceKm > 0 ? `is within ${distanceKm.toFixed(1)} km` : null,
+            r.is_urgent ? 'is marked urgent' : null,
+            recCategory !== 'all' && r.category === recCategory ? 'is category-matched' : null,
+            r.org_verified ? 'was posted by a verified organization' : null,
+            r.quantity != null ? `has supply adequacy of ${r.quantity} unit${Number(r.quantity) === 1 ? '' : 's'}` : null,
+          ].filter(Boolean);
+          const reason = reasonParts.length
+            ? `Recommended because it ${reasonParts.join(', ')}.`
+            : 'Recommended because its combined redistribution signals rank above the current queue.';
           const components = [
-            { key: 'c_distance', label: 'Distance', weight: 0.35 },
-            { key: 'c_urgency', label: 'Urgency', weight: 0.20 },
-            { key: 'c_reputation', label: 'Reputation', weight: 0.20 },
+            { key: 'c_distance', label: 'Proximity advantage', weight: 0.35 },
+            { key: 'c_urgency', label: 'Need severity', weight: 0.20 },
+            { key: 'c_reputation', label: 'Facility trust signal', weight: 0.20 },
             { key: 'c_recency', label: 'Recency', weight: 0.15 },
-            { key: 'c_verified', label: 'Verification', weight: 0.05 },
-            { key: 'c_category', label: 'Category', weight: 0.04 },
-            { key: 'c_quantity', label: 'Quantity', weight: 0.01 },
+            { key: 'c_verified', label: 'Organization verification', weight: 0.05 },
+            { key: 'c_category', label: 'Category match', weight: 0.04 },
+            { key: 'c_quantity', label: 'Supply adequacy', weight: 0.01 },
           ];
           return (
             <div key={r.id} className="listing-item">
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}>
                 <strong>{r.title}</strong>
-                <span className="muted-small">Score: {toNum(r.score).toFixed(3)}</span>
+                <span className="priority-score">Redistribution Priority Score {Math.round(score * 100)}</span>
               </div>
               <div className="muted" style={{ marginBottom: 4 }}>{r.description || 'no description'}</div>
+              <div className="match-reason">{reason}</div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
                 {r.is_urgent && <span className="badge" style={{ background:'linear-gradient(135deg,#ef4444,#dc2626)', color:'#fff' }}>URGENT</span>}
-                {Number.isFinite(toNum(r.distance_km)) && toNum(r.distance_km) > 0 && <span className="chip">{toNum(r.distance_km).toFixed(1)} km</span>}
+                {Number.isFinite(distanceKm) && distanceKm > 0 && <span className="chip">{distanceKm.toFixed(1)} km</span>}
                 {r.quantity != null && <span className="chip">Qty: {r.quantity}</span>}
                 {r.org_verified && <span className="badge" style={{ background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff' }}>✓ Verified</span>}
                 {r.average_rating > 0 && (
@@ -1115,13 +1370,13 @@ function SuggestedSection(props: {
                 )}
               </div>
               <details style={{ marginBottom: 8 }}>
-                <summary className="muted-small" style={{ cursor:'pointer' }}>Score breakdown</summary>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:8, marginTop:8 }}>
+                <summary className="muted-small" style={{ cursor:'pointer' }}>Model signal breakdown</summary>
+                <div className="score-grid">
                   {components.map(c => (
-                    <div key={c.key} className="card" style={{ padding:'6px 8px' }}>
-                      <div style={{ fontSize:'0.75rem', fontWeight:600 }}>{c.label}</div>
-                      <div style={{ fontSize:'0.7rem' }}>comp: {toNum(r[c.key]).toFixed(2)}</div>
-                      <div style={{ fontSize:'0.7rem' }}>weighted: {(toNum(r[c.key]) * c.weight).toFixed(3)}</div>
+                    <div key={c.key} className="score-component">
+                      <div style={{ fontSize:'0.75rem', fontWeight:700 }}>{c.label}</div>
+                      <div className="score-bar"><span style={{ width: `${Math.round(toNum(r[c.key]) * 100)}%` }} /></div>
+                      <div style={{ fontSize:'0.7rem' }}>{toNum(r[c.key]).toFixed(2)} signal | {(toNum(r[c.key]) * c.weight).toFixed(3)} weighted</div>
                     </div>
                   ))}
                 </div>
@@ -1133,6 +1388,16 @@ function SuggestedSection(props: {
                     if (m) { const lon = Number(m[1]); const lat = Number(m[2]); onOpenMap(lat, lon, r.title); }
                   }}>Map</button>
                 )}
+                <button className="btn btn-outline" onClick={async () => {
+                  try {
+                    if (explanations[r.id]) { setExplanations(prev => ({ ...prev, [r.id]: undefined })); return; }
+                    setExplanations(prev => ({ ...prev, [r.id]: 'Loading…' }));
+                    const text = await AI.explainMatch(r);
+                    setExplanations(prev => ({ ...prev, [r.id]: text }));
+                  } catch (e) {
+                    setExplanations(prev => ({ ...prev, [r.id]: 'Failed to generate explanation' }));
+                  }
+                }}>{explanations[r.id] ? 'Hide explanation' : 'Why this match?'}</button>
                 <button className={`btn ${fav ? 'btn-primary':'btn-outline'}`} onClick={()=>toggleFavorite(r.id)}>{fav? 'Saved':'Save'}</button>
                 {r.owner_id && (
                   <>
@@ -1141,9 +1406,147 @@ function SuggestedSection(props: {
                   </>
                 )}
               </div>
+              {explanations[r.id] && (
+                <div style={{ marginTop: 8 }}>
+                  <AIExplanation text={explanations[r.id] as string} />
+                </div>
+              )}
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function parseListingCoords(listing: any): { lat: number; lon: number } | null {
+  const value = listing.location_wkt || listing.location || '';
+  if (value && typeof value === 'object' && value.lat != null && value.lon != null) {
+    return { lat: Number(value.lat), lon: Number(value.lon) };
+  }
+  const match = String(value).match(/POINT\(([-\d\.]+)\s+([-\d\.]+)\)/i);
+  if (!match) return null;
+  return { lon: Number(match[1]), lat: Number(match[2]) };
+}
+
+function RedistributionMapSection(props: {
+  listings: Listing[];
+  recs: any[];
+  userCoords: { lat: number; lon: number };
+  onUseDemoCenter: () => void;
+  onOpenListingMap: (lat: number, lon: number, title?: string) => void;
+  onOpenPriorityMatches: () => void;
+}) {
+  const { listings, recs, userCoords, onUseDemoCenter, onOpenListingMap, onOpenPriorityMatches } = props;
+  const points = listings
+    .map(listing => {
+      const coords = parseListingCoords(listing);
+      if (!coords) return null;
+      return { listing, ...coords, isNeed: Boolean((listing as any).is_urgent) };
+    })
+    .filter(Boolean) as Array<{ listing: Listing; lat: number; lon: number; isNeed: boolean }>;
+
+  const lats = [...points.map(p => p.lat), userCoords.lat];
+  const lons = [...points.map(p => p.lon), userCoords.lon];
+  const minLat = Math.min(...lats) - 0.01;
+  const maxLat = Math.max(...lats) + 0.01;
+  const minLon = Math.min(...lons) - 0.01;
+  const maxLon = Math.max(...lons) + 0.01;
+  const project = (lat: number, lon: number) => ({
+    x: 8 + ((lon - minLon) / Math.max(0.001, maxLon - minLon)) * 84,
+    y: 8 + ((maxLat - lat) / Math.max(0.001, maxLat - minLat)) * 84,
+  });
+
+  const supplies = points.filter(p => !p.isNeed);
+  const needs = points.filter(p => p.isNeed);
+  const distance = (a: {lat:number; lon:number}, b: {lat:number; lon:number}) => {
+    const toRad = (d:number)=>d*Math.PI/180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lon - a.lon);
+    const aa = Math.sin(dLat/2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon/2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+  };
+  const bestPair = supplies.flatMap(supply => needs.map(need => {
+    const sameCategory = (supply.listing as any).category && (supply.listing as any).category === (need.listing as any).category;
+    const km = distance(supply, need);
+    const priority = km - (sameCategory ? 6 : 0) - ((supply.listing as any).org_verified ? 2 : 0);
+    return { supply, need, sameCategory, km, priority };
+  })).sort((a, b) => a.priority - b.priority)[0];
+
+  const topRecommendation = recs[0] || bestPair?.need?.listing || points[0]?.listing;
+  const topRecommendationCoords = topRecommendation ? parseListingCoords(topRecommendation) : null;
+  const centerPoint = project(userCoords.lat, userCoords.lon);
+  const lineStart = bestPair ? project(bestPair.supply.lat, bestPair.supply.lon) : centerPoint;
+  const lineEnd = bestPair ? project(bestPair.need.lat, bestPair.need.lon) : topRecommendationCoords ? project(topRecommendationCoords.lat, topRecommendationCoords.lon) : null;
+
+  return (
+    <section>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div className="heading" style={{ marginBottom: 4 }}>Redistribution Map</div>
+          <div className="muted-small">Nairobi County demo region with supply points, urgent needs, and the current top transfer line.</div>
+        </div>
+        <div style={{ display:'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="btn btn-outline" onClick={onUseDemoCenter}>Use demo center</button>
+          <button className="btn btn-primary" onClick={onOpenPriorityMatches}>Priority Matches</button>
+        </div>
+      </div>
+      <div className="redistribution-map-shell">
+        <div className="redistribution-map">
+          <svg className="map-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            {lineEnd && (
+              <line
+                x1={lineStart.x}
+                y1={lineStart.y}
+                x2={lineEnd.x}
+                y2={lineEnd.y}
+                stroke="rgba(11,95,255,0.82)"
+                strokeWidth="0.9"
+                strokeDasharray="2 1.8"
+              />
+            )}
+          </svg>
+          <button
+            className="map-marker coordinator"
+            style={{ left: `${centerPoint.x}%`, top: `${centerPoint.y}%` }}
+            title="Nairobi County Operations Center"
+          />
+          {points.map(point => {
+            const pos = project(point.lat, point.lon);
+            const markerClass = point.isNeed ? 'need' : 'supply';
+            return (
+              <button
+                key={point.listing.id}
+                className={`map-marker ${markerClass}`}
+                style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                title={point.listing.title}
+                onClick={() => onOpenListingMap(point.lat, point.lon, point.listing.title)}
+              />
+            );
+          })}
+          <div className="map-region-label">Nairobi County Demo Region</div>
+        </div>
+        <aside className="map-side-panel">
+          <div className="subtle">Top Recommendation</div>
+          <h3>{topRecommendation?.title || 'No active recommendation'}</h3>
+          <p className="muted">
+            {bestPair
+              ? `${bestPair.supply.listing.title} can support ${bestPair.need.listing.title} across ${bestPair.km.toFixed(1)} km${bestPair.sameCategory ? ' with a category match' : ''}.`
+              : topRecommendation
+                ? 'The highest-ranked visible listing is ready for coordinator review.'
+                : 'Create listings to populate the live redistribution map.'}
+          </p>
+          <div className="chips">
+            <span className="chip"><span className="dot" /> {supplies.length} supply point{supplies.length === 1 ? '' : 's'}</span>
+            <span className="chip warn"><span className="dot" /> {needs.length} urgent need{needs.length === 1 ? '' : 's'}</span>
+            {bestPair && <span className="chip"><span className="dot" /> {bestPair.km.toFixed(1)} km route</span>}
+          </div>
+          <div className="map-legend">
+            <span><i className="legend-dot supply" /> Available supply</span>
+            <span><i className="legend-dot need" /> Urgent need</span>
+            <span><i className="legend-dot coordinator" /> Coordinator point</span>
+          </div>
+        </aside>
       </div>
     </section>
   );
