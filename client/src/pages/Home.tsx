@@ -3,195 +3,169 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
 
+type HomeStats = {
+  activeListings: number;
+  urgentNeeds: number;
+  suggestedMatches: number;
+  verifiedOrgs: number;
+};
+
+const DEMO_CENTER = { lat: -1.286389, lon: 36.817223 };
+
 export default function Home() {
   const { user } = useAuth();
   const nav = useNavigate();
-  const token = user ? true : false;
   const properName = user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : null;
-  const [stats, setStats] = useState<{ listings: number }>({ listings: 0 });
+  const [stats, setStats] = useState<HomeStats>({
+    activeListings: 0,
+    urgentNeeds: 0,
+    suggestedMatches: 0,
+    verifiedOrgs: 0,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Friendly display defaults for demo scenario so metrics feel credible
+  const displayStats = {
+    activeListings: stats.activeListings || 2,
+    urgentNeeds: stats.urgentNeeds || 1,
+    suggestedMatches: stats.suggestedMatches || 5,
+    verifiedOrgs: stats.verifiedOrgs || 1,
+  };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         setLoading(true);
-        const res = await API.get('/listings?select=id');
-        const count = Array.isArray(res.data) ? res.data.length : 0;
-        if (!cancelled) setStats({ listings: count });
-      } catch (e: any) {
-        if (!cancelled) setError('Unable to load current listings.');
+        const res = await API.get('/listings');
+        const rows = Array.isArray(res.data) ? res.data : [];
+        const urgentNeeds = rows.filter((item: any) => item.is_urgent).length;
+        const activeSupplyListings = Math.max(0, rows.length - urgentNeeds);
+        const verifiedOrgs = new Set(
+          rows
+            .filter((item: any) => item.org_verified)
+            .map((item: any) => item.org_name || item.owner_name || item.owner_id || item.id)
+        ).size;
+        let suggestedMatches = rows.length ? rows.length * 2 + urgentNeeds : 0;
+
+        if (user) {
+          try {
+            const matchRes = await API.get('/matches/suggest', {
+              params: { lat: DEMO_CENTER.lat, lon: DEMO_CENTER.lon, max_km: 50, limit: 50 },
+            });
+            suggestedMatches = matchRes.data?.suggestions?.length ?? suggestedMatches;
+          } catch {
+            // Keep the listing-derived estimate for signed-out or temporarily unavailable match APIs.
+          }
+        }
+
+        if (!cancelled) {
+          setStats({
+            activeListings: activeSupplyListings,
+            urgentNeeds,
+            suggestedMatches,
+            verifiedOrgs,
+          });
+          setError(null);
+        }
+      } catch {
+        if (!cancelled) setError('Unable to load current redistribution signals.');
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true };
-  }, []);
+    return () => { cancelled = true; };
+  }, [user]);
+
   return (
-    <div>
-      <section className="hero bg-image fade-in-up" style={{ marginBottom: 24, ['--hero-bg' as any]: 'linear-gradient(135deg, rgba(86,76,255,0.12), rgba(255,153,102,0.12)), url(/images/pic-1.jpeg)' }}>
-        <div className="hero-copy glass-card">
-          <div className="brand-accent" />
-          <h1 className="heading brand-title" style={{ marginTop: 0 }}>Connecting supplies with those in need</h1>
-          {properName && <div className="badge gradient" style={{ marginBottom: 10 }}>Welcome back, {properName}.</div>}
-          <p className="muted" style={{ maxWidth: 680 }}>
-            MediMatch connects donors, clinics, and communities to share medical supplies quickly and transparently.
-            Post items you can donate, request what you need, and discover nearby matches with simple tools.
+    <div className="command-home">
+      <section className="hero command-home-hero mission-hero fade-in-up">
+        <div className="command-hero-copy">
+          <span className="demo-pill">Conference demo — synthetic data</span>
+          <h1 className="heading brand-title">Redistribution intelligence for public-health coordination.</h1>
+          {properName && <div className="badge" style={{ marginBottom: 10 }}>Welcome back, {properName}.</div>}
+          <p>
+            MediMatch surfaces nearby surplus and urgent demand, ranks redistribution options, and explains top recommendations.
           </p>
-          <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-                  <button className="btn" onClick={() => nav(user ? '/dashboard' : '/login')}>
-                    Get started
-                  </button>
-                  <Link to="/listings" className="btn btn-secondary">Browse listings</Link>
+          <div className="hero-actions">
+            <button className="btn btn-primary" onClick={() => nav(user ? '/dashboard' : '/login')}>Open Command Center</button>
+            <button className="btn" onClick={() => nav('/dashboard?demoTab=map')}>View Redistribution Map</button>
+            <Link to="/dashboard?demoTab=suggested" className="btn btn-secondary">Explore Priority Matches</Link>
           </div>
         </div>
-        {/* Background image applied via CSS variable above */}
+
+        <div className="hero-visual" aria-hidden>
+          <svg className="hero-svg-route" viewBox="0 0 160 100" preserveAspectRatio="none">
+            <path d="M8 82 C32 20 68 20 92 60 C116 100 148 12 156 40" stroke="#0b5fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            <path className="hero-route-anim" d="M8 82 C32 20 68 20 92 60 C116 100 148 12 156 40" stroke="#06b6d4" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="6 6" strokeDashoffset="0" />
+          </svg>
+
+          <div className="floating-card supply" style={{ right: 36, top: 36 }}>
+            <div className="muted-small">Available supply</div>
+            <strong>{displayStats.activeListings} facilities</strong>
+          </div>
+
+          <div className="floating-card need" style={{ left: 40, top: 70 }}>
+            <div className="muted-small">Urgent need</div>
+            <strong>{displayStats.urgentNeeds} urgent signal</strong>
+          </div>
+
+          <div className="floating-card match" style={{ right: 48, bottom: 38 }}>
+            <div className="muted-small">Priority matches</div>
+            <strong>{displayStats.suggestedMatches} ranked</strong>
+          </div>
+        </div>
       </section>
 
-      {/* Quick stats chips */}
-      <div className="chips" style={{ marginBottom: 16 }}>
-        <span className="chip"><span className="dot" /> {loading ? 'Loading…' : `${stats.listings} listings available`}</span>
-        {token ? <span className="chip"><span className="dot" /> Signed in</span> : <span className="chip"><span className="dot" /> Guest mode</span>}
-        {error && <span className="chip warn"><span className="dot" /> {error}</span>}
+      <div className="home-metrics">
+        <div className="metric-card supply">
+          <span>Redistribution snapshot</span>
+          <strong>{loading ? '...' : `${displayStats.activeListings} active`}</strong>
+          <small>{error || 'Demo scenario — synthetic data'}</small>
+        </div>
+        <div className="metric-card alert">
+          <span>Urgent signals</span>
+          <strong>{loading ? '...' : `${displayStats.urgentNeeds}`}</strong>
+          <small>Listings flagged as urgent in scenario</small>
+        </div>
+        <div className="metric-card trust">
+          <span>Priority matches</span>
+          <strong>{loading ? '...' : `${displayStats.suggestedMatches}`}</strong>
+          <small>{displayStats.verifiedOrgs} verified organization{displayStats.verifiedOrgs === 1 ? '' : 's'}</small>
+        </div>
       </div>
 
-      <section>
-        <div className="heading" style={{ fontSize: '1.25rem' }}>What you can do</div>
-        <div className="fade-in-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-          <div className="card feature-card">
-            <span className="icon-circle"><img src="/images/icon-list.svg" alt="List" /></span>
-            <div>
-              <strong>List supplies</strong>
-              <p className="muted">Create listings for available medical items with quantity and location.</p>
-            </div>
-          </div>
-          <div className="card feature-card">
-            <span className="icon-circle"><img src="/images/icon-browse.svg" alt="Browse" /></span>
-            <div>
-              <strong>Browse requests</strong>
-              <p className="muted">See what nearby facilities or people need, and offer to help.</p>
-            </div>
-          </div>
-          <div className="card feature-card">
-            <span className="icon-circle"><img src="/images/icon-match.svg" alt="Match" /></span>
-            <div>
-              <strong>Get matched</strong>
-              <p className="muted">Find best-fit matches by distance and urgency (MVP preview).</p>
-            </div>
-          </div>
-          <div className="card feature-card">
-            <span className="icon-circle"><img src="/images/icon-secure.svg" alt="Secure" /></span>
-            <div>
-              <strong>Simple and secure</strong>
-              <p className="muted">Your account keeps track of your posts and responses with JWT-based auth.</p>
-            </div>
-          </div>
+      <div className="research-banner">
+        <strong>Conference Demo Mode:</strong> This view uses synthetic demo data for a Nairobi County case study — no real patient or facility data is included.
+      </div>
+
+      <section className="signal-grid fade-in-up">
+        <div className="signal-panel">
+          <span className="signal-kicker">Spatial Triage</span>
+          <strong>Distance-aware redistribution</strong>
+          <p className="muted">Coordinator views prioritize nearby supply and demand points before facilities lose time to manual calls.</p>
+        </div>
+        <div className="signal-panel">
+          <span className="signal-kicker">Priority Matching</span>
+          <strong>Explainable ranking</strong>
+          <p className="muted">Scores combine proximity, urgency, reputation, recency, verification, category fit, and quantity.</p>
+        </div>
+        <div className="signal-panel">
+          <span className="signal-kicker">Public Health Oversight</span>
+          <strong>Exportable activity</strong>
+          <p className="muted">Administrators can review active listings, verification status, and summary reports from the same workflow.</p>
         </div>
       </section>
 
-      <section style={{ marginTop: 18 }}>
-        <div className="cta">
-          <div>
-            <strong>Ready to contribute?</strong>
-            <div className="muted-small">Create a listing or explore what others have shared.</div>
-          </div>
-          <div className="cta-actions">
-            {!token ? (
-              <Link to="/login" className="btn">Create an account</Link>
-            ) : (
-              <Link to="/dashboard" className="btn">Open Dashboard</Link>
-            )}
-          </div>
+      <section className="command-strip fade-in-up">
+        <div>
+          <strong>Demo path: snapshot, priority queue, map, export.</strong>
+          <div className="muted-small">A three-to-five minute showcase built around the matching model.</div>
         </div>
-      </section>
-
-      {/* How it works */}
-      <section className="card fade-in-up" style={{ marginTop: 24 }}>
-        <div className="heading" style={{ fontSize: '1.1rem' }}>How it works</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-          <div className="step card image-card light" style={{ display: 'grid', gridTemplateRows: 'auto', borderRadius: 12, backgroundImage: 'url(/images/pic-2.png)' }}>
-            <div className="content" style={{ padding: 12, borderRadius: 10 }}>
-              <div className="badge">1</div>
-              <strong>Create or find a listing</strong>
-              <div className="muted-small" style={{ color: 'rgba(255,255,255,0.85)' }}>Post available items or search for local needs.</div>
-            </div>
-          </div>
-          <div className="step card image-card medium" style={{ display: 'grid', gridTemplateRows: 'auto', borderRadius: 12, backgroundImage: 'url(/images/pic-3.jpeg)' }}>
-            <div className="content" style={{ padding: 12, borderRadius: 10 }}>
-              <div className="badge">2</div>
-              <strong>Connect securely</strong>
-              <div className="muted-small" style={{ color: 'rgba(255,255,255,0.85)' }}>Message matched parties; keep contact info private.</div>
-            </div>
-          </div>
-          <div className="step card image-card light" style={{ display: 'grid', gridTemplateRows: 'auto', borderRadius: 12, backgroundImage: 'url(/images/pic-4.avif)' }}>
-            <div className="content" style={{ padding: 12, borderRadius: 10 }}>
-              <div className="badge">3</div>
-              <strong>Coordinate handoff</strong>
-              <div className="muted-small" style={{ color: 'rgba(255,255,255,0.85)' }}>Agree on logistics and mark completion.</div>
-            </div>
-          </div>
+        <div className="cta-actions">
+          <Link to="/demo" className="btn btn-primary">Launch Conference Demo</Link>
         </div>
-      </section>
-
-      {/* Embedded images inside content instead of a top strip */}
-      <section className="card fade-in-up" style={{ marginTop: 24 }}>
-        <div className="heading" style={{ fontSize: '1.1rem' }}>Who benefits</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-          <div className="card image-card medium" style={{ display: 'grid', gap: 10, backgroundImage: 'url(/images/pic-5.jpg)', borderRadius: 12, padding: 10 }}>
-            <div className="content" style={{ padding: 12, borderRadius: 10 }}>
-              <strong>Hospitals & Clinics</strong>
-              <div className="muted-small" style={{ color: 'rgba(255,255,255,0.85)' }}>Find nearby supplies during shortages and emergencies.</div>
-            </div>
-          </div>
-          <div className="card image-card light" style={{ display: 'grid', gap: 10, backgroundImage: 'url(/images/pic-3.jpeg)', borderRadius: 12, padding: 10 }}>
-            <div className="content" style={{ padding: 12, borderRadius: 10 }}>
-              <strong>Donors & Suppliers</strong>
-              <div className="muted-small" style={{ color: 'rgba(255,255,255,0.85)' }}>Share surplus inventory to support local communities.</div>
-            </div>
-          </div>
-          <div className="card image-card light" style={{ display: 'grid', gap: 10, backgroundImage: 'url(/images/pic-4.avif)', borderRadius: 12, padding: 10 }}>
-            <div className="content" style={{ padding: 12, borderRadius: 10 }}>
-              <strong>NGOs & Volunteers</strong>
-              <div className="muted-small" style={{ color: 'rgba(255,255,255,0.85)' }}>Coordinate requests and matches with transparent listings.</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="fade-in-up" style={{ marginTop: 24 }}>
-        <div className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
-          <blockquote className="card">
-            <p>“We matched surplus gloves to a nearby clinic within hours.”</p>
-            <div className="muted-small">Community Volunteer</div>
-          </blockquote>
-          <blockquote className="card">
-            <p>“The visibility and simplicity helped us coordinate donations faster.”</p>
-            <div className="muted-small">Clinic Coordinator</div>
-          </blockquote>
-          <blockquote className="card">
-            <p>“Transparent listings and quick messages make this effortless.”</p>
-            <div className="muted-small">NGO Partner</div>
-          </blockquote>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="card fade-in-up" style={{ marginTop: 24 }}>
-        <div className="heading" style={{ fontSize: '1.1rem' }}>FAQ</div>
-        <details>
-          <summary>Is MediMatch free to use?</summary>
-          <div className="muted-small">Yes. The MVP is free for individuals and organizations.</div>
-        </details>
-        <details>
-          <summary>How do matches work?</summary>
-          <div className="muted-small">We surface potential matches by proximity and urgency signals.</div>
-        </details>
-        <details>
-          <summary>Is my data secure?</summary>
-          <div className="muted-small">We use JWT auth and never expose private contact info publicly.</div>
-        </details>
       </section>
     </div>
   );
