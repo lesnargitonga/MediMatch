@@ -197,7 +197,9 @@ export default function Dashboard() {
     if (demoTab && ['overview','create','browse','suggested','map','messages','account','admin'].includes(demoTab)) {
       setTab(demoTab as any);
     }
+  }, [location.search]);
 
+  useEffect(() => {
     const query = debouncedLocationQuery.trim().toLowerCase();
     if (!query) {
       setSuggestions([]);
@@ -232,7 +234,10 @@ export default function Dashboard() {
   }, [debouncedLocationQuery]);
 
   useEffect(() => {
-    if (!['overview', 'browse', 'map'].includes(tab)) return;
+    // The command-hero snapshot banner renders on every tab, so keep listings
+    // fresh whenever a tab that surfaces it is opened directly (e.g. a nav
+    // deep link straight into Matches), not just overview/browse/map.
+    if (!['overview', 'browse', 'map', 'suggested'].includes(tab)) return;
     let cancelled = false;
     (async () => {
       setLoadingListings(true);

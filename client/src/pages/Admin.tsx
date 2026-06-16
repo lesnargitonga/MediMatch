@@ -56,7 +56,7 @@ export default function AdminPage() {
     })();
   }, [isAdmin]);
 
-  const verifyable = useMemo(() => users.filter(u=>!u.org_verified), [users]);
+  const verifyable = useMemo(() => users.filter(u => !u.org_verified && u.role !== 'admin'), [users]);
 
   if (!isAdmin) {
     return (
