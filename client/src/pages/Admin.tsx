@@ -7,6 +7,20 @@ type Stats = { users:number; listings:number; matches:number };
 type UserRow = { id:number; email:string; name?:string|null; role:'user'|'admin'; org_name?:string|null; org_type?:string|null; org_license_id?:string|null; org_verified?:boolean; created_at?:string };
 type ListingRow = { id:number; owner_id:number; title:string; category?:string|null; quantity?:number|null; is_hidden?:boolean; location_wkt?:string|null; created_at?:string };
 
+// Synthetic fallback so the Review screen stays presentable when the
+// Postgres-backed admin reporting endpoints aren't reachable (e.g. mock-DB demo mode).
+const DEMO_STATS: Stats = { users: 4, listings: 4, matches: 6 };
+const DEMO_USERS: UserRow[] = [
+  { id: 1001, email: 'coordinator@kenyatta.org', name: 'Kenyatta Coordinator', role: 'user', org_name: 'Kenyatta National Hospital', org_type: 'Hospital', org_license_id: 'KNH-2025', org_verified: true, created_at: new Date(Date.now() - 5 * 86400000).toISOString() },
+  { id: 1002, email: 'lead@kiberasouth.org', name: 'Kibera South Lead', role: 'user', org_name: 'Kibera South Health Centre', org_type: 'Clinic', org_license_id: '', org_verified: false, created_at: new Date(Date.now() - 2 * 86400000).toISOString() },
+  { id: 1003, email: 'ops@mbagathi.org', name: 'Mbagathi Ops', role: 'user', org_name: 'Mbagathi County Hospital', org_type: 'Hospital', org_license_id: 'MCH-2025', org_verified: true, created_at: new Date(Date.now() - 9 * 86400000).toISOString() },
+];
+const DEMO_LISTINGS: ListingRow[] = [
+  { id: 9001, owner_id: 1001, title: 'Surplus nitrile gloves', category: 'supplies', quantity: 800, is_hidden: false, created_at: new Date(Date.now() - 2 * 3600000).toISOString() },
+  { id: 9002, owner_id: 1002, title: 'Urgent wound-care supplies needed', category: 'supplies', quantity: 120, is_hidden: false, created_at: new Date(Date.now() - 45 * 60000).toISOString() },
+  { id: 9003, owner_id: 1003, title: 'Portable oxygen concentrator available', category: 'equipment', quantity: 2, is_hidden: false, created_at: new Date(Date.now() - 5 * 3600000).toISOString() },
+];
+
 export default function AdminPage() {
   const { user } = useAuth();
   const [tab, setTab] = useState<'overview'|'users'|'listings'>('overview');
@@ -14,6 +28,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [listings, setListings] = useState<ListingRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [usingDemoData, setUsingDemoData] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -29,8 +44,14 @@ export default function AdminPage() {
         setStats(s.data);
         setUsers(u.data || []);
         setListings(l.data || []);
+        setUsingDemoData(false);
       } catch (e:any) {
-        toast.error('Failed to load admin data');
+        // Admin reporting is Postgres-only; fall back to a labeled synthetic
+        // scenario so the Review screen stays presentable in mock-DB demos.
+        setStats(DEMO_STATS);
+        setUsers(DEMO_USERS);
+        setListings(DEMO_LISTINGS);
+        setUsingDemoData(true);
       }
     })();
   }, [isAdmin]);
@@ -47,6 +68,11 @@ export default function AdminPage() {
   }
 
   const updateUser = async (id:number, patch: Partial<UserRow>) => {
+    if (usingDemoData) {
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
+      toast.success('User updated (demo data)');
+      return;
+    }
     try {
       await API.put(`/admin/users/${id}`, patch);
       setUsers(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
@@ -57,6 +83,11 @@ export default function AdminPage() {
   };
 
   const toggleListingHidden = async (id:number, is_hidden:boolean) => {
+    if (usingDemoData) {
+      setListings(prev => prev.map(l => l.id === id ? { ...l, is_hidden } : l));
+      toast.success('Listing updated (demo data)');
+      return;
+    }
     try {
       await API.put(`/admin/listings/${id}/hide`, { is_hidden });
       setListings(prev => prev.map(l => l.id === id ? { ...l, is_hidden } : l));
@@ -65,6 +96,11 @@ export default function AdminPage() {
 
   const deleteListing = async (id:number) => {
     if (!confirm('Delete listing permanently?')) return;
+    if (usingDemoData) {
+      setListings(prev => prev.filter(l => l.id !== id));
+      toast.success('Listing deleted (demo data)');
+      return;
+    }
     try {
       await API.delete(`/admin/listings/${id}`);
       setListings(prev => prev.filter(l => l.id !== id));
@@ -73,7 +109,26 @@ export default function AdminPage() {
 
   return (
     <section className="fade-in-up">
-      <div className="heading">Admin review</div>
+      <div className="dashboard-command-hero" style={{ marginBottom: 12 }}>
+        <div className="hero-copy">
+          <span className="lesnar-badge" style={{ marginBottom: 10 }}>Coordinator review</span>
+          <div className="heading" style={{ marginTop: 0 }}>Verification &amp; Oversight</div>
+          <div className="muted" style={{ maxWidth: 680 }}>Verify organizations, audit listings, and export reporting before any redistribution is approved. Synthetic demo data only.</div>
+        </div>
+        <div className="command-hero-signal" aria-hidden="true">
+          <span>Pending review</span>
+          <strong>{verifyable.length} organization{verifyable.length === 1 ? '' : 's'}</strong>
+          <small>Awaiting coordinator verification</small>
+        </div>
+      </div>
+      <div className="research-banner" style={{ marginBottom: 14 }}>
+        <strong>Prototype boundary:</strong> Synthetic demo data only. No patient records. Verification decisions here are advisory and must reflect real coordinator judgment.
+      </div>
+      {usingDemoData && (
+        <div className="research-banner" style={{ marginBottom: 14 }}>
+          <strong>Demo mode:</strong> Reporting database not connected — showing a synthetic verification scenario.
+        </div>
+      )}
       <div className="tabs" role="tablist">
         <button className={`tab ${tab==='overview'?'active':''}`} onClick={()=>setTab('overview')}>Overview</button>
         <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>Users</button>
@@ -91,15 +146,23 @@ export default function AdminPage() {
             </div>
             <div style={{ display:'flex', gap:8, marginTop: 12 }}>
               <button className="btn" onClick={async () => {
-                try {
-                  // Request CSV and trigger download
-                  const res = await API.get('/admin/reports/summary.csv', { responseType: 'blob' });
-                  const blob = new Blob([res.data], { type: 'text/csv' });
+                const triggerDownload = (data: string | Blob) => {
+                  const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/csv' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url; a.download = `summary-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.csv`;
                   document.body.appendChild(a); a.click(); document.body.removeChild(a);
                   URL.revokeObjectURL(url);
+                };
+                if (usingDemoData) {
+                  const lines = ['metric,value', `total_users,${stats?.users ?? 0}`, `total_listings,${stats?.listings ?? 0}`, `matches,${stats?.matches ?? 0}`, `verified_orgs,${users.filter(u=>u.org_verified).length}`];
+                  triggerDownload(lines.join('\n'));
+                  toast.success('Report downloaded (demo data)');
+                  return;
+                }
+                try {
+                  const res = await API.get('/admin/reports/summary.csv', { responseType: 'blob' });
+                  triggerDownload(res.data);
                   toast.success('Report downloaded');
                 } catch (e:any) {
                   toast.error(e?.response?.data?.error || 'Failed to download report');

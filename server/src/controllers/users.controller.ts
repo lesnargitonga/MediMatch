@@ -41,7 +41,22 @@ export async function register(req: Request, res: Response) {
       return res.status(400).json({ error: 'email already in use' });
     }
     const hash = await bcrypt.hash(password, 10);
-    user = { id: mockDB.nextUserId++, email, name: name || null, password_hash: hash };
+    const adminEnv = (process.env.ADMIN_EMAIL || '').toLowerCase();
+    const roleVal = adminEnv && adminEnv === email.toLowerCase() ? 'admin' : 'user';
+    user = {
+      id: mockDB.nextUserId++,
+      email,
+      name: name || null,
+      password_hash: hash,
+      role: roleVal,
+      org_name: org_name || null,
+      org_type: org_type || null,
+      org_license_id: org_license_id || null,
+      org_phone: org_phone || null,
+      org_address: org_address || null,
+      doc_url: doc_url || null,
+      org_verified: roleVal === 'admin',
+    };
     mockDB.users.push(user);
     console.log('MockDB: user registered', user);
   } else if (process.env.USE_FILE_DB === 'true') {

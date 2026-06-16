@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
 import Home from './pages/Home';
+import Demo from './pages/Demo';
 import Listings from './pages/Listings';
 import ListingDetail from './pages/ListingDetail';
 import NotFound from './pages/NotFound';
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />
+          <Route path="demo" element={<Demo />} />
           <Route path="listings" element={<Listings />} />
           <Route path="listings/:id" element={<ListingDetail />} />
           <Route path="register" element={<Auth />} />

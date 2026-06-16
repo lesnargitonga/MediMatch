@@ -1,4 +1,4 @@
-// Deterministic, local "AI" helpers for Phase 1 prototype
+// Deterministic, local "AI" helpers for the AI-assisted prototype.
 // Purely client-side heuristics and templating — no external network calls.
 type Stats = { urgentNeeds?: number; availableSupplies?: number; verifiedOrgs?: number; averageRadius?: number; recentActivity?: number };
 function hashString(s: string) {
@@ -26,8 +26,8 @@ function generateCoordinatorBrief(opts: { stats?: Stats; topListing?: any; conte
   const seed = JSON.stringify(stats) + '|' + (top.id ?? '') + '|' + (opts.context ?? '');
 
   const lead = snippetChoice(seed + ':lead', [
-    'AI-assisted coordinator brief (prototype). Use as guidance only; verify before coordination.',
-    'Prototype AI summary — synthetic demo data. Confirm recommendations before acting.',
+    'AI-assisted prototype brief. Use as guidance only; verify before coordination.',
+    'Prototype AI summary using synthetic demo data. Confirm recommendations before acting.',
   ]);
 
   const urgency = (stats.urgentNeeds || 0) > 0
@@ -46,14 +46,14 @@ function generateCoordinatorBrief(opts: { stats?: Stats; topListing?: any; conte
     'Recommend contacting the supply owner to confirm quantity and arrange safe pickup.',
   ]);
 
-  return `${lead} ${urgency} ${supplyNote} ${focal} ${action} (AI-assisted, prototype — synthetic demo data).`;
+  return `${lead} ${urgency} ${supplyNote} ${focal} ${action} (AI-assisted prototype; synthetic demo data).`;
 }
 
 async function explainMatch(match: any) {
   // Lightweight, deterministic explanation using match fields
   const seed = JSON.stringify(match || {});
   const parts: string[] = [];
-  parts.push('AI-assisted explanation (prototype):');
+  parts.push('AI-assisted prototype explanation:');
   if (match.distance_km != null) parts.push(`Proximity contributes: ${Number(match.distance_km).toFixed(1)} km.`);
   if (match.is_urgent) parts.push('Urgency increases routing priority.');
   if (match.org_verified) parts.push('Posted by a verified organization (positive trust signal).');
@@ -62,9 +62,9 @@ async function explainMatch(match: any) {
   parts.push(snippetChoice(seed + ':close', [
     'Combined signals yield a strong priority score; confirm availability with the owner before transfer.',
     'Signals indicate a feasible short transfer; verify packaging and pickup windows.',
-    'High-priority candidate — confirm logistics and protective equipment for transport.',
+    'High-priority candidate; confirm transfer logistics before coordination.',
   ]));
-  parts.push('(AI-assisted, prototype — synthetic demo data; verify before coordination)');
+  parts.push('(Synthetic demo data; verify before coordination.)');
   // Simulate async behaviour to keep caller patterns consistent
   return new Promise<string>(resolve => setTimeout(() => resolve(parts.join(' ')), 60));
 }

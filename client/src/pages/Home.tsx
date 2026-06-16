@@ -10,8 +10,6 @@ type HomeStats = {
   verifiedOrgs: number;
 };
 
-const DEMO_CENTER = { lat: -1.286389, lon: 36.817223 };
-
 export default function Home() {
   const { user } = useAuth();
   const nav = useNavigate();
@@ -49,17 +47,6 @@ export default function Home() {
         ).size;
         let suggestedMatches = rows.length ? rows.length * 2 + urgentNeeds : 0;
 
-        if (user) {
-          try {
-            const matchRes = await API.get('/matches/suggest', {
-              params: { lat: DEMO_CENTER.lat, lon: DEMO_CENTER.lon, max_km: 50, limit: 50 },
-            });
-            suggestedMatches = matchRes.data?.suggestions?.length ?? suggestedMatches;
-          } catch {
-            // Keep the listing-derived estimate for signed-out or temporarily unavailable match APIs.
-          }
-        }
-
         if (!cancelled) {
           setStats({
             activeListings: activeSupplyListings,
@@ -80,91 +67,86 @@ export default function Home() {
 
   return (
     <div className="command-home">
-      <section className="hero command-home-hero mission-hero fade-in-up">
-        <div className="command-hero-copy">
-          <span className="demo-pill">Conference demo — synthetic data</span>
-          <h1 className="heading brand-title">Redistribution intelligence for public-health coordination.</h1>
+      <section className="product-hero command-home-hero fade-in-up">
+        <div className="product-hero-media" aria-hidden="true">
+          <img src="/images/medimatch-command-hero.png" alt="" />
+        </div>
+        <div className="product-hero-overlay" />
+        <div className="command-hero-copy product-hero-copy">
+          <span className="lesnar-badge">A Lesnar AI Development</span>
+          <h1 className="heading">Geospatial redistribution intelligence for public-health supply coordination</h1>
           {properName && <div className="badge" style={{ marginBottom: 10 }}>Welcome back, {properName}.</div>}
           <p>
-            MediMatch surfaces nearby surplus and urgent demand, ranks redistribution options, and explains top recommendations.
+            Lesnar AI prototype for matching medical supply surplus with urgent needs using geospatial ranking and AI-assisted coordination.
           </p>
           <div className="hero-actions">
             <button className="btn btn-primary" onClick={() => nav(user ? '/dashboard' : '/login')}>Open Command Center</button>
-            <button className="btn" onClick={() => nav('/dashboard?demoTab=map')}>View Redistribution Map</button>
-            <Link to="/dashboard?demoTab=suggested" className="btn btn-secondary">Explore Priority Matches</Link>
+            <button className="btn btn-secondary" onClick={() => nav('/dashboard?demoTab=map')}>View Redistribution Map</button>
           </div>
+          <div className="hero-disclosure">Synthetic demo data. No patient records. Coordinator verification required.</div>
         </div>
 
-        <div className="hero-visual" aria-hidden>
-          <svg className="hero-svg-route" viewBox="0 0 160 100" preserveAspectRatio="none">
-            <path d="M8 82 C32 20 68 20 92 60 C116 100 148 12 156 40" stroke="#0b5fff" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            <path className="hero-route-anim" d="M8 82 C32 20 68 20 92 60 C116 100 148 12 156 40" stroke="#06b6d4" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="6 6" strokeDashoffset="0" />
-          </svg>
-
-          <div className="floating-card supply" style={{ right: 36, top: 36 }}>
-            <div className="muted-small">Available supply</div>
-            <strong>{displayStats.activeListings} facilities</strong>
-          </div>
-
-          <div className="floating-card need" style={{ left: 40, top: 70 }}>
-            <div className="muted-small">Urgent need</div>
+        <div className="hero-intel-stack" aria-hidden="true">
+          <div className="floating-card ai-card">
+            <div className="muted-small">AI Coordinator Brief</div>
             <strong>{displayStats.urgentNeeds} urgent signal</strong>
+            <span>Verify quantity and ownership before transfer.</span>
           </div>
-
-          <div className="floating-card match" style={{ right: 48, bottom: 38 }}>
-            <div className="muted-small">Priority matches</div>
-            <strong>{displayStats.suggestedMatches} ranked</strong>
+          <div className="floating-card route-card">
+            <div className="muted-small">Ranked route</div>
+            <strong>{displayStats.suggestedMatches} matches</strong>
+            <span>Distance, urgency, trust, recency.</span>
           </div>
         </div>
       </section>
 
       <div className="home-metrics">
         <div className="metric-card supply">
-          <span>Redistribution snapshot</span>
+          <span>Supply signal</span>
           <strong>{loading ? '...' : `${displayStats.activeListings} active`}</strong>
-          <small>{error || 'Demo scenario — synthetic data'}</small>
+          <small>{error || 'Synthetic surplus listings visible to coordinators'}</small>
         </div>
         <div className="metric-card alert">
-          <span>Urgent signals</span>
+          <span>Need pressure</span>
           <strong>{loading ? '...' : `${displayStats.urgentNeeds}`}</strong>
-          <small>Listings flagged as urgent in scenario</small>
+          <small>Urgent supply requests in the demo scenario</small>
         </div>
         <div className="metric-card trust">
-          <span>Priority matches</span>
+          <span>Ranked matches</span>
           <strong>{loading ? '...' : `${displayStats.suggestedMatches}`}</strong>
           <small>{displayStats.verifiedOrgs} verified organization{displayStats.verifiedOrgs === 1 ? '' : 's'}</small>
         </div>
       </div>
 
-      <div className="research-banner">
-        <strong>Conference Demo Mode:</strong> This view uses synthetic demo data for a Nairobi County case study — no real patient or facility data is included.
+      <div className="research-banner product-disclosure">
+        <strong>AI-assisted prototype:</strong> Synthetic demo data only. No patient records. Coordinators must verify availability, ownership, and transfer details before action.
       </div>
 
       <section className="signal-grid fade-in-up">
         <div className="signal-panel">
-          <span className="signal-kicker">Spatial Triage</span>
-          <strong>Distance-aware redistribution</strong>
-          <p className="muted">Coordinator views prioritize nearby supply and demand points before facilities lose time to manual calls.</p>
+          <span className="signal-kicker">Geospatial Ranking</span>
+          <strong>Route-aware surplus-to-need matching</strong>
+          <p className="muted">Priority views combine distance, urgency, verification, recency, category fit, and reported quantity.</p>
         </div>
         <div className="signal-panel">
-          <span className="signal-kicker">Priority Matching</span>
-          <strong>Explainable ranking</strong>
-          <p className="muted">Scores combine proximity, urgency, reputation, recency, verification, category fit, and quantity.</p>
+          <span className="signal-kicker">AI-Assisted Coordination</span>
+          <strong>Briefs and explanations for coordinators</strong>
+          <p className="muted">Local prototype AI summaries explain why a match is high-priority without making autonomous medical decisions.</p>
         </div>
         <div className="signal-panel">
-          <span className="signal-kicker">Public Health Oversight</span>
-          <strong>Exportable activity</strong>
-          <p className="muted">Administrators can review active listings, verification status, and summary reports from the same workflow.</p>
+          <span className="signal-kicker">Operational Control</span>
+          <strong>Verification before coordination</strong>
+          <p className="muted">Review surfaces keep coordinator confirmation, facility trust signals, and synthetic demo boundaries visible.</p>
         </div>
       </section>
 
       <section className="command-strip fade-in-up">
         <div>
-          <strong>Demo path: snapshot, priority queue, map, export.</strong>
-          <div className="muted-small">A three-to-five minute showcase built around the matching model.</div>
+          <strong>Guided showcase: scenario, map, matches, AI brief.</strong>
+          <div className="muted-small">A concise product walk-through for the public-health coordination workflow.</div>
         </div>
         <div className="cta-actions">
-          <Link to="/demo" className="btn btn-primary">Launch Conference Demo</Link>
+          <Link to="/demo" className="btn btn-primary">Open Demo Scenario</Link>
         </div>
       </section>
     </div>

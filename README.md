@@ -48,8 +48,8 @@ For a fast local demo without Docker:
 
 ## Local Accounts
 
-- Admin: `lesnar@admin.com` / `admin123`
-- User: `user1@example.com` / `password123`
+- Mock-mode coordinator: `test@example.com` / `Password123` (seeded automatically when `USE_MOCK_DB=true`).
+- Admin: register once with the email set in `ADMIN_EMAIL` (`lesnar@admin.com` by default) — the Login screen's "Create demo admin account" shortcut pre-fills this. Admin role is granted server-side by matching `ADMIN_EMAIL`, never by client input.
 
 ## Repository Map
 

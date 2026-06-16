@@ -15,11 +15,11 @@ export default function AICompletenessCheck(props: { title?: string; description
   return (
     <div className="ai-panel" style={{ marginTop: 12, padding: 12 }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ fontWeight: 800 }}>AI-assisted Completeness Check <span style={{ fontSize: '0.82rem', color: 'var(--muted)', marginLeft: 8 }}>(prototype)</span></div>
+        <div style={{ fontWeight: 800 }}>AI Completeness Check <span style={{ fontSize: '0.82rem', color: 'var(--muted)', marginLeft: 8 }}>(AI-assisted prototype)</span></div>
         <div className="ai-score" style={{ fontWeight: 800 }}>{report.score}%</div>
       </div>
       <div style={{ marginTop: 8 }} className="muted-small">{report.suggestions.map((s, i) => (<div key={i} className="ai-suggestion">• {s}</div>))}</div>
-      <div style={{ marginTop: 8 }} className="muted-small">This is advisory only. Verify details before coordinating transfers.</div>
+      <div style={{ marginTop: 8 }} className="muted-small">Advisory completeness check only. Synthetic demo data; verify details before coordinating transfers.</div>
     </div>
   );
 }

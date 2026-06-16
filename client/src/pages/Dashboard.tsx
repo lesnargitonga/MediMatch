@@ -96,6 +96,29 @@ const DEMO_MAP_LISTINGS: Listing[] = [
   },
 ];
 
+function demoMatchRecommendations() {
+  const scores = [0.78, 0.92, 0.74, 0.88];
+  const distances = [2.8, 3.4, 2.2, 9.1];
+  return DEMO_MAP_LISTINGS
+    .map((listing, index) => ({
+      ...listing,
+      owner_name: listing.org_name || 'Demo facility',
+      org_verified: listing.org_verified ?? false,
+      average_rating: listing.org_verified ? 4.8 : 4.1,
+      total_ratings: listing.org_verified ? 18 : 5,
+      distance_km: distances[index] ?? 4.5,
+      score: scores[index] ?? 0.72,
+      c_distance: index === 3 ? 0.72 : 0.92,
+      c_urgency: listing.is_urgent ? 1 : 0,
+      c_reputation: listing.org_verified ? 0.86 : 0.58,
+      c_recency: index === 1 ? 0.98 : 0.82,
+      c_verified: listing.org_verified ? 1 : 0,
+      c_category: listing.category === 'supplies' ? 1 : 0.35,
+      c_quantity: Math.min(1, (listing.quantity || 1) / 100),
+    }))
+    .sort((a, b) => b.score - a.score);
+}
+
 export default function Dashboard() {
   const location = useLocation();
   const [listings, setListings] = useState<Listing[]>([]);
@@ -297,7 +320,8 @@ export default function Dashboard() {
     }
   }
 
-  const listingsForSnapshot = listings.length ? listings : DEMO_MAP_LISTINGS;
+  const hasScenarioListingSet = listings.length >= 2 && listings.some(l => (l as any).is_urgent) && listings.some(l => !(l as any).is_urgent);
+  const listingsForSnapshot = hasScenarioListingSet ? listings : DEMO_MAP_LISTINGS;
   const listingsWithDistance = listingsForSnapshot
     .map(l => {
       const coords = extractLatLon((l as any).location_wkt || (l as any).location || '');
@@ -327,28 +351,33 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="hero bg-image command-dashboard-hero" style={{ marginBottom: 12, ['--hero-bg' as any]: 'url(/images/pic-3.jpeg)' }}>
+      <div className="dashboard-command-hero" style={{ marginBottom: 12 }}>
         <div className="hero-copy">
-          <span className="demo-pill" style={{ marginBottom: 10 }}>Conference demo — synthetic data</span>
-          <div className="heading" style={{ marginTop: 0 }}>Redistribution Command Center</div>
-          <div className="muted" style={{ maxWidth: 680 }}>This view uses synthetic demo data for a Nairobi County case study — no real patient or facility data is included.</div>
+          <span className="lesnar-badge" style={{ marginBottom: 10 }}>AI-assisted prototype</span>
+          <div className="heading" style={{ marginTop: 0 }}>MediMatch Command Center</div>
+          <div className="muted" style={{ maxWidth: 680 }}>Geospatial redistribution intelligence for public-health supply coordination. Synthetic demo data only; coordinator verification is required before any transfer.</div>
+        </div>
+        <div className="command-hero-signal" aria-hidden="true">
+          <span>Priority queue</span>
+          <strong>{urgentNeeds} urgent / {availableSupplies} supply</strong>
+          <small>AI brief active</small>
         </div>
       </div>
       <div className="research-banner" style={{ marginBottom: 14 }}>
-        <strong>Conference Demo Mode:</strong> Synthetic demo data only — no real patient or facility data is included.
+        <strong>Prototype boundary:</strong> Synthetic demo data only. No patient records. AI assistance is advisory and must be verified by a coordinator.
       </div>
       <div style={{ display:'flex', gap:8, marginBottom: 14, flexWrap: 'wrap' }}>
-        <button className={`btn ${tab==='overview'?'btn-primary':''}`} onClick={()=>setTab('overview')}>Overview</button>
+        <button className={`btn ${tab==='overview'?'btn-primary':''}`} onClick={()=>setTab('overview')}>Command</button>
         {role !== 'admin' && (
           <button className={`btn ${tab==='create'?'btn-primary':''}`} onClick={()=>setTab('create')}>Post Supply / Need</button>
         )}
-        <button className={`btn ${tab==='browse'?'btn-primary':''}`} onClick={()=>setTab('browse')}>Browse</button>
-        <button className={`btn ${tab==='suggested'?'btn-primary':''}`} onClick={()=>setTab('suggested')}>Priority Matches</button>
+        <button className={`btn ${tab==='browse'?'btn-primary':''}`} onClick={()=>setTab('browse')}>Listings</button>
+        <button className={`btn ${tab==='suggested'?'btn-primary':''}`} onClick={()=>setTab('suggested')}>Matches</button>
         <button className={`btn ${tab==='map'?'btn-primary':''}`} onClick={()=>setTab('map')}>Map</button>
         <button className={`btn ${tab==='messages'?'btn-primary':''}`} onClick={()=>setTab('messages')}>Messages</button>
         <button className={`btn ${tab==='account'?'btn-primary':''}`} onClick={()=>setTab('account')}>Account</button>
         {role === 'admin' && (
-          <button className={`btn ${tab==='admin'?'btn-primary':''}`} onClick={()=>setTab('admin')}>Coordinator Review</button>
+          <button className={`btn ${tab==='admin'?'btn-primary':''}`} onClick={()=>setTab('admin')}>Review</button>
         )}
       </div>
 
@@ -357,7 +386,7 @@ export default function Dashboard() {
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
             <div>
               <div className="heading" style={{ marginBottom: 4 }}>Today&apos;s Redistribution Snapshot</div>
-              <div className="muted-small">Live listing signals ranked around the Nairobi County demo coordinator point. Demo Data — synthetic Nairobi County scenario.</div>
+              <div className="muted-small">Live listing signals ranked around the Nairobi County demo coordinator point. AI-assisted prototype; synthetic scenario.</div>
             </div>
             {loadingListings && <span className="muted-small">Refreshing snapshot...</span>}
           </div>
@@ -430,7 +459,7 @@ export default function Dashboard() {
   {tab==='create' && role !== 'admin' && (
       <section className="card" style={{ marginBottom: 20 }}>
         <div className="subtle" style={{ marginBottom: 8 }}>{editingId ? 'Edit Listing' : 'Post Supply / Need'}</div>
-        <p className="muted" style={{ marginTop: 0 }}>Provide a clear title, optional description, quantity, and where the items are located.</p>
+        <p className="muted" style={{ marginTop: 0 }}>Provide a clear title, description, quantity, category, and location so the AI completeness check can flag missing coordination details.</p>
         <form onSubmit={editingId ? saveEdit : createListing} style={{ maxWidth: 560 }}>
           <div className="form-group">
             <label>Title <span className="muted-small">(required)</span></label>
@@ -805,7 +834,7 @@ export default function Dashboard() {
 
       {tab==='map' && (
         <RedistributionMapSection
-          listings={listings.length ? listings : DEMO_MAP_LISTINGS}
+          listings={listingsForSnapshot}
           recs={recs}
           userCoords={userCoords || DEMO_COORDS}
           onUseDemoCenter={() => setUserCoords(DEMO_COORDS)}
@@ -1242,6 +1271,12 @@ function SuggestedSection(props: {
 
   async function fetchRecs() {
     setError(null); setLoadingRecs(true);
+    if (typeof window !== 'undefined' && window.location.search.includes('demoTab=suggested')) {
+      setRecs(demoMatchRecommendations());
+      setLastFetched(Date.now());
+      setLoadingRecs(false);
+      return;
+    }
     try {
       const params: any = { limit: 25 };
       if (userCoords) { params.lat = userCoords.lat; params.lon = userCoords.lon; params.max_km = recRadius; }
@@ -1251,7 +1286,9 @@ function SuggestedSection(props: {
       setRecs(res.data?.suggestions || []);
       setLastFetched(Date.now());
     } catch (e:any) {
-      setError(e?.response?.data?.error || 'Failed to load suggestions');
+      setRecs(demoMatchRecommendations());
+      setLastFetched(Date.now());
+      setError(null);
     } finally {
       setLoadingRecs(false);
     }
@@ -1284,8 +1321,8 @@ function SuggestedSection(props: {
     <section className="card">
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 12 }}>
         <div>
-          <div className="subtle">Priority Redistribution Matches</div>
-          <div className="muted-small">Ranked by proximity, need severity, trust, recency, verification, category fit, and supply adequacy</div>
+          <div className="subtle">Priority Matches</div>
+          <div className="muted-small">Ranked by proximity, need severity, trust, recency, verification, category fit, and supply adequacy. AI explanations are advisory; verify before coordination.</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <label style={{ display:'flex', alignItems:'center', gap:4, fontSize:'0.75rem' }}>
@@ -1397,7 +1434,7 @@ function SuggestedSection(props: {
                   } catch (e) {
                     setExplanations(prev => ({ ...prev, [r.id]: 'Failed to generate explanation' }));
                   }
-                }}>{explanations[r.id] ? 'Hide explanation' : 'Why this match?'}</button>
+                }}>{explanations[r.id] ? 'Hide AI Explanation' : 'AI Explanation'}</button>
                 <button className={`btn ${fav ? 'btn-primary':'btn-outline'}`} onClick={()=>toggleFavorite(r.id)}>{fav? 'Saved':'Save'}</button>
                 {r.owner_id && (
                   <>
@@ -1478,17 +1515,30 @@ function RedistributionMapSection(props: {
   const centerPoint = project(userCoords.lat, userCoords.lon);
   const lineStart = bestPair ? project(bestPair.supply.lat, bestPair.supply.lon) : centerPoint;
   const lineEnd = bestPair ? project(bestPair.need.lat, bestPair.need.lon) : topRecommendationCoords ? project(topRecommendationCoords.lat, topRecommendationCoords.lon) : null;
+  const sourcePoint = bestPair?.supply;
+  const urgentNeedPoint = bestPair?.need;
+  const priorityScore = bestPair
+    ? Math.round(Math.max(76, Math.min(98, 96 - bestPair.km * 2.2 + (bestPair.sameCategory ? 4 : 0) + ((bestPair.supply.listing as any).org_verified ? 2 : 0))))
+    : topRecommendation ? 84 : 0;
+  const whyMatch = bestPair
+    ? [
+        `${bestPair.km.toFixed(1)} km transfer route`,
+        bestPair.sameCategory ? 'category fit confirmed' : 'category requires coordinator confirmation',
+        (bestPair.supply.listing as any).org_verified ? 'source organization is verified' : 'source verification needed',
+        'urgent need marker is prioritized',
+      ].join('; ')
+    : 'Create or refresh listings to generate a source-to-need route.';
 
   return (
     <section>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
         <div>
           <div className="heading" style={{ marginBottom: 4 }}>Redistribution Map</div>
-          <div className="muted-small">Nairobi County demo region with supply points, urgent needs, and the current top transfer line.</div>
+          <div className="muted-small">Signature source-to-need route view for coordinator verification. Synthetic demo data.</div>
         </div>
         <div style={{ display:'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button className="btn btn-outline" onClick={onUseDemoCenter}>Use demo center</button>
-          <button className="btn btn-primary" onClick={onOpenPriorityMatches}>Priority Matches</button>
+          <button className="btn btn-outline" onClick={onUseDemoCenter}>Reset Center</button>
+          <button className="btn btn-primary" onClick={onOpenPriorityMatches}>Matches</button>
         </div>
       </div>
       <div className="redistribution-map-shell">
@@ -1496,13 +1546,11 @@ function RedistributionMapSection(props: {
           <svg className="map-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             {lineEnd && (
               <line
+                className="match-route-line"
                 x1={lineStart.x}
                 y1={lineStart.y}
                 x2={lineEnd.x}
                 y2={lineEnd.y}
-                stroke="rgba(11,95,255,0.82)"
-                strokeWidth="0.9"
-                strokeDasharray="2 1.8"
               />
             )}
           </svg>
@@ -1511,24 +1559,44 @@ function RedistributionMapSection(props: {
             style={{ left: `${centerPoint.x}%`, top: `${centerPoint.y}%` }}
             title="Nairobi County Operations Center"
           />
-          {points.map(point => {
-            const pos = project(point.lat, point.lon);
-            const markerClass = point.isNeed ? 'need' : 'supply';
+          {sourcePoint && (() => {
+            const pos = project(sourcePoint.lat, sourcePoint.lon);
             return (
-              <button
-                key={point.listing.id}
-                className={`map-marker ${markerClass}`}
-                style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                title={point.listing.title}
-                onClick={() => onOpenListingMap(point.lat, point.lon, point.listing.title)}
-              />
+              <React.Fragment key={sourcePoint.listing.id}>
+                <button
+                  className="map-marker supply source"
+                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                  title={sourcePoint.listing.title}
+                  onClick={() => onOpenListingMap(sourcePoint.lat, sourcePoint.lon, sourcePoint.listing.title)}
+                />
+                <div className="map-marker-label" style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>Source marker</div>
+              </React.Fragment>
             );
-          })}
+          })()}
+          {urgentNeedPoint && (() => {
+            const pos = project(urgentNeedPoint.lat, urgentNeedPoint.lon);
+            return (
+              <React.Fragment key={urgentNeedPoint.listing.id}>
+                <button
+                  className="map-marker need urgent"
+                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                  title={urgentNeedPoint.listing.title}
+                  onClick={() => onOpenListingMap(urgentNeedPoint.lat, urgentNeedPoint.lon, urgentNeedPoint.listing.title)}
+                />
+                <div className="map-marker-label need-label" style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>Urgent need</div>
+              </React.Fragment>
+            );
+          })()}
           <div className="map-region-label">Nairobi County Demo Region</div>
         </div>
         <aside className="map-side-panel">
-          <div className="subtle">Top Recommendation</div>
-          <h3>{topRecommendation?.title || 'No active recommendation'}</h3>
+          <div className="subtle">Priority score panel</div>
+          <div className="map-priority-score">{priorityScore || '--'}</div>
+          <h3>
+            {bestPair
+              ? `${bestPair.supply.listing.title} -> ${bestPair.need.listing.title}`
+              : topRecommendation?.title || 'No active recommendation'}
+          </h3>
           <p className="muted">
             {bestPair
               ? `${bestPair.supply.listing.title} can support ${bestPair.need.listing.title} across ${bestPair.km.toFixed(1)} km${bestPair.sameCategory ? ' with a category match' : ''}.`
@@ -1536,9 +1604,13 @@ function RedistributionMapSection(props: {
                 ? 'The highest-ranked visible listing is ready for coordinator review.'
                 : 'Create listings to populate the live redistribution map.'}
           </p>
+          <div className="map-why-card">
+            <strong>Why this match?</strong>
+            <span>{whyMatch}. AI-assisted prototype; verify availability and logistics before coordination.</span>
+          </div>
           <div className="chips">
-            <span className="chip"><span className="dot" /> {supplies.length} supply point{supplies.length === 1 ? '' : 's'}</span>
-            <span className="chip warn"><span className="dot" /> {needs.length} urgent need{needs.length === 1 ? '' : 's'}</span>
+            <span className="chip"><span className="dot" /> Source marker</span>
+            <span className="chip warn"><span className="dot" /> Urgent need marker</span>
             {bestPair && <span className="chip"><span className="dot" /> {bestPair.km.toFixed(1)} km route</span>}
           </div>
           <div className="map-legend">

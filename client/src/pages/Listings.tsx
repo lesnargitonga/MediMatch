@@ -76,11 +76,18 @@ export default function Listings() {
   }, [items, groupByOrg]);
 
   return (
-    <section>
-      {/* Context header */}
-      <div className="heading" style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-        <span>Listings</span>
-        <span className="muted-small">{items.length} item{items.length!==1?'s':''}{category!=='all' ? ` • ${category}` : ''}</span>
+    <section className="fade-in-up">
+      <div className="dashboard-command-hero" style={{ marginBottom: 12 }}>
+        <div className="hero-copy">
+          <span className="lesnar-badge" style={{ marginBottom: 10 }}>Geospatial inventory</span>
+          <div className="heading" style={{ marginTop: 0 }}>Redistribution Listings</div>
+          <div className="muted" style={{ maxWidth: 680 }}>Surplus and need signals from synthetic public-health facilities, grouped by organization for coordinator review.</div>
+        </div>
+        <div className="command-hero-signal" aria-hidden="true">
+          <span>Visible signals</span>
+          <strong>{items.length} item{items.length!==1?'s':''}</strong>
+          <small>{category!=='all' ? `Filtered: ${category}` : 'All categories'}</small>
+        </div>
       </div>
       {/* Sticky filter bar */}
       <div className="card" style={{ position:'sticky', top: 58, zIndex: 5, boxShadow:'0 6px 12px rgba(0,0,0,0.04)', marginBottom: 12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap', backdropFilter:'saturate(180%) blur(6px)' }}>

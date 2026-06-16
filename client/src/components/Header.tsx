@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import HealthBadge from './HealthBadge';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 export default function Header() {
   const { user, logout } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -128,6 +129,9 @@ export default function Header() {
     nav('/');
   };
 
+  const dashboardTab = new URLSearchParams(location.search).get('demoTab');
+  const navClass = (active: boolean) => `subtle ${active ? 'active' : ''}`;
+
   return (
     <div className="header-bar">
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -137,14 +141,11 @@ export default function Header() {
             <a href="/" className="logo-text" style={{ textDecoration:'none' }}>MediMatch</a>
           </div>
           <div className="nav">
-            <NavLink to="/" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Home</NavLink>
-            <NavLink to="/listings" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Listings</NavLink>
-            {user && (
-              <NavLink to="/dashboard" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>{user.role === 'admin' ? 'Admin' : 'Dashboard'}</NavLink>
-            )}
-            {user?.role === 'admin' && (
-              <NavLink to="/admin" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Review</NavLink>
-            )}
+            <NavLink to="/dashboard" className={() => navClass(location.pathname === '/dashboard' && !['map', 'suggested'].includes(dashboardTab || ''))}>Command</NavLink>
+            <NavLink to="/dashboard?demoTab=map" className={() => navClass(location.pathname === '/dashboard' && dashboardTab === 'map')}>Map</NavLink>
+            <NavLink to="/dashboard?demoTab=suggested" className={() => navClass(location.pathname === '/dashboard' && dashboardTab === 'suggested')}>Matches</NavLink>
+            <NavLink to="/listings" className={({isActive}) => navClass(isActive)}>Listings</NavLink>
+            <NavLink to="/admin" className={({isActive}) => navClass(isActive)}>Review</NavLink>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

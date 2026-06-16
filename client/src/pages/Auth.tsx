@@ -13,9 +13,9 @@ export default function Auth() {
   const nav = useNavigate();
   const { user, setUser, refresh } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('lesnar@admin.com');
-  const [password, setPassword] = useState('REDACTED');
-  const [name, setName] = useState('Lesnar Admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   // Removed org fields for simplicity
@@ -109,65 +109,105 @@ export default function Auth() {
   }, [user, nav]);
 
     return (
-      <div className="auth-page">
-      <form className="auth-form" onSubmit={isLogin ? doLogin : doRegister}>
-        <h2>{isLogin ? 'Login' : 'Register'}</h2>
-        {error && <div className="error">{error}</div>}
-        {info && <div className="info">{info}</div>}
-        {isLogin ? (
-          <>
-            <div>
-              <label>Email</label>
-              <input value={email} onChange={e => setEmail(e.target.value)} required type="email" />
+      <div className="auth-shell fade-in-up">
+        <div className="auth-brand-panel">
+          <span className="lesnar-badge">A Lesnar AI Development</span>
+          <h1 className="heading">Coordinator access for public-health redistribution</h1>
+          <p className="muted">
+            Sign in to open the Command Center, inspect the geospatial redistribution map, and review
+            AI-assisted priority matches. Synthetic demo data only — no patient records.
+          </p>
+          <div className="auth-preview-card" aria-hidden="true">
+            <div className="auth-preview-row"><span className="legend-dot supply" /> Geospatial redistribution map</div>
+            <div className="auth-preview-row"><span className="legend-dot need" /> AI-assisted coordinator briefs</div>
+            <div className="auth-preview-row"><span className="legend-dot coordinator" /> Verification-gated transfers</div>
+          </div>
+          <div className="hero-disclosure">Coordinator verification required before any transfer.</div>
+        </div>
+
+        <div className="card auth-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+            <h2 style={{ margin: 0 }}>{isLogin ? 'Coordinator login' : 'Create account'}</h2>
+          </div>
+          <p className="muted-small" style={{ marginTop: 4, marginBottom: 16 }}>
+            {isLogin ? 'Use a demo account or your own credentials.' : 'Register an organization or admin coordinator account.'}
+          </p>
+          {error && <div className="text-danger" style={{ marginBottom: 12 }}>{error}</div>}
+          {info && <div className="success" style={{ marginBottom: 12 }}>{info}</div>}
+
+          {isLogin && (
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn-outline" onClick={() => { setEmail('test@example.com'); setPassword('Password123'); }}>
+                Use demo coordinator account
+              </button>
+              <button type="button" className="btn btn-outline" onClick={() => {
+                setIsLogin(false);
+                setName('MediMatch Admin');
+                setEmail('lesnar@admin.com');
+                setPassword('admin123');
+                setAdminCode('ADMIN2025');
+              }}>
+                Create demo admin account
+              </button>
             </div>
-            <div>
-              <label>Password</label>
-              <input value={password} onChange={e => setPassword(e.target.value)} required type="password" />
-            </div>
-          </>
-        ) : (
-          <>
-            <div>
-              <label>Name</label>
-              <input value={name} onChange={e => setName(e.target.value)} required type="text" />
-            </div>
-            <div>
-              <label>Email</label>
-              <input value={email} onChange={e => setEmail(e.target.value)} required type="email" />
-            </div>
-            <div>
-              <label>Password</label>
-              <input value={password} onChange={e => setPassword(e.target.value)} required type="password" />
-            </div>
-            <div>
-              <label>Admin Code (optional)</label>
-              <input value={adminCode} onChange={e => setAdminCode(e.target.value)} type="text" placeholder="ADMIN2025 for admin" />
-            </div>
-            {adminCode.trim() !== 'ADMIN2025' && (
+          )}
+
+          <form onSubmit={isLogin ? doLogin : doRegister}>
+            {isLogin ? (
               <>
-                <div>
-                  <label>Organization Name</label>
-                  <input value={orgName} onChange={e => setOrgName(e.target.value)} required type="text" />
+                <div className="form-group">
+                  <label>Email</label>
+                  <input value={email} onChange={e => setEmail(e.target.value)} required type="email" placeholder="you@organization.org" />
                 </div>
-                <div>
-                  <label>Organization Type</label>
-                  <input value={orgType} onChange={e => setOrgType(e.target.value)} required type="text" />
-                </div>
-                <div>
-                  <label>License/Registration ID</label>
-                  <input value={orgLicenseId} onChange={e => setOrgLicenseId(e.target.value)} required type="text" />
+                <div className="form-group">
+                  <label>Password</label>
+                  <input value={password} onChange={e => setPassword(e.target.value)} required type="password" placeholder="••••••••" />
                 </div>
               </>
+            ) : (
+              <>
+                <div className="form-group">
+                  <label>Name</label>
+                  <input value={name} onChange={e => setName(e.target.value)} required type="text" />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input value={email} onChange={e => setEmail(e.target.value)} required type="email" />
+                </div>
+                <div className="form-group">
+                  <label>Password</label>
+                  <input value={password} onChange={e => setPassword(e.target.value)} required type="password" />
+                </div>
+                <div className="form-group">
+                  <label>Admin Code <span className="muted-small">(optional)</span></label>
+                  <input value={adminCode} onChange={e => setAdminCode(e.target.value)} type="text" placeholder="Coordinator admin code" />
+                </div>
+                {adminCode.trim() !== 'ADMIN2025' && (
+                  <>
+                    <div className="form-group">
+                      <label>Organization Name</label>
+                      <input value={orgName} onChange={e => setOrgName(e.target.value)} required type="text" placeholder="e.g., Kenyatta National Hospital" />
+                    </div>
+                    <div className="form-group">
+                      <label>Organization Type</label>
+                      <input value={orgType} onChange={e => setOrgType(e.target.value)} required type="text" placeholder="e.g., Hospital, Clinic, NGO" />
+                    </div>
+                    <div className="form-group">
+                      <label>License/Registration ID</label>
+                      <input value={orgLicenseId} onChange={e => setOrgLicenseId(e.target.value)} required type="text" />
+                    </div>
+                  </>
+                )}
+              </>
             )}
-          </>
-        )}
-        <div style={{ marginTop: 16 }}>
-          <button type="submit" disabled={!canRegister()}>{isLogin ? 'Login' : 'Register'}</button>
-          <button type="button" onClick={() => { setIsLogin(x => !x); setError(null); setInfo(null); }} style={{ marginLeft: 8 }}>
-            {isLogin ? 'Create account' : 'Back to login'}
-          </button>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" type="submit" disabled={!canRegister()}>{isLogin ? 'Login' : 'Register'}</button>
+              <button type="button" className="btn btn-ghost" onClick={() => { setIsLogin(x => !x); setError(null); setInfo(null); }}>
+                {isLogin ? 'Create account' : 'Back to login'}
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
+      </div>
   );
 }
