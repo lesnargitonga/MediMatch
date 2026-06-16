@@ -18,10 +18,11 @@ describe('Auth endpoints (mockDB)', () => {
     expect(res.body).toEqual({ status: 'ok' });
   });
 
-  it('POST /api/auth/login with seeded user returns token and user', async () => {
+  it('POST /api/auth/login with seeded user sets auth cookie and returns user', async () => {
     const res = await request(app).post('/api/auth/login').send({ email: 'test@example.com', password: 'Password123' });
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('token');
+    // server authenticates via httpOnly cookie (token cookie), ensure it's set
+    expect(res.headers).toHaveProperty('set-cookie');
     expect(res.body.user).toMatchObject({ email: 'test@example.com' });
   });
 });
