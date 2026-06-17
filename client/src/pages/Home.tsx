@@ -76,14 +76,12 @@ export default function Home() {
           <span className="lesnar-badge">A Lesnar AI Development</span>
           <h1 className="heading">Match surplus supplies to urgent needs. Map the route. Coordinate the transfer.</h1>
           {properName && <div className="badge" style={{ marginBottom: 10 }}>Welcome back, {properName}.</div>}
-          <p>
-            Lesnar AI prototype for matching medical supply surplus with urgent needs using geospatial ranking and AI-assisted coordination.
-          </p>
+          <p>Score. Route. Coordinate. Built for public health teams.</p>
           <div className="hero-actions">
             <button className="btn btn-primary" onClick={() => nav(user ? '/dashboard' : '/login')}>Open Command Center</button>
             <button className="btn btn-secondary" onClick={() => nav('/dashboard?demoTab=map')}>View Redistribution Map</button>
           </div>
-          <div className="hero-disclosure">Synthetic demo data. No patient records. Coordinator verification required.</div>
+          <div className="hero-disclosure">Synthetic demo data · coordinator verification required</div>
         </div>
 
         <div className="hero-intel-stack" aria-hidden="true">
@@ -102,24 +100,20 @@ export default function Home() {
 
       <div className="home-metrics">
         <div className="metric-card supply">
-          <span>Supply signal</span>
-          <strong>{loading ? '...' : `${displayStats.activeListings} active`}</strong>
-          <small>{error || 'Synthetic surplus listings visible to coordinators'}</small>
+          <span>Active supply</span>
+          <strong>{loading ? '...' : `${displayStats.activeListings}`}</strong>
+          <small>Surplus listings ready for redistribution</small>
         </div>
         <div className="metric-card alert">
-          <span>Need pressure</span>
+          <span>Urgent needs</span>
           <strong>{loading ? '...' : `${displayStats.urgentNeeds}`}</strong>
-          <small>Urgent supply requests in the demo scenario</small>
+          <small>Facilities awaiting supply</small>
         </div>
         <div className="metric-card trust">
           <span>Ranked matches</span>
           <strong>{loading ? '...' : `${displayStats.suggestedMatches}`}</strong>
-          <small>{displayStats.verifiedOrgs} verified organization{displayStats.verifiedOrgs === 1 ? '' : 's'}</small>
+          <small>{displayStats.verifiedOrgs} verified org{displayStats.verifiedOrgs === 1 ? '' : 's'} in range</small>
         </div>
-      </div>
-
-      <div className="research-banner product-disclosure">
-        <strong>AI-assisted prototype:</strong> Synthetic demo data only. No patient records. Coordinators must verify availability, ownership, and transfer details before action.
       </div>
 
       <section className="signal-grid fade-in-up">
@@ -128,32 +122,29 @@ export default function Home() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0b5fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12h20"/></svg>
           </div>
           <span className="signal-kicker" style={{ color:'#0b5fff' }}>Proximity first</span>
-          <strong>Distance, urgency, and trust — ranked together</strong>
-          <p className="muted">Six factors scored in one number: how far, how urgent, how verified the org is, how recently posted, and whether the category matches. You see the breakdown.</p>
+          <strong>Six factors. One score. You see the breakdown.</strong>
+          <p className="muted">Distance, urgency, recency, verification, category, quantity — combined and ranked.</p>
         </div>
         <div className="signal-panel" style={{ borderTop: '3px solid #7c3aed' }}>
           <div style={{ width:36, height:36, borderRadius:8, background:'rgba(124,58,237,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           </div>
-          <span className="signal-kicker" style={{ color:'#7c3aed' }}>Know why this match</span>
-          <strong>We show our work. You make the call.</strong>
-          <p className="muted">A plain-English summary tells you why a transfer ranked at the top — not to replace your judgment, just to give you a starting point.</p>
+          <span className="signal-kicker" style={{ color:'#7c3aed' }}>Know why</span>
+          <strong>We show our work. You decide.</strong>
+          <p className="muted">A short summary tells you why this match ranked. Not the final word.</p>
         </div>
         <div className="signal-panel" style={{ borderTop: '3px solid #059669' }}>
           <div style={{ width:36, height:36, borderRadius:8, background:'rgba(5,150,105,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           </div>
-          <span className="signal-kicker" style={{ color:'#059669' }}>Your approval, every time</span>
-          <strong>Nothing moves without coordinator sign-off</strong>
-          <p className="muted">Ranked lists and AI summaries prepare you for a decision. You still have to approve it. We don't move supplies without a person saying yes.</p>
+          <span className="signal-kicker" style={{ color:'#059669' }}>Your sign-off</span>
+          <strong>Nothing ships without your approval.</strong>
+          <p className="muted">Every transfer waits for a coordinator to say yes.</p>
         </div>
       </section>
 
       <section className="command-strip fade-in-up">
-        <div>
-          <strong>Guided showcase: scenario, map, matches, AI brief.</strong>
-          <div className="muted-small">A concise product walk-through for the public-health coordination workflow.</div>
-        </div>
+        <strong>See it in action.</strong>
         <div className="cta-actions">
           <Link to="/demo" className="btn btn-primary">Open Demo Scenario</Link>
         </div>

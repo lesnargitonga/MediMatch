@@ -77,38 +77,36 @@ export default function Listings() {
 
   return (
     <section className="fade-in-up">
-      <div className="dashboard-command-hero" style={{ marginBottom: 12 }}>
-        <div className="hero-copy">
-          <span className="lesnar-badge" style={{ marginBottom: 10 }}>Geospatial inventory</span>
-          <div className="heading" style={{ marginTop: 0 }}>Redistribution Listings</div>
-          <div className="muted" style={{ maxWidth: 680 }}>Surplus and need signals from synthetic public-health facilities, grouped by organization for coordinator review.</div>
+      <div style={{ marginBottom: 20, paddingBottom: 18, borderBottom: '1px solid var(--card-border)', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
+        <div>
+          <div style={{ fontSize:'1.6rem', fontWeight:900, letterSpacing:'-0.02em', color:'var(--text)', lineHeight:1.1 }}>Listings</div>
+          <div style={{ color:'var(--muted)', marginTop:4, fontSize:'0.9rem' }}>Surplus and urgent-need signals, grouped by organization</div>
         </div>
-        <div className="command-hero-signal" aria-hidden="true">
-          <span>Visible signals</span>
-          <strong>{items.length} item{items.length!==1?'s':''}</strong>
-          <small>{category!=='all' ? `Filtered: ${category}` : 'All categories'}</small>
+        <div style={{ textAlign:'right' }}>
+          <div style={{ fontSize:'1.9rem', fontWeight:900, color:'var(--text)', lineHeight:1 }}>{items.length}</div>
+          <div style={{ fontSize:'0.7rem', fontWeight:800, textTransform:'uppercase', color:'var(--muted)', letterSpacing:'0.06em' }}>{category!=='all' ? category : 'all categories'}</div>
         </div>
       </div>
       {/* Sticky filter bar */}
       <div className="card" style={{ position:'sticky', top: 58, zIndex: 5, boxShadow:'0 6px 12px rgba(0,0,0,0.04)', marginBottom: 12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap', backdropFilter:'saturate(180%) blur(6px)' }}>
-        <input placeholder="Search by title or description" value={filterText} onChange={e=>setFilterText(e.target.value)} style={{ flex:'1 1 240px' }} />
-        <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)}>
-          <option value="newest">Sort: Newest</option>
-          <option value="nearest">Sort: Nearest</option>
+        <input placeholder="Search signals..." value={filterText} onChange={e=>setFilterText(e.target.value)} style={{ flex:'1 1 180px', minWidth:0 }} />
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)} style={{ width:'auto' }}>
+          <option value="newest">Newest</option>
+          <option value="nearest">Nearest</option>
         </select>
-        <select value={category} onChange={e=>setCategory(e.target.value as any)}>
-          {CATEGORIES.map(c => (<option key={c} value={c}>{c === 'all' ? 'All categories' : `Category: ${c}`}</option>))}
+        <select value={category} onChange={e=>setCategory(e.target.value as any)} style={{ width:'auto' }}>
+          {CATEGORIES.map(c => (<option key={c} value={c}>{c === 'all' ? 'All' : c.charAt(0).toUpperCase()+c.slice(1)}</option>))}
         </select>
-        <label style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
-          <input type="checkbox" checked={groupByOrg} onChange={e=>setGroupByOrg(e.target.checked)} /> <span>Group by organization</span>
+        <label style={{ display:'inline-flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
+          <input type="checkbox" checked={groupByOrg} onChange={e=>setGroupByOrg(e.target.checked)} /> <span>By org</span>
         </label>
-        <button className="btn" onClick={() => {
+        <button className="btn btn-outline" style={{ whiteSpace:'nowrap' }} onClick={() => {
           if (!('geolocation' in navigator)) { toast.error('Geolocation not supported'); return; }
           navigator.geolocation.getCurrentPosition(
             pos => setUserCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
             () => toast.error('Could not get your location')
           );
-        }}>{userCoords ? 'Location set' : 'Use my location'}</button>
+        }}>{userCoords ? 'Located' : 'Near me'}</button>
       </div>
       {loading ? (
         <div className="listings">

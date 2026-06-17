@@ -109,26 +109,18 @@ export default function AdminPage() {
 
   return (
     <section className="fade-in-up">
-      <div className="dashboard-command-hero" style={{ marginBottom: 12 }}>
-        <div className="hero-copy">
-          <span className="lesnar-badge" style={{ marginBottom: 10 }}>Coordinator review</span>
-          <div className="heading" style={{ marginTop: 0 }}>Verification &amp; Oversight</div>
-          <div className="muted" style={{ maxWidth: 680 }}>Verify organizations, audit listings, and export reporting before any redistribution is approved. Synthetic demo data only.</div>
+      <div style={{ marginBottom: 24, paddingBottom: 18, borderBottom: '1px solid var(--card-border)', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
+        <div>
+          <div style={{ fontSize:'1.6rem', fontWeight:900, letterSpacing:'-0.02em', color:'var(--text)', lineHeight:1.1 }}>Verification &amp; Oversight</div>
+          <div style={{ color:'var(--muted)', marginTop:4, fontSize:'0.9rem' }}>Review organizations before any redistribution is approved{usingDemoData ? ' · Synthetic demo data' : ''}</div>
         </div>
-        <div className="command-hero-signal" aria-hidden="true">
-          <span>Pending review</span>
-          <strong>{verifyable.length} organization{verifyable.length === 1 ? '' : 's'}</strong>
-          <small>Awaiting coordinator verification</small>
-        </div>
+        {verifyable.length > 0 && (
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontSize:'1.9rem', fontWeight:900, color:'#f59e0b', lineHeight:1 }}>{verifyable.length}</div>
+            <div style={{ fontSize:'0.7rem', fontWeight:800, textTransform:'uppercase', color:'var(--muted)', letterSpacing:'0.06em' }}>Pending</div>
+          </div>
+        )}
       </div>
-      <div className="research-banner" style={{ marginBottom: 14 }}>
-        <strong>Prototype boundary:</strong> Synthetic demo data only. No patient records. Verification decisions here are advisory and must reflect real coordinator judgment.
-      </div>
-      {usingDemoData && (
-        <div className="research-banner" style={{ marginBottom: 14 }}>
-          <strong>Demo mode:</strong> Reporting database not connected — showing a synthetic verification scenario.
-        </div>
-      )}
       <div className="tabs" role="tablist">
         <button className={`tab ${tab==='overview'?'active':''}`} onClick={()=>setTab('overview')}>Overview</button>
         <button className={`tab ${tab==='users'?'active':''}`} onClick={()=>setTab('users')}>Users</button>
@@ -143,7 +135,7 @@ export default function AdminPage() {
               {[
                 { label: 'Registered facilities', value: stats?.users ?? '—', color: '#0b5fff' },
                 { label: 'Active listings', value: stats?.listings ?? '—', color: '#059669' },
-                { label: 'Ranked matches', value: stats?.matches ?? '—', color: '#7c3aed' },
+                { label: 'Ranked matches', value: stats?.matches ?? '—', color: '#0b5fff' },
               ].map(s => (
                 <div key={s.label} style={{ border:`1px solid var(--card-border)`, borderRadius:8, padding:'12px 14px', borderTop:`3px solid ${s.color}` }}>
                   <div style={{ fontSize:'1.6rem', fontWeight:900, color:s.color, lineHeight:1 }}>{s.value}</div>
@@ -226,7 +218,7 @@ export default function AdminPage() {
                       <div className="muted-small">{u.email}</div>
                     </td>
                     <td style={{ padding: '8px' }}>
-                      <span style={{ padding: '3px 9px', borderRadius: 999, fontSize: '0.75rem', fontWeight: 800, background: u.role === 'admin' ? 'rgba(124,58,237,0.1)' : 'rgba(11,95,255,0.08)', color: u.role === 'admin' ? '#7c3aed' : '#0b5fff' }}>{u.role === 'admin' ? 'Coordinator' : 'Facility'}</span>
+                      <span style={{ padding: '3px 9px', borderRadius: 999, fontSize: '0.75rem', fontWeight: 800, background: 'rgba(11,95,255,0.08)', color: '#0b5fff' }}>{u.role === 'admin' ? 'Coordinator' : 'Facility'}</span>
                     </td>
                     <td style={{ padding: '8px' }}>{u.org_name || '—'}</td>
                     <td style={{ padding: '8px' }}>

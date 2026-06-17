@@ -23,30 +23,28 @@ function snippetChoice(seed: string, opts: string[]) {
 function generateCoordinatorBrief(opts: { stats?: Stats; topListing?: any; context?: string }) {
   const stats = opts.stats || {};
   const top = opts.topListing || {};
-  const seed = JSON.stringify(stats) + '|' + (top.id ?? '') + '|' + (opts.context ?? '');
 
-  const lead = snippetChoice(seed + ':lead', [
-    'AI-assisted prototype brief. Use as guidance only; verify before coordination.',
-    'Prototype AI summary using synthetic demo data. Confirm recommendations before acting.',
-  ]);
+  const needs = stats.urgentNeeds || 0;
+  const supply = stats.availableSupplies || 0;
+  const km = stats.averageRadius;
 
-  const urgency = (stats.urgentNeeds || 0) > 0
-    ? `Immediate priorities: ${stats.urgentNeeds} urgent need${stats.urgentNeeds === 1 ? '' : 's'} detected.`
-    : 'No immediate urgent needs detected in the current snapshot.';
+  const needLine = needs > 0
+    ? `${needs} urgent need${needs === 1 ? '' : 's'} flagged.`
+    : 'No urgent needs in the current view.';
 
-  const supplyNote = (stats.availableSupplies || 0) > 0
-    ? `Supply availability appears sufficient in ${stats.availableSupplies} open listings.`
-    : 'Supply availability is low relative to visible needs.';
+  const supplyLine = supply > 0 && top.title
+    ? `${top.title} is the nearest available supply${km ? ` (~${km.toFixed(1)} km)` : ''}.`
+    : supply > 0
+      ? `${supply} supply listing${supply === 1 ? '' : 's'} available.`
+      : '';
 
-  const focal = top && top.title ? `Top candidate: ${top.title}.` : '';
+  const callToAction = needs > 0 && supply > 0
+    ? 'Check the map or ranked matches before approving a transfer.'
+    : needs > 0
+      ? 'No supply currently visible — check listings.'
+      : 'No active coordination needed right now.';
 
-  const action = snippetChoice(seed + ':action', [
-    'Recommend short-haul transfers focusing on verified organizations and urgent flags.',
-    'Recommend prioritizing nearest verified supply for urgent needs and staging coordination messages to owners.',
-    'Recommend contacting the supply owner to confirm quantity and arrange safe pickup.',
-  ]);
-
-  return `${lead} ${urgency} ${supplyNote} ${focal} ${action} (AI-assisted prototype; synthetic demo data).`;
+  return [needLine, supplyLine, callToAction].filter(Boolean).join(' ');
 }
 
 async function explainMatch(match: any) {

@@ -50,7 +50,7 @@ const DEMO_MAP_LISTINGS: Listing[] = [
   {
     id: -101,
     title: 'Surplus nitrile gloves',
-    description: 'Facility A has unopened gloves ready for redistribution.',
+    description: '800 nitrile gloves, unopened, stored appropriately. Available for same-day transfer.',
     quantity: 800,
     category: 'supplies',
     is_urgent: false,
@@ -62,7 +62,7 @@ const DEMO_MAP_LISTINGS: Listing[] = [
   {
     id: -102,
     title: 'Urgent wound-care supplies needed',
-    description: 'Facility B reports an immediate dressing and bandage shortfall.',
+    description: 'Urgent shortage: dressings, bandages, wound-care consumables. 120 units needed immediately.',
     quantity: 120,
     category: 'supplies',
     is_urgent: true,
@@ -74,7 +74,7 @@ const DEMO_MAP_LISTINGS: Listing[] = [
   {
     id: -103,
     title: 'Portable oxygen concentrator available',
-    description: 'Facility C has working equipment available for short-term transfer.',
+    description: '2 portable oxygen concentrators, functional, available for short-term facility transfer.',
     quantity: 2,
     category: 'equipment',
     is_urgent: false,
@@ -86,7 +86,7 @@ const DEMO_MAP_LISTINGS: Listing[] = [
   {
     id: -104,
     title: 'Emergency medication stock request',
-    description: 'Facility D is farther away but verified and marked urgent.',
+    description: 'Critical medication stock depletion. 60 units needed within 24 hours. Verified county facility.',
     quantity: 60,
     category: 'medication',
     is_urgent: true,
@@ -138,8 +138,8 @@ export default function Dashboard() {
   const [debouncedLocationQuery] = useDebounce(locationQuery, 500);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
-  // Recommendations (match suggestions)
-  const [recs, setRecs] = useState<any[]>([]);
+  // Recommendations — seed with demo data immediately so the tab never shows empty
+  const [recs, setRecs] = useState<any[]>(() => demoMatchRecommendations());
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [recCategory, setRecCategory] = useState<string>('all');
   const [recRadius, setRecRadius] = useState<number>(50);
@@ -357,22 +357,26 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="dashboard-command-hero" style={{ marginBottom: 12 }}>
-        <div className="hero-copy">
-          <span className="lesnar-badge" style={{ marginBottom: 10 }}>AI-assisted prototype</span>
-          <div className="heading" style={{ marginTop: 0 }}>MediMatch Command Center</div>
-          <div className="muted" style={{ maxWidth: 680 }}>Nairobi County synthetic scenario. Match surplus supplies to urgent needs, check the ranking, then approve — or don't.</div>
-        </div>
-        <div className="command-hero-signal" aria-hidden="true">
-          <span>Priority queue</span>
-          <strong>{urgentNeeds} urgent / {availableSupplies} supply</strong>
-          <small>AI brief active</small>
+      <div style={{ marginBottom: 24, paddingBottom: 18, borderBottom: '1px solid var(--card-border)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
+          <div>
+            <div style={{ fontSize:'1.6rem', fontWeight:900, letterSpacing:'-0.02em', color:'var(--text)', lineHeight:1.1 }}>Command Center</div>
+            <div style={{ color:'var(--muted)', marginTop:4, fontSize:'0.9rem' }}>Nairobi County · Synthetic demo data</div>
+          </div>
+          <div style={{ display:'flex', gap:18, alignItems:'center' }}>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:'1.9rem', fontWeight:900, color:'#dc2626', lineHeight:1 }}>{urgentNeeds}</div>
+              <div style={{ fontSize:'0.7rem', fontWeight:800, textTransform:'uppercase', color:'var(--muted)', letterSpacing:'0.06em' }}>Urgent</div>
+            </div>
+            <div style={{ width:1, height:36, background:'var(--card-border)' }} />
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:'1.9rem', fontWeight:900, color:'#059669', lineHeight:1 }}>{availableSupplies}</div>
+              <div style={{ fontSize:'0.7rem', fontWeight:800, textTransform:'uppercase', color:'var(--muted)', letterSpacing:'0.06em' }}>Supply</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="research-banner" style={{ marginBottom: 14 }}>
-        <strong>Prototype boundary:</strong> Synthetic demo data only. No patient records. AI assistance is advisory and must be verified by a coordinator.
-      </div>
-      <div className="tabs" style={{ marginBottom: 14 }}>
+      <div className="tabs">
         <button className={`tab ${tab==='overview'?'active':''}`} onClick={()=>setTab('overview')}>Command</button>
         {role !== 'admin' && (
           <button className={`tab ${tab==='create'?'active':''}`} onClick={()=>setTab('create')}>Post Signal</button>
@@ -380,8 +384,12 @@ export default function Dashboard() {
         <button className={`tab ${tab==='browse'?'active':''}`} onClick={()=>setTab('browse')}>Listings</button>
         <button className={`tab ${tab==='suggested'?'active':''}`} onClick={()=>setTab('suggested')}>Matches</button>
         <button className={`tab ${tab==='map'?'active':''}`} onClick={()=>setTab('map')}>Map</button>
-        <button className={`tab ${tab==='messages'?'active':''}`} onClick={()=>setTab('messages')}>Messages</button>
-        <button className={`tab ${tab==='account'?'active':''}`} onClick={()=>setTab('account')}>Account</button>
+        {role !== 'admin' && (
+          <button className={`tab ${tab==='messages'?'active':''}`} onClick={()=>setTab('messages')}>Messages</button>
+        )}
+        {role !== 'admin' && (
+          <button className={`tab ${tab==='account'?'active':''}`} onClick={()=>setTab('account')}>Account</button>
+        )}
         {role === 'admin' && (
           <button className={`tab ${tab==='admin'?'active':''}`} onClick={()=>setTab('admin')}>Review</button>
         )}
@@ -389,43 +397,19 @@ export default function Dashboard() {
 
       {tab==='overview' && (
         <section style={{ marginBottom: 20 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-            <div>
-              <div className="heading" style={{ marginBottom: 4 }}>Today&apos;s Redistribution Snapshot</div>
-              <div className="muted-small">Live listing signals ranked around the Nairobi County demo coordinator point. AI-assisted prototype; synthetic scenario.</div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:20 }}>
+            <div style={{ padding:'22px 24px', border:'1px solid var(--card-border)', borderRadius:16, background:'var(--surface)', borderTop:'4px solid #dc2626' }}>
+              <div style={{ fontSize:'3.4rem', fontWeight:900, color:'#dc2626', lineHeight:1, letterSpacing:'-0.02em' }}>{urgentNeeds}</div>
+              <div style={{ fontSize:'0.78rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--muted)', marginTop:8 }}>Urgent needs</div>
             </div>
-            {loadingListings && <span className="muted-small">Refreshing snapshot...</span>}
-          </div>
-          <div className="snapshot-grid">
-            <div className="metric-card alert">
-              <span>Urgent needs</span>
-              <strong>{urgentNeeds}</strong>
-              <small>Marked for immediate redistribution</small>
+            <div style={{ padding:'22px 24px', border:'1px solid var(--card-border)', borderRadius:16, background:'var(--surface)', borderTop:'4px solid #059669' }}>
+              <div style={{ fontSize:'3.4rem', fontWeight:900, color:'#059669', lineHeight:1, letterSpacing:'-0.02em' }}>{availableSupplies}</div>
+              <div style={{ fontSize:'0.78rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--muted)', marginTop:8 }}>Available supply</div>
             </div>
-            <div className="metric-card supply">
-              <span>Available supplies</span>
-              <strong>{availableSupplies}</strong>
-              <small>Open supply-side listings</small>
-            </div>
-            <div className="metric-card">
-              <span>Nearest match</span>
-              <strong>{nearestListing?.distanceKm != null ? `${nearestListing.distanceKm.toFixed(1)} km` : 'Set location'}</strong>
-              <small>{nearestListing?.listing.title || 'Using Nairobi demo center'}</small>
-            </div>
-            <div className="metric-card trust">
-              <span>Verified organizations</span>
-              <strong>{verifiedOrgs}</strong>
-              <small>Trusted facilities in active flow</small>
-            </div>
-            <div className="metric-card">
-              <span>Average match radius</span>
-              <strong>{averageRadius ? `${averageRadius.toFixed(1)} km` : '0 km'}</strong>
-              <small>Across visible geospatial listings</small>
-            </div>
-            <div className="metric-card">
-              <span>Recent activity</span>
-              <strong>{recentActivity}</strong>
-              <small>Listings updated in the last 7 days</small>
+            <div style={{ padding:'22px 24px', border:'1px solid var(--card-border)', borderRadius:16, background:'var(--surface)', borderTop:'4px solid #0b5fff' }}>
+              <div style={{ fontSize:'3.4rem', fontWeight:900, color:'#0b5fff', lineHeight:1, letterSpacing:'-0.02em' }}>{nearestListing?.distanceKm != null ? `${nearestListing.distanceKm.toFixed(1)}` : '—'}</div>
+              <div style={{ fontSize:'0.78rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--muted)', marginTop:8 }}>km · nearest match</div>
+              {nearestListing?.listing.title && <div style={{ fontSize:'0.8rem', color:'var(--muted)', marginTop:4 }}>{nearestListing.listing.title}</div>}
             </div>
           </div>
           {/* AI-assisted coordinator brief (local, deterministic prototype) */}
@@ -433,14 +417,9 @@ export default function Dashboard() {
             stats={{ urgentNeeds, availableSupplies, verifiedOrgs, averageRadius, recentActivity }}
             topListing={nearestListing?.listing}
           />
-          <div className="command-strip" style={{ marginTop: 14 }}>
-            <div>
-              <strong>Coordinate the next redistribution decision</strong>
-              <div className="muted-small">Open the map or priority queue to inspect proximity, urgency, trust, and supply adequacy together.</div>
-            </div>
-            <div style={{ display:'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={()=>setTab('map')}>Open Redistribution Map</button>
-              <button className="btn btn-outline" onClick={()=>setTab('suggested')}>View Priority Matches</button>
+          <div style={{ display:'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+              <button className="btn btn-primary" onClick={()=>setTab('map')}>Open map</button>
+              <button className="btn btn-outline" onClick={()=>setTab('suggested')}>Priority matches</button>
               {role === 'admin' && (
                 <button className="btn" onClick={async ()=>{
                   try {
@@ -458,14 +437,41 @@ export default function Dashboard() {
                 }}>Export Report</button>
               )}
             </div>
+          {/* Recent signals feed */}
+          <div style={{ marginTop: 28 }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--muted)', marginBottom:12 }}>Recent signals</div>
+            <div style={{ display:'grid', gap:8 }}>
+              {listingsForSnapshot.slice(0, 5).map(l => {
+                const isUrgent = (l as any).is_urgent;
+                const org = (l as any).org_name || (l as any).owner_name || 'Unknown facility';
+                const ago = l.created_at ? (() => {
+                  const diff = Date.now() - new Date(l.created_at).getTime();
+                  const mins = Math.floor(diff / 60000);
+                  if (mins < 60) return `${mins}m ago`;
+                  const hrs = Math.floor(mins / 60);
+                  if (hrs < 24) return `${hrs}h ago`;
+                  return `${Math.floor(hrs / 24)}d ago`;
+                })() : '';
+                return (
+                  <div key={l.id} style={{ display:'flex', gap:12, alignItems:'center', padding:'10px 14px', border:'1px solid var(--card-border)', borderRadius:10, background:'var(--surface)', cursor:'pointer' }} onClick={()=>setTab('suggested')}>
+                    <div style={{ width:8, height:8, borderRadius:'50%', background: isUrgent ? '#dc2626' : '#059669', flexShrink:0, boxShadow: isUrgent ? '0 0 6px rgba(220,38,38,0.5)' : '0 0 6px rgba(5,150,105,0.4)' }} />
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:700, fontSize:'0.88rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{l.title}</div>
+                      <div style={{ fontSize:'0.78rem', color:'var(--muted)' }}>{org}</div>
+                    </div>
+                    <div style={{ fontSize:'0.75rem', color:'var(--muted)', flexShrink:0 }}>{ago}</div>
+                    {isUrgent && <div style={{ fontSize:'0.68rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'#dc2626', flexShrink:0 }}>Urgent</div>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
       )}
 
   {tab==='create' && role !== 'admin' && (
       <section className="card" style={{ marginBottom: 20 }}>
-        <div className="subtle" style={{ marginBottom: 8 }}>{editingId ? 'Edit Listing' : 'Post Supply / Need'}</div>
-        <p className="muted" style={{ marginTop: 0 }}>Provide a clear title, description, quantity, category, and location so the AI completeness check can flag missing coordination details.</p>
+        <div style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: 16 }}>{editingId ? 'Edit listing' : 'Post a supply or need'}</div>
         <form onSubmit={editingId ? saveEdit : createListing} style={{ maxWidth: 560 }}>
           <div className="form-group">
             <label>Title <span className="muted-small">(required)</span></label>
@@ -625,15 +631,11 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          ) : listings.length === 0 ? (
-            <div className="empty card">
-              <img src="/images/pic-2.png" alt="No listings" />
-              <span className="muted">No listings yet — create one to get started.</span>
-            </div>
           ) : (
           <div className="listings">
             {(() => {
-              const items = listings.map((l: Listing) => {
+              const browseListings: Listing[] = listings.length >= 3 ? listings : [...listings, ...DEMO_MAP_LISTINGS.filter(d => !listings.some(l => l.title === d.title))];
+              const items = browseListings.map((l: Listing) => {
                 const loc = (l as any).location_wkt || (l as any).location || '';
                 const coords = extractLatLon(loc);
                 const distanceKm = (userCoords && coords.lat != null && coords.lon != null)
@@ -722,10 +724,9 @@ export default function Dashboard() {
 
                     <div className="chips">
                       <span className="chip"><span className="dot" /> Qty: {q}</span>
-                      {typeof distanceKm === 'number' && Number.isFinite(distanceKm) && (
+                      {typeof distanceKm === 'number' && Number.isFinite(distanceKm) && distanceKm < 200 && (
                         <span className="chip"><span className="dot" /> {distanceKm.toFixed(1)} km away</span>
                       )}
-                      {loc ? <span className="chip"><span className="dot" /> {String(loc).slice(0, 64)}</span> : null}
                       {coords.lat != null && coords.lon != null && (
                         <>
                         <button className="btn btn-outline" onClick={() => {
@@ -1328,14 +1329,14 @@ function SuggestedSection(props: {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 12 }}>
         <div>
           <div className="subtle">Priority Matches</div>
-          <div className="muted-small">Ranked by distance, urgency, facility verification, and how recently it was posted. Check the breakdown before approving anything.</div>
+          <div className="muted-small">Scored on six factors. Coordinator approves every transfer.</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <label style={{ display:'flex', alignItems:'center', gap:4, fontSize:'0.75rem' }}>
             <input type="checkbox" checked={autoRefresh} onChange={e=>setAutoRefresh(e.target.checked)} /> Auto refresh
           </label>
           <button className="btn btn-outline" onClick={onOpenShowcaseMap}>Open Map</button>
-          <button className="btn btn-outline" onClick={fetchRecs} disabled={loadingRecs}>{loadingRecs? 'Loading…':'Refresh'}</button>
+          <button className="btn btn-outline" onClick={fetchRecs} disabled={loadingRecs}>{loadingRecs && recs.length === 0 ? 'Loading…' : 'Refresh'}</button>
         </div>
       </div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom: 12 }}>
@@ -1376,25 +1377,6 @@ function SuggestedSection(props: {
           const fav = favorites.includes(r.id);
           const score = toNum(r.score);
           const distanceKm = toNum(r.distance_km);
-          const reasonParts = [
-            distanceKm > 0 ? `is within ${distanceKm.toFixed(1)} km` : null,
-            r.is_urgent ? 'is marked urgent' : null,
-            recCategory !== 'all' && r.category === recCategory ? 'is category-matched' : null,
-            r.org_verified ? 'was posted by a verified organization' : null,
-            r.quantity != null ? `has supply adequacy of ${r.quantity} unit${Number(r.quantity) === 1 ? '' : 's'}` : null,
-          ].filter(Boolean);
-          const reason = reasonParts.length
-            ? `Recommended because it ${reasonParts.join(', ')}.`
-            : 'Recommended because its combined redistribution signals rank above the current queue.';
-          const components = [
-            { key: 'c_distance', label: 'Proximity advantage', weight: 0.35 },
-            { key: 'c_urgency', label: 'Need severity', weight: 0.20 },
-            { key: 'c_reputation', label: 'Facility trust signal', weight: 0.20 },
-            { key: 'c_recency', label: 'Recency', weight: 0.15 },
-            { key: 'c_verified', label: 'Organization verification', weight: 0.05 },
-            { key: 'c_category', label: 'Category match', weight: 0.04 },
-            { key: 'c_quantity', label: 'Supply adequacy', weight: 0.01 },
-          ];
           const scoreInt = Math.round(score * 100);
           const scoreColor = scoreInt >= 85 ? '#059669' : scoreInt >= 70 ? '#0b5fff' : '#f59e0b';
           return (
@@ -1411,27 +1393,13 @@ function SuggestedSection(props: {
                   <strong style={{ fontSize:'1.02rem' }}>{r.title}</strong>
                   {r.org_verified && <span style={{ padding:'2px 8px', borderRadius:999, fontSize:'0.72rem', fontWeight:800, background:'rgba(5,150,105,0.1)', color:'#059669', flexShrink:0 }}>✓ Verified</span>}
                 </div>
-                <div className="muted" style={{ marginBottom:6, fontSize:'0.9rem' }}>{r.description || 'no description'}</div>
-                <div className="match-reason" style={{ marginBottom:8 }}>{reason}</div>
+                <div className="muted" style={{ marginBottom:8, fontSize:'0.88rem' }}>{(r.org_name || r.owner_name) ? `${r.org_name || r.owner_name}` : ''}</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
                   {Number.isFinite(distanceKm) && distanceKm > 0 && <span className="chip">{distanceKm.toFixed(1)} km</span>}
-                  {r.quantity != null && <span className="chip">Qty: {r.quantity}</span>}
-                  {r.average_rating > 0 && (
-                    <span className="chip" title={`Rating ${toNum(r.average_rating).toFixed(1)} from ${r.total_ratings} review(s)`}>⭐ {toNum(r.average_rating).toFixed(1)} ({r.total_ratings})</span>
-                  )}
+                  {r.quantity != null && <span className="chip">{r.quantity} units</span>}
+                  {r.category && r.category !== 'other' && <span className="chip">{r.category}</span>}
+                  {r.is_urgent && <span className="chip" style={{ color:'#ef4444', borderColor:'#ef444430', background:'rgba(239,68,68,0.06)', fontWeight:800 }}>Urgent</span>}
                 </div>
-              <details style={{ marginBottom: 8 }}>
-                <summary className="muted-small" style={{ cursor:'pointer' }}>Model signal breakdown</summary>
-                <div className="score-grid">
-                  {components.map(c => (
-                    <div key={c.key} className="score-component">
-                      <div style={{ fontSize:'0.75rem', fontWeight:700 }}>{c.label}</div>
-                      <div className="score-bar"><span style={{ width: `${Math.round(toNum(r[c.key]) * 100)}%` }} /></div>
-                      <div style={{ fontSize:'0.7rem' }}>{toNum(r[c.key]).toFixed(2)} signal | {(toNum(r[c.key]) * c.weight).toFixed(3)} weighted</div>
-                    </div>
-                  ))}
-                </div>
-              </details>
               <div className="chips">
                 {r.location_wkt && (
                   <button className="btn btn-outline" onClick={()=>{
@@ -1519,6 +1487,22 @@ function RedistributionMapSection(props: {
   const routeLine: [number, number][] | null = bestPair
     ? [[bestPair.supply.lat, bestPair.supply.lon], [bestPair.need.lat, bestPair.need.lon]]
     : null;
+
+  // Fetch real road route from OSRM public API
+  const [roadRoute, setRoadRoute] = useState<[number, number][] | null>(null);
+  useEffect(() => {
+    if (!bestPair) { setRoadRoute(null); return; }
+    const { supply, need } = bestPair;
+    fetch(
+      `https://router.project-osrm.org/route/v1/driving/${supply.lon},${supply.lat};${need.lon},${need.lat}?geometries=geojson&overview=full`
+    )
+      .then(r => r.json())
+      .then(data => {
+        const coords = data.routes?.[0]?.geometry?.coordinates as [number, number][] | undefined;
+        if (coords?.length) setRoadRoute(coords.map(([lon, lat]) => [lat, lon]));
+      })
+      .catch(() => setRoadRoute(null));
+  }, [bestPair?.supply.listing.id, bestPair?.need.listing.id]);
   const priorityScore = bestPair
     ? Math.round(Math.max(76, Math.min(98, 96 - bestPair.km * 2.2 + (bestPair.sameCategory ? 4 : 0) + ((bestPair.supply.listing as any).org_verified ? 2 : 0))))
     : topRecommendation ? 84 : 0;
@@ -1592,42 +1576,69 @@ function RedistributionMapSection(props: {
                 </Popup>
               </CircleMarker>
             ))}
-            {routeLine && (
+            {(roadRoute || routeLine) && (
               <Polyline
-                positions={routeLine}
-                pathOptions={{ color: '#22d3ee', weight: 3, dashArray: '8 4', opacity: 0.9 }}
+                positions={(roadRoute || routeLine)!}
+                pathOptions={{ color: '#22d3ee', weight: 4, dashArray: roadRoute ? undefined : '8 4', opacity: 0.92 }}
               />
             )}
           </MapContainer>
         </div>
-        <aside className="map-side-panel">
-          <div className="subtle">Priority score panel</div>
-          <div className="map-priority-score">{priorityScore || '--'}</div>
-          <h3>
-            {bestPair
-              ? `${bestPair.supply.listing.title} -> ${bestPair.need.listing.title}`
-              : topRecommendation?.title || 'No active recommendation'}
-          </h3>
-          <p className="muted">
-            {bestPair
-              ? `${bestPair.supply.listing.title} can support ${bestPair.need.listing.title} across ${bestPair.km.toFixed(1)} km${bestPair.sameCategory ? ' with a category match' : ''}.`
-              : topRecommendation
-                ? 'The highest-ranked visible listing is ready for coordinator review.'
-                : 'Create listings to populate the live redistribution map.'}
-          </p>
-          <div className="map-why-card">
-            <strong>Why this match?</strong>
-            <span>{whyMatch}. AI-assisted prototype; verify availability and logistics before coordination.</span>
+        <aside className="map-side-panel" style={{ display:'flex', flexDirection:'column', gap:0 }}>
+          {/* Score */}
+          <div style={{ textAlign:'center', padding:'24px 16px 16px', borderBottom:'1px solid var(--card-border)' }}>
+            <div style={{ fontSize:'4rem', fontWeight:900, lineHeight:1, color: priorityScore >= 85 ? '#059669' : '#0b5fff' }}>
+              {priorityScore || '—'}
+            </div>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--muted)', marginTop:6 }}>Priority score</div>
           </div>
-          <div className="chips">
-            <span className="chip"><span className="dot" /> Source marker</span>
-            <span className="chip warn"><span className="dot" /> Urgent need marker</span>
-            {bestPair && <span className="chip"><span className="dot" /> {bestPair.km.toFixed(1)} km route</span>}
-          </div>
-          <div className="map-legend">
-            <span><i className="legend-dot supply" /> Available supply</span>
-            <span><i className="legend-dot need" /> Urgent need</span>
-            <span><i className="legend-dot coordinator" /> Coordinator point</span>
+
+          {/* Route summary */}
+          {bestPair ? (
+            <div style={{ padding:'16px', borderBottom:'1px solid var(--card-border)', display:'grid', gap:10 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ width:10, height:10, borderRadius:'50%', background:'#059669', flexShrink:0, display:'inline-block' }} />
+                <div>
+                  <div style={{ fontWeight:700, fontSize:'0.88rem' }}>{(bestPair.supply.listing as any).org_name || bestPair.supply.listing.title}</div>
+                  <div className="muted-small">Supply · {(bestPair.supply.listing as any).quantity ?? '—'} units</div>
+                </div>
+              </div>
+              <div style={{ paddingLeft:14, fontSize:'0.78rem', color:'var(--muted)', fontWeight:700 }}>↓ {bestPair.km.toFixed(1)} km route</div>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ width:10, height:10, borderRadius:'50%', background:'#dc2626', flexShrink:0, display:'inline-block' }} />
+                <div>
+                  <div style={{ fontWeight:700, fontSize:'0.88rem' }}>{(bestPair.need.listing as any).org_name || bestPair.need.listing.title}</div>
+                  <div className="muted-small" style={{ color:'#dc2626' }}>Urgent need · {(bestPair.need.listing as any).quantity ?? '—'} units</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ padding:'16px', color:'var(--muted)', fontSize:'0.88rem' }}>Add supply and urgent-need listings to generate a route.</div>
+          )}
+
+          {/* Signals */}
+          {bestPair && (
+            <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--card-border)', display:'flex', flexWrap:'wrap', gap:6 }}>
+              {bestPair.sameCategory && <span style={{ padding:'3px 8px', borderRadius:999, fontSize:'0.72rem', fontWeight:700, background:'rgba(5,150,105,0.1)', color:'#059669' }}>Exact category</span>}
+              {(bestPair.supply.listing as any).org_verified && <span style={{ padding:'3px 8px', borderRadius:999, fontSize:'0.72rem', fontWeight:700, background:'rgba(11,95,255,0.08)', color:'#0b5fff' }}>Verified source</span>}
+              <span style={{ padding:'3px 8px', borderRadius:999, fontSize:'0.72rem', fontWeight:700, background:'rgba(15,23,42,0.05)', color:'var(--muted)' }}>{bestPair.km.toFixed(1)} km</span>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div style={{ padding:'14px 16px', display:'grid', gap:8, marginTop:'auto' }}>
+            <button className="btn btn-primary" style={{ width:'100%' }} onClick={onOpenPriorityMatches}>View priority matches</button>
+            <div style={{ display:'flex', gap:6 }}>
+              <span style={{ fontSize:'0.7rem', color:'var(--muted)', alignSelf:'center' }}>
+                <i className="legend-dot supply" style={{ marginRight:4 }} />Supply
+              </span>
+              <span style={{ fontSize:'0.7rem', color:'var(--muted)', alignSelf:'center', marginLeft:8 }}>
+                <i className="legend-dot need" style={{ marginRight:4 }} />Need
+              </span>
+              <span style={{ fontSize:'0.7rem', color:'var(--muted)', alignSelf:'center', marginLeft:8 }}>
+                <i className="legend-dot coordinator" style={{ marginRight:4 }} />HQ
+              </span>
+            </div>
           </div>
         </aside>
       </div>
