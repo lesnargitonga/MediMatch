@@ -36,11 +36,11 @@ app.use((req, res, next) => {
 
 // CORS allowlist (comma-separated origins in CORS_ORIGIN), fallback to * in dev
 const allowlist = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
-const devOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
 const corsOptions: cors.CorsOptions = {
 	origin: (origin, cb) => {
-		if (!origin || devOrigins.includes(origin)) return cb(null, true);
-		if (allowlist.length && allowlist.includes(origin)) return cb(null, true);
+		if (!origin) return cb(null, true);
+		if (!allowlist.length) return cb(null, true); // open in dev (no allowlist configured)
+		if (allowlist.includes(origin)) return cb(null, true);
 		return cb(new Error('Not allowed by CORS'), false);
 	},
 	credentials: true

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -12,6 +12,7 @@ import AIExplanation from '../components/AIExplanation';
 import AICompletenessCheck from '../components/AICompletenessCheck';
 import AI from '../services/ai';
 import { useDebounce } from 'use-debounce';
+import { useTilt } from '../hooks/useTilt';
 
 // Local Listing type to avoid cross-package path issues in this minimal scaffold
 type Listing = {
@@ -118,6 +119,42 @@ function demoMatchRecommendations() {
       c_quantity: Math.min(1, (listing.quantity || 1) / 100),
     }))
     .sort((a, b) => b.score - a.score);
+}
+
+function MetricCards({ urgentNeeds, availableSupplies, nearestListing }: { urgentNeeds: number; availableSupplies: number; nearestListing: any }) {
+  const t1 = useTilt(6);
+  const t2 = useTilt(6);
+  const t3 = useTilt(6);
+  const distStr = nearestListing?.distanceKm != null ? `${nearestListing.distanceKm.toFixed(1)}` : '—';
+  const cards = [
+    { ref: t1, color: 'var(--urgent)', border: 'var(--urgent)', value: urgentNeeds, label: 'Urgent needs', sub: null, icon: '🚨' },
+    { ref: t2, color: 'var(--supply)', border: 'var(--supply)', value: availableSupplies, label: 'Available supply', sub: null, icon: '📦' },
+    { ref: t3, color: 'var(--primary)', border: 'var(--primary)', value: distStr, label: 'km · nearest match', sub: nearestListing?.listing?.title || null, icon: '📍' },
+  ];
+  return (
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
+      {cards.map((c, i) => (
+        <div
+          key={i}
+          ref={c.ref}
+          style={{
+            padding:'24px 26px', border:'1px solid var(--card-border)', borderRadius:16,
+            background:'var(--surface)', borderTop:`4px solid ${c.border}`,
+            cursor:'default', position:'relative', overflow:'hidden',
+            transition:'box-shadow 0.3s ease',
+          }}
+          className="fade-in-up"
+          onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 12px 32px ${c.color}22, 0 2px 8px rgba(0,0,0,0.08)'`)}
+          onMouseLeave={e => (e.currentTarget.style.boxShadow = '')}
+        >
+          <div style={{ position:'absolute', top:16, right:16, fontSize:'1.4rem', opacity:0.25 }}>{c.icon}</div>
+          <div style={{ fontSize:'3.2rem', fontWeight:900, color:c.color, lineHeight:1, letterSpacing:'-0.04em', animation:'count-reveal 0.5s ease both' }}>{c.value}</div>
+          <div style={{ fontSize:'0.72rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--muted)', marginTop:10 }}>{c.label}</div>
+          {c.sub && <div style={{ fontSize:'0.8rem', color:'var(--muted)', marginTop:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{c.sub}</div>}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function Dashboard() {
@@ -397,21 +434,8 @@ export default function Dashboard() {
 
       {tab==='overview' && (
         <section style={{ marginBottom: 20 }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:20 }}>
-            <div style={{ padding:'22px 24px', border:'1px solid var(--card-border)', borderRadius:16, background:'var(--surface)', borderTop:'4px solid #dc2626' }}>
-              <div style={{ fontSize:'3.4rem', fontWeight:900, color:'#dc2626', lineHeight:1, letterSpacing:'-0.02em' }}>{urgentNeeds}</div>
-              <div style={{ fontSize:'0.78rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--muted)', marginTop:8 }}>Urgent needs</div>
-            </div>
-            <div style={{ padding:'22px 24px', border:'1px solid var(--card-border)', borderRadius:16, background:'var(--surface)', borderTop:'4px solid #059669' }}>
-              <div style={{ fontSize:'3.4rem', fontWeight:900, color:'#059669', lineHeight:1, letterSpacing:'-0.02em' }}>{availableSupplies}</div>
-              <div style={{ fontSize:'0.78rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--muted)', marginTop:8 }}>Available supply</div>
-            </div>
-            <div style={{ padding:'22px 24px', border:'1px solid var(--card-border)', borderRadius:16, background:'var(--surface)', borderTop:'4px solid #0b5fff' }}>
-              <div style={{ fontSize:'3.4rem', fontWeight:900, color:'#0b5fff', lineHeight:1, letterSpacing:'-0.02em' }}>{nearestListing?.distanceKm != null ? `${nearestListing.distanceKm.toFixed(1)}` : '—'}</div>
-              <div style={{ fontSize:'0.78rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'var(--muted)', marginTop:8 }}>km · nearest match</div>
-              {nearestListing?.listing.title && <div style={{ fontSize:'0.8rem', color:'var(--muted)', marginTop:4 }}>{nearestListing.listing.title}</div>}
-            </div>
-          </div>
+          <MetricCards urgentNeeds={urgentNeeds} availableSupplies={availableSupplies} nearestListing={nearestListing} />
+
           {/* AI-assisted coordinator brief (local, deterministic prototype) */}
           <AICoordinatorBrief
             stats={{ urgentNeeds, availableSupplies, verifiedOrgs, averageRadius, recentActivity }}
@@ -1378,12 +1402,13 @@ function SuggestedSection(props: {
           const score = toNum(r.score);
           const distanceKm = toNum(r.distance_km);
           const scoreInt = Math.round(score * 100);
-          const scoreColor = scoreInt >= 85 ? '#059669' : scoreInt >= 70 ? '#0b5fff' : '#f59e0b';
+          const scoreColor = scoreInt >= 85 ? 'var(--supply)' : scoreInt >= 70 ? 'var(--primary)' : 'var(--warning)';
+          const scoreBg = scoreInt >= 85 ? 'var(--supply-subtle)' : scoreInt >= 70 ? 'var(--primary-subtle)' : 'rgba(245,158,11,0.08)';
           return (
-            <div key={r.id} className="listing-item" style={{ display:'grid', gridTemplateColumns:'76px 1fr', gap:16, alignItems:'start' }}>
+            <MatchCard key={r.id} index={recs.indexOf(r)}>
               {/* Score badge */}
-              <div style={{ textAlign:'center', background: scoreInt >= 85 ? 'rgba(5,150,105,0.07)' : 'rgba(11,95,255,0.06)', border:`1px solid ${scoreColor}22`, borderRadius:10, padding:'12px 6px', flexShrink:0 }}>
-                <div style={{ fontSize:'1.9rem', fontWeight:900, color:scoreColor, lineHeight:1 }}>{scoreInt}</div>
+              <div style={{ textAlign:'center', background:scoreBg, border:`1.5px solid ${scoreColor}30`, borderRadius:12, padding:'14px 8px', flexShrink:0, minWidth:76 }}>
+                <div style={{ fontSize:'2rem', fontWeight:900, color:scoreColor, lineHeight:1, letterSpacing:'-0.02em' }}>{scoreInt}</div>
                 <div style={{ fontSize:'0.58rem', color:'var(--muted)', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.04em', marginTop:4 }}>Priority</div>
                 {r.is_urgent && <div style={{ marginTop:6, fontSize:'0.6rem', fontWeight:800, color:'#ef4444', textTransform:'uppercase' }}>Urgent</div>}
               </div>
@@ -1431,11 +1456,24 @@ function SuggestedSection(props: {
                 </div>
               )}
               </div>{/* end content */}
-            </div>
+            </MatchCard>
           );
         })}
       </div>
     </section>
+  );
+}
+
+function MatchCard({ children, index }: { children: React.ReactNode; index: number }) {
+  const ref = useTilt(5);
+  return (
+    <div
+      ref={ref}
+      className="listing-item fade-in-up"
+      style={{ display:'grid', gridTemplateColumns:'76px 1fr', gap:16, alignItems:'start', animationDelay:`${index * 0.07}s` }}
+    >
+      {children}
+    </div>
   );
 }
 
