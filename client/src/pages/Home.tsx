@@ -123,18 +123,27 @@ export default function Home() {
       </div>
 
       <section className="signal-grid fade-in-up">
-        <div className="signal-panel">
-          <span className="signal-kicker">Geospatial Ranking</span>
+        <div className="signal-panel" style={{ borderTop: '3px solid #0b5fff' }}>
+          <div style={{ width:36, height:36, borderRadius:8, background:'rgba(11,95,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0b5fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12h20"/></svg>
+          </div>
+          <span className="signal-kicker" style={{ color:'#0b5fff' }}>Geospatial Ranking</span>
           <strong>Route-aware surplus-to-need matching</strong>
-          <p className="muted">Priority views combine distance, urgency, verification, recency, category fit, and reported quantity.</p>
+          <p className="muted">Priority views combine distance, urgency, verification, recency, category fit, and reported quantity into a single score.</p>
         </div>
-        <div className="signal-panel">
-          <span className="signal-kicker">AI-Assisted Coordination</span>
+        <div className="signal-panel" style={{ borderTop: '3px solid #7c3aed' }}>
+          <div style={{ width:36, height:36, borderRadius:8, background:'rgba(124,58,237,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span className="signal-kicker" style={{ color:'#7c3aed' }}>AI-Assisted Coordination</span>
           <strong>Briefs and explanations for coordinators</strong>
           <p className="muted">Local prototype AI summaries explain why a match is high-priority without making autonomous medical decisions.</p>
         </div>
-        <div className="signal-panel">
-          <span className="signal-kicker">Operational Control</span>
+        <div className="signal-panel" style={{ borderTop: '3px solid #059669' }}>
+          <div style={{ width:36, height:36, borderRadius:8, background:'rgba(5,150,105,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span className="signal-kicker" style={{ color:'#059669' }}>Operational Control</span>
           <strong>Verification before coordination</strong>
           <p className="muted">Review surfaces keep coordinator confirmation, facility trust signals, and synthetic demo boundaries visible.</p>
         </div>

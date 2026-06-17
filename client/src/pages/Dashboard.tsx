@@ -1395,23 +1395,31 @@ function SuggestedSection(props: {
             { key: 'c_category', label: 'Category match', weight: 0.04 },
             { key: 'c_quantity', label: 'Supply adequacy', weight: 0.01 },
           ];
+          const scoreInt = Math.round(score * 100);
+          const scoreColor = scoreInt >= 85 ? '#059669' : scoreInt >= 70 ? '#0b5fff' : '#f59e0b';
           return (
-            <div key={r.id} className="listing-item">
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}>
-                <strong>{r.title}</strong>
-                <span className="priority-score">Redistribution Priority Score {Math.round(score * 100)}</span>
+            <div key={r.id} className="listing-item" style={{ display:'grid', gridTemplateColumns:'76px 1fr', gap:16, alignItems:'start' }}>
+              {/* Score badge */}
+              <div style={{ textAlign:'center', background: scoreInt >= 85 ? 'rgba(5,150,105,0.07)' : 'rgba(11,95,255,0.06)', border:`1px solid ${scoreColor}22`, borderRadius:10, padding:'12px 6px', flexShrink:0 }}>
+                <div style={{ fontSize:'1.9rem', fontWeight:900, color:scoreColor, lineHeight:1 }}>{scoreInt}</div>
+                <div style={{ fontSize:'0.58rem', color:'var(--muted)', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.04em', marginTop:4 }}>Priority</div>
+                {r.is_urgent && <div style={{ marginTop:6, fontSize:'0.6rem', fontWeight:800, color:'#ef4444', textTransform:'uppercase' }}>Urgent</div>}
               </div>
-              <div className="muted" style={{ marginBottom: 4 }}>{r.description || 'no description'}</div>
-              <div className="match-reason">{reason}</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                {r.is_urgent && <span className="badge" style={{ background:'linear-gradient(135deg,#ef4444,#dc2626)', color:'#fff' }}>URGENT</span>}
-                {Number.isFinite(distanceKm) && distanceKm > 0 && <span className="chip">{distanceKm.toFixed(1)} km</span>}
-                {r.quantity != null && <span className="chip">Qty: {r.quantity}</span>}
-                {r.org_verified && <span className="badge" style={{ background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff' }}>✓ Verified</span>}
-                {r.average_rating > 0 && (
-                  <span className="chip" title={`Rating ${toNum(r.average_rating).toFixed(1)} from ${r.total_ratings} review(s)`}>⭐ {toNum(r.average_rating).toFixed(1)} ({r.total_ratings})</span>
-                )}
-              </div>
+              {/* Content */}
+              <div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:4 }}>
+                  <strong style={{ fontSize:'1.02rem' }}>{r.title}</strong>
+                  {r.org_verified && <span style={{ padding:'2px 8px', borderRadius:999, fontSize:'0.72rem', fontWeight:800, background:'rgba(5,150,105,0.1)', color:'#059669', flexShrink:0 }}>✓ Verified</span>}
+                </div>
+                <div className="muted" style={{ marginBottom:6, fontSize:'0.9rem' }}>{r.description || 'no description'}</div>
+                <div className="match-reason" style={{ marginBottom:8 }}>{reason}</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+                  {Number.isFinite(distanceKm) && distanceKm > 0 && <span className="chip">{distanceKm.toFixed(1)} km</span>}
+                  {r.quantity != null && <span className="chip">Qty: {r.quantity}</span>}
+                  {r.average_rating > 0 && (
+                    <span className="chip" title={`Rating ${toNum(r.average_rating).toFixed(1)} from ${r.total_ratings} review(s)`}>⭐ {toNum(r.average_rating).toFixed(1)} ({r.total_ratings})</span>
+                  )}
+                </div>
               <details style={{ marginBottom: 8 }}>
                 <summary className="muted-small" style={{ cursor:'pointer' }}>Model signal breakdown</summary>
                 <div className="score-grid">
@@ -1454,6 +1462,7 @@ function SuggestedSection(props: {
                   <AIExplanation text={explanations[r.id] as string} />
                 </div>
               )}
+              </div>{/* end content */}
             </div>
           );
         })}
