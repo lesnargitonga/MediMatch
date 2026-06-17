@@ -361,7 +361,7 @@ export default function Dashboard() {
         <div className="hero-copy">
           <span className="lesnar-badge" style={{ marginBottom: 10 }}>AI-assisted prototype</span>
           <div className="heading" style={{ marginTop: 0 }}>MediMatch Command Center</div>
-          <div className="muted" style={{ maxWidth: 680 }}>Geospatial redistribution intelligence for public-health supply coordination. Synthetic demo data only; coordinator verification is required before any transfer.</div>
+          <div className="muted" style={{ maxWidth: 680 }}>Nairobi County synthetic scenario. Match surplus supplies to urgent needs, check the ranking, then approve — or don't.</div>
         </div>
         <div className="command-hero-signal" aria-hidden="true">
           <span>Priority queue</span>
@@ -1328,7 +1328,7 @@ function SuggestedSection(props: {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 12 }}>
         <div>
           <div className="subtle">Priority Matches</div>
-          <div className="muted-small">Ranked by proximity, need severity, trust, recency, verification, category fit, and supply adequacy. AI explanations are advisory; verify before coordination.</div>
+          <div className="muted-small">Ranked by distance, urgency, facility verification, and how recently it was posted. Check the breakdown before approving anything.</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <label style={{ display:'flex', alignItems:'center', gap:4, fontSize:'0.75rem' }}>

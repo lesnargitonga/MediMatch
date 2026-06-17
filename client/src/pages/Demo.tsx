@@ -13,26 +13,26 @@ const SCORE_COMPONENTS = [
 const WORKFLOW_STEPS = [
   {
     num: '01',
-    title: 'Signal posted',
-    body: 'A facility coordinator posts a surplus or urgent-need listing with location, quantity, and category. Verification is required before transfer.',
+    title: 'Facility posts a signal',
+    body: 'A coordinator posts what they have or what they need — quantity, category, location. Takes two minutes.',
     accent: '#0b5fff',
   },
   {
     num: '02',
-    title: 'AI ranks matches',
-    body: 'Six weighted signals — proximity, urgency, category fit, org trust, quantity, and recency — are combined into a single priority score.',
+    title: 'System ranks the matches',
+    body: 'We score each potential transfer on six factors: distance, urgency, recency, org verification, category fit, supply quantity. You see the number and the breakdown.',
     accent: '#059669',
   },
   {
     num: '03',
-    title: 'Brief generated',
-    body: 'An AI-assisted coordinator brief explains the top match in plain language, surfacing the rationale without hiding uncertainty.',
+    title: 'Context surfaced',
+    body: 'A short plain-English summary explains why this match ranked at the top. Not the final word — just something to read before you decide.',
     accent: '#7c3aed',
   },
   {
     num: '04',
-    title: 'Human verification',
-    body: 'The coordinator reviews the ranked list, reads the brief, and approves the transfer. No redistribution happens without human sign-off.',
+    title: 'Your decision',
+    body: 'You look at the list, read the brief, and say yes or no. Nothing ships without your approval.',
     accent: '#f59e0b',
   },
 ];
@@ -49,12 +49,12 @@ export default function Demo() {
             Public-health redistribution<br />in real time
           </h1>
           <p style={{ maxWidth: 560, lineHeight: 1.7, marginBottom: 16, color: 'var(--muted)' }}>
-            A synthetic Nairobi County scenario: Kibera South Health Centre flags a critical wound-care
-            shortage. MediMatch ranks it against verified surplus at Kenyatta National Hospital, generates
-            a coordinator brief, and holds for human sign-off before any transfer.
+            Kibera South Health Centre is out of wound-care supplies. Kenyatta National Hospital has 800
+            surplus nitrile gloves sitting unused. MediMatch scores the transfer at 92, generates a brief
+            for the coordinator, and waits.
           </p>
           <div className="hero-disclosure" style={{ marginBottom: 0 }}>
-            AI-assisted prototype · Synthetic demo data · No patient records · Coordinator verification required
+            Synthetic scenario · Nairobi County · No patient records · Coordinator decides
           </div>
         </div>
 
@@ -118,13 +118,13 @@ export default function Demo() {
               <div className="subtle" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 800, marginBottom: 10 }}>AI coordinator brief</div>
               <div className="ai-explanation" style={{ marginBottom: 12 }}>
                 <p style={{ margin: 0, lineHeight: 1.65, fontSize: '0.92rem' }}>
-                  <strong>Recommended transfer:</strong> Route surplus nitrile gloves from Kenyatta National Hospital
-                  (verified, 800 units available) to Kibera South Health Centre (120 units urgently needed, wound-care context).
-                  Proximity is strong at 3.4 km. Category match is exact. Organization trust score is above threshold.
+                  Kenyatta National Hospital has 800 nitrile gloves available and is 3.4 km from Kibera South. Kibera South
+                  flagged a wound-care shortage 45 minutes ago. Category is an exact match. Kenyatta is verified.
+                  Score: <strong>92</strong>.
                 </p>
               </div>
               <div style={{ background: 'rgba(11,95,255,0.04)', borderRadius: 8, padding: '10px 12px', fontSize: '0.82rem', color: 'var(--muted)', borderLeft: '3px solid rgba(11,95,255,0.3)' }}>
-                This summary is AI-assisted and advisory. All transfers require coordinator sign-off before proceeding.
+                This is a starting point for the coordinator, not a decision. You still have to approve it.
               </div>
             </div>
 

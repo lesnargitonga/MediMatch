@@ -74,7 +74,7 @@ export default function Home() {
         <div className="product-hero-overlay" />
         <div className="command-hero-copy product-hero-copy">
           <span className="lesnar-badge">A Lesnar AI Development</span>
-          <h1 className="heading">Geospatial redistribution intelligence for public-health supply coordination</h1>
+          <h1 className="heading">Match surplus supplies to urgent needs. Map the route. Coordinate the transfer.</h1>
           {properName && <div className="badge" style={{ marginBottom: 10 }}>Welcome back, {properName}.</div>}
           <p>
             Lesnar AI prototype for matching medical supply surplus with urgent needs using geospatial ranking and AI-assisted coordination.
@@ -127,25 +127,25 @@ export default function Home() {
           <div style={{ width:36, height:36, borderRadius:8, background:'rgba(11,95,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0b5fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12h20"/></svg>
           </div>
-          <span className="signal-kicker" style={{ color:'#0b5fff' }}>Geospatial Ranking</span>
-          <strong>Route-aware surplus-to-need matching</strong>
-          <p className="muted">Priority views combine distance, urgency, verification, recency, category fit, and reported quantity into a single score.</p>
+          <span className="signal-kicker" style={{ color:'#0b5fff' }}>Proximity first</span>
+          <strong>Distance, urgency, and trust — ranked together</strong>
+          <p className="muted">Six factors scored in one number: how far, how urgent, how verified the org is, how recently posted, and whether the category matches. You see the breakdown.</p>
         </div>
         <div className="signal-panel" style={{ borderTop: '3px solid #7c3aed' }}>
           <div style={{ width:36, height:36, borderRadius:8, background:'rgba(124,58,237,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           </div>
-          <span className="signal-kicker" style={{ color:'#7c3aed' }}>AI-Assisted Coordination</span>
-          <strong>Briefs and explanations for coordinators</strong>
-          <p className="muted">Local prototype AI summaries explain why a match is high-priority without making autonomous medical decisions.</p>
+          <span className="signal-kicker" style={{ color:'#7c3aed' }}>Know why this match</span>
+          <strong>We show our work. You make the call.</strong>
+          <p className="muted">A plain-English summary tells you why a transfer ranked at the top — not to replace your judgment, just to give you a starting point.</p>
         </div>
         <div className="signal-panel" style={{ borderTop: '3px solid #059669' }}>
           <div style={{ width:36, height:36, borderRadius:8, background:'rgba(5,150,105,0.1)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           </div>
-          <span className="signal-kicker" style={{ color:'#059669' }}>Operational Control</span>
-          <strong>Verification before coordination</strong>
-          <p className="muted">Review surfaces keep coordinator confirmation, facility trust signals, and synthetic demo boundaries visible.</p>
+          <span className="signal-kicker" style={{ color:'#059669' }}>Your approval, every time</span>
+          <strong>Nothing moves without coordinator sign-off</strong>
+          <p className="muted">Ranked lists and AI summaries prepare you for a decision. You still have to approve it. We don't move supplies without a person saying yes.</p>
         </div>
       </section>
 
