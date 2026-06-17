@@ -139,10 +139,17 @@ export default function AdminPage() {
         <div className="two-column">
           <div className="card">
             <div className="subtle">At a glance</div>
-            <div style={{ display:'flex', gap:12, marginTop:12, flexWrap:'wrap' }}>
-              <div className="badge gradient">Users: {stats?.users ?? '—'}</div>
-              <div className="badge gradient">Listings: {stats?.listings ?? '—'}</div>
-              <div className="badge gradient">Matches: {stats?.matches ?? '—'}</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginTop:12 }}>
+              {[
+                { label: 'Registered facilities', value: stats?.users ?? '—', color: '#0b5fff' },
+                { label: 'Active listings', value: stats?.listings ?? '—', color: '#059669' },
+                { label: 'Ranked matches', value: stats?.matches ?? '—', color: '#7c3aed' },
+              ].map(s => (
+                <div key={s.label} style={{ border:`1px solid var(--card-border)`, borderRadius:8, padding:'12px 14px', borderTop:`3px solid ${s.color}` }}>
+                  <div style={{ fontSize:'1.6rem', fontWeight:900, color:s.color, lineHeight:1 }}>{s.value}</div>
+                  <div className="muted-small" style={{ marginTop:4 }}>{s.label}</div>
+                </div>
+              ))}
             </div>
             <div style={{ display:'flex', gap:8, marginTop: 12 }}>
               <button className="btn" onClick={async () => {
@@ -171,20 +178,24 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="card">
-            <div className="subtle">Organizations pending verification</div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+              <div className="subtle">Pending verification queue</div>
+              {verifyable.length > 0 && <span style={{ padding:'3px 9px', borderRadius:999, fontSize:'0.75rem', fontWeight:800, background:'rgba(245,158,11,0.1)', color:'#d97706' }}>{verifyable.length} pending</span>}
+            </div>
             {verifyable.length === 0 ? (
-              <div className="muted-small" style={{ marginTop: 8 }}>No pending profiles.</div>
+              <div style={{ padding:'18px 0', textAlign:'center' }}>
+                <div style={{ fontSize:'1.4rem', marginBottom:6 }}>✓</div>
+                <div className="muted-small">All organizations verified.</div>
+              </div>
             ) : (
-              <div style={{ display:'grid', gap:10, marginTop: 10 }}>
+              <div style={{ display:'grid', gap:10 }}>
                 {verifyable.map(u => (
-                  <div key={u.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <div key={u.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 12px', border:'1px solid var(--card-border)', borderRadius:8, borderLeft:'3px solid #f59e0b' }}>
                     <div>
-                      <strong>{u.org_name || u.name || u.email}</strong>
-                      <div className="muted-small">{u.org_type || '—'} • License: {u.org_license_id || '—'}</div>
+                      <strong style={{ fontSize:'0.92rem' }}>{u.org_name || u.name || u.email}</strong>
+                      <div className="muted-small">{u.org_type || '—'} · License: {u.org_license_id || 'Not provided'}</div>
                     </div>
-                    <div style={{ display:'flex', gap:8 }}>
-                      <button className="btn btn-outline" onClick={()=>updateUser(u.id, { org_verified: true })}>Verify</button>
-                    </div>
+                    <button className="btn btn-outline" style={{ fontSize:'0.85rem', padding:'6px 14px' }} onClick={()=>updateUser(u.id, { org_verified: true })}>Verify</button>
                   </div>
                 ))}
               </div>
@@ -214,9 +225,13 @@ export default function AdminPage() {
                       <div><strong>{u.name || u.email}</strong></div>
                       <div className="muted-small">{u.email}</div>
                     </td>
-                    <td style={{ padding: '8px' }}>{u.role}</td>
+                    <td style={{ padding: '8px' }}>
+                      <span style={{ padding: '3px 9px', borderRadius: 999, fontSize: '0.75rem', fontWeight: 800, background: u.role === 'admin' ? 'rgba(124,58,237,0.1)' : 'rgba(11,95,255,0.08)', color: u.role === 'admin' ? '#7c3aed' : '#0b5fff' }}>{u.role === 'admin' ? 'Coordinator' : 'Facility'}</span>
+                    </td>
                     <td style={{ padding: '8px' }}>{u.org_name || '—'}</td>
-                    <td style={{ padding: '8px' }}>{u.org_verified ? 'Yes' : 'No'}</td>
+                    <td style={{ padding: '8px' }}>
+                      <span style={{ padding: '3px 9px', borderRadius: 999, fontSize: '0.75rem', fontWeight: 800, background: u.org_verified ? 'rgba(5,150,105,0.1)' : 'rgba(245,158,11,0.1)', color: u.org_verified ? '#059669' : '#d97706' }}>{u.org_verified ? 'Verified' : 'Pending'}</span>
+                    </td>
                     <td style={{ padding: '8px', textAlign:'right' }}>
                       <div style={{ display:'inline-flex', gap:8 }}>
                         <button className="btn btn-outline" onClick={()=>updateUser(u.id, { role: u.role==='admin'?'user':'admin' })}>{u.role==='admin'?'Demote':'Promote'}</button>

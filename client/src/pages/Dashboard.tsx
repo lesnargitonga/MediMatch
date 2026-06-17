@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import API from '../services/api';
 import MapModal from '../components/MapModal';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline } from 'react-leaflet';
 import ChatModal from '../components/ChatModal';
 import RatingModal from '../components/RatingModal';
 import AICoordinatorBrief from '../components/AICoordinatorBrief';
@@ -371,18 +372,18 @@ export default function Dashboard() {
       <div className="research-banner" style={{ marginBottom: 14 }}>
         <strong>Prototype boundary:</strong> Synthetic demo data only. No patient records. AI assistance is advisory and must be verified by a coordinator.
       </div>
-      <div style={{ display:'flex', gap:8, marginBottom: 14, flexWrap: 'wrap' }}>
-        <button className={`btn ${tab==='overview'?'btn-primary':''}`} onClick={()=>setTab('overview')}>Command</button>
+      <div className="tabs" style={{ marginBottom: 14 }}>
+        <button className={`tab ${tab==='overview'?'active':''}`} onClick={()=>setTab('overview')}>Command</button>
         {role !== 'admin' && (
-          <button className={`btn ${tab==='create'?'btn-primary':''}`} onClick={()=>setTab('create')}>Post Supply / Need</button>
+          <button className={`tab ${tab==='create'?'active':''}`} onClick={()=>setTab('create')}>Post Signal</button>
         )}
-        <button className={`btn ${tab==='browse'?'btn-primary':''}`} onClick={()=>setTab('browse')}>Listings</button>
-        <button className={`btn ${tab==='suggested'?'btn-primary':''}`} onClick={()=>setTab('suggested')}>Matches</button>
-        <button className={`btn ${tab==='map'?'btn-primary':''}`} onClick={()=>setTab('map')}>Map</button>
-        <button className={`btn ${tab==='messages'?'btn-primary':''}`} onClick={()=>setTab('messages')}>Messages</button>
-        <button className={`btn ${tab==='account'?'btn-primary':''}`} onClick={()=>setTab('account')}>Account</button>
+        <button className={`tab ${tab==='browse'?'active':''}`} onClick={()=>setTab('browse')}>Listings</button>
+        <button className={`tab ${tab==='suggested'?'active':''}`} onClick={()=>setTab('suggested')}>Matches</button>
+        <button className={`tab ${tab==='map'?'active':''}`} onClick={()=>setTab('map')}>Map</button>
+        <button className={`tab ${tab==='messages'?'active':''}`} onClick={()=>setTab('messages')}>Messages</button>
+        <button className={`tab ${tab==='account'?'active':''}`} onClick={()=>setTab('account')}>Account</button>
         {role === 'admin' && (
-          <button className={`btn ${tab==='admin'?'btn-primary':''}`} onClick={()=>setTab('admin')}>Review</button>
+          <button className={`tab ${tab==='admin'?'active':''}`} onClick={()=>setTab('admin')}>Review</button>
         )}
       </div>
 
@@ -1488,16 +1489,6 @@ function RedistributionMapSection(props: {
     })
     .filter(Boolean) as Array<{ listing: Listing; lat: number; lon: number; isNeed: boolean }>;
 
-  const lats = [...points.map(p => p.lat), userCoords.lat];
-  const lons = [...points.map(p => p.lon), userCoords.lon];
-  const minLat = Math.min(...lats) - 0.01;
-  const maxLat = Math.max(...lats) + 0.01;
-  const minLon = Math.min(...lons) - 0.01;
-  const maxLon = Math.max(...lons) + 0.01;
-  const project = (lat: number, lon: number) => ({
-    x: 8 + ((lon - minLon) / Math.max(0.001, maxLon - minLon)) * 84,
-    y: 8 + ((maxLat - lat) / Math.max(0.001, maxLat - minLat)) * 84,
-  });
 
   const supplies = points.filter(p => !p.isNeed);
   const needs = points.filter(p => p.isNeed);
@@ -1516,12 +1507,9 @@ function RedistributionMapSection(props: {
   })).sort((a, b) => a.priority - b.priority)[0];
 
   const topRecommendation = recs[0] || bestPair?.need?.listing || points[0]?.listing;
-  const topRecommendationCoords = topRecommendation ? parseListingCoords(topRecommendation) : null;
-  const centerPoint = project(userCoords.lat, userCoords.lon);
-  const lineStart = bestPair ? project(bestPair.supply.lat, bestPair.supply.lon) : centerPoint;
-  const lineEnd = bestPair ? project(bestPair.need.lat, bestPair.need.lon) : topRecommendationCoords ? project(topRecommendationCoords.lat, topRecommendationCoords.lon) : null;
-  const sourcePoint = bestPair?.supply;
-  const urgentNeedPoint = bestPair?.need;
+  const routeLine: [number, number][] | null = bestPair
+    ? [[bestPair.supply.lat, bestPair.supply.lon], [bestPair.need.lat, bestPair.need.lon]]
+    : null;
   const priorityScore = bestPair
     ? Math.round(Math.max(76, Math.min(98, 96 - bestPair.km * 2.2 + (bestPair.sameCategory ? 4 : 0) + ((bestPair.supply.listing as any).org_verified ? 2 : 0))))
     : topRecommendation ? 84 : 0;
@@ -1547,52 +1535,61 @@ function RedistributionMapSection(props: {
         </div>
       </div>
       <div className="redistribution-map-shell">
-        <div className="redistribution-map">
-          <svg className="map-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            {lineEnd && (
-              <line
-                className="match-route-line"
-                x1={lineStart.x}
-                y1={lineStart.y}
-                x2={lineEnd.x}
-                y2={lineEnd.y}
+        <div style={{ position: 'relative', height: 520, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--card-border)', isolation: 'isolate' }}>
+          <MapContainer
+            center={[userCoords.lat, userCoords.lon]}
+            zoom={12}
+            style={{ height: '100%', width: '100%' }}
+            scrollWheelZoom
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+            />
+            <CircleMarker
+              center={[userCoords.lat, userCoords.lon]}
+              radius={10}
+              pathOptions={{ color: '#0b5fff', fillColor: '#0b5fff', fillOpacity: 0.9, weight: 2 }}
+            >
+              <Popup><strong>Nairobi County Operations Center</strong><br />Demo coordinator reference point</Popup>
+            </CircleMarker>
+            {supplies.map(p => (
+              <CircleMarker
+                key={p.listing.id}
+                center={[p.lat, p.lon]}
+                radius={9}
+                pathOptions={{ color: '#059669', fillColor: '#059669', fillOpacity: 0.85, weight: 2 }}
+              >
+                <Popup>
+                  <strong>{p.listing.title}</strong><br />
+                  {(p.listing as any).org_name || ''}<br />
+                  Qty: {(p.listing as any).quantity ?? '—'}
+                  {(p.listing as any).org_verified && <><br /><span style={{ color: '#059669' }}>✓ Verified org</span></>}
+                </Popup>
+              </CircleMarker>
+            ))}
+            {needs.map(p => (
+              <CircleMarker
+                key={p.listing.id}
+                center={[p.lat, p.lon]}
+                radius={11}
+                pathOptions={{ color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.9, weight: 2 }}
+              >
+                <Popup>
+                  <strong style={{ color: '#dc2626' }}>⚠ URGENT</strong><br />
+                  <strong>{p.listing.title}</strong><br />
+                  {(p.listing as any).org_name || ''}<br />
+                  Qty needed: {(p.listing as any).quantity ?? '—'}
+                </Popup>
+              </CircleMarker>
+            ))}
+            {routeLine && (
+              <Polyline
+                positions={routeLine}
+                pathOptions={{ color: '#22d3ee', weight: 3, dashArray: '8 4', opacity: 0.9 }}
               />
             )}
-          </svg>
-          <button
-            className="map-marker coordinator"
-            style={{ left: `${centerPoint.x}%`, top: `${centerPoint.y}%` }}
-            title="Nairobi County Operations Center"
-          />
-          {sourcePoint && (() => {
-            const pos = project(sourcePoint.lat, sourcePoint.lon);
-            return (
-              <React.Fragment key={sourcePoint.listing.id}>
-                <button
-                  className="map-marker supply source"
-                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                  title={sourcePoint.listing.title}
-                  onClick={() => onOpenListingMap(sourcePoint.lat, sourcePoint.lon, sourcePoint.listing.title)}
-                />
-                <div className="map-marker-label" style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>Source marker</div>
-              </React.Fragment>
-            );
-          })()}
-          {urgentNeedPoint && (() => {
-            const pos = project(urgentNeedPoint.lat, urgentNeedPoint.lon);
-            return (
-              <React.Fragment key={urgentNeedPoint.listing.id}>
-                <button
-                  className="map-marker need urgent"
-                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                  title={urgentNeedPoint.listing.title}
-                  onClick={() => onOpenListingMap(urgentNeedPoint.lat, urgentNeedPoint.lon, urgentNeedPoint.listing.title)}
-                />
-                <div className="map-marker-label need-label" style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>Urgent need</div>
-              </React.Fragment>
-            );
-          })()}
-          <div className="map-region-label">Nairobi County Demo Region</div>
+          </MapContainer>
         </div>
         <aside className="map-side-panel">
           <div className="subtle">Priority score panel</div>

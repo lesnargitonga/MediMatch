@@ -26,12 +26,8 @@ export default function Header() {
       try {
         const res = await API.get('/notifications/unread-count');
         const newCount = res.data.count || 0;
-        console.log('Unread count:', newCount, 'Previous:', unreadCount);
         setUnreadCount(newCount);
-        
-        // Trigger notification list refresh if dropdown is open and count changed
         if (showDropdown && newCount !== unreadCount) {
-          console.log('Triggering notification refresh due to count change');
           setLastFetchTime(Date.now());
         }
       } catch (error) {
@@ -55,7 +51,6 @@ export default function Header() {
     const fetchNotifications = async () => {
       try {
         const res = await API.get('/notifications?limit=10');
-        console.log('Fetched notifications:', res.data);
         setNotifications(res.data.notifications || []);
         setLoading(false);
       } catch (error: any) {
@@ -152,12 +147,16 @@ export default function Header() {
           <HealthBadge />
           {user && (
             <div style={{ position: 'relative' }} ref={dropdownRef}>
-              <button 
-                className="btn btn-outline" 
+              <button
+                className="btn btn-outline"
                 onClick={() => setShowDropdown(!showDropdown)}
-                style={{ position: 'relative', padding: '6px 12px' }}
+                aria-label="Notifications"
+                style={{ position: 'relative', padding: '7px 10px', display: 'flex', alignItems: 'center' }}
               >
-                🔔
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
                 {unreadCount > 0 && (
                   <span style={{
                     position: 'absolute',
@@ -300,8 +299,15 @@ export default function Header() {
               )}
             </div>
           )}
-          {user ? <div className="muted-small">Signed in as <strong>{user.name || user.email}</strong>{user.role === 'admin' ? ' (Admin)' : ''}</div> : null}
-          {user ? <button className="btn btn-primary" onClick={handleLogout}>Logout</button> : null}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text)' }}>{user.name || user.email}</div>
+                {user.role === 'admin' && <div style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Coordinator</div>}
+              </div>
+              <button className="btn btn-outline" style={{ padding: '7px 14px', fontSize: '0.88rem' }} onClick={handleLogout}>Sign out</button>
+            </div>
+          ) : null}
           <ThemeToggle />
         </div>
       </nav>
