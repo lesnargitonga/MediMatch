@@ -63,6 +63,17 @@ const CITIES = [
 
 const C = { gold: '#f0b32e', gold2: '#f8d27a', acacia: '#37c07e', terra: '#e8703c', red: '#f25555', cream: '#f4ead6' };
 
+// Real findings from the MediMatch field study (Nairobi County, 2025).
+const RESEARCH = {
+  n: 52,
+  stats: [
+    { v: '55.7%', label: 'face stockouts at least monthly' },
+    { v: '80.8%', label: 'rate current systems ineffective' },
+    { v: '57.7%', label: 'report routine supply wastage' },
+    { v: '90.3%', label: 'would adopt MediMatch' },
+  ],
+};
+
 function outlinePath(pts: [number, number][]) {
   return pts.map((p, i) => `${i ? 'L' : 'M'}${px(p[1]).toFixed(1)} ${py(p[0]).toFixed(1)}`).join(' ') + ' Z';
 }
@@ -96,7 +107,7 @@ export default function SavannahCommand() {
   const [runToken, setRunToken] = useState(0);
   const [stage, setStage] = useState<Stage>('detect');
   const [selId, setSelId] = useState<number | null>(null);
-  const [auto, setAuto] = useState(true);
+  const [auto, setAuto] = useState(false); // manual by default — cards don't switch on their own
   const [intro, setIntro] = useState(true);
   const [landing, setLanding] = useState(false);
   const [tapPos, setTapPos] = useState({ x: 60, y: 43 }); // where the finger taps Kenya, reported by the globe
@@ -221,14 +232,30 @@ export default function SavannahCommand() {
           <pattern id="svWeave" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <path d="M0 13 H26 M13 0 V26" stroke={C.gold} strokeOpacity="0.05" strokeWidth="1" />
           </pattern>
+          <clipPath id="svKenyaClip"><path d={kenyaD} /></clipPath>
+          <linearGradient id="svScan" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={C.gold} stopOpacity="0" />
+            <stop offset="50%" stopColor={C.gold2} stopOpacity="0.18" />
+            <stop offset="100%" stopColor={C.gold} stopOpacity="0" />
+          </linearGradient>
         </defs>
 
         {/* landmass + woven texture + topographic contours */}
         <path d={kenyaD} fill="url(#svLand)" stroke={C.gold} strokeOpacity="0.55" strokeWidth="1.6" />
         <path d={kenyaD} fill="url(#svWeave)" />
         {contours.map((d, i) => (
-          <path key={i} d={d} fill="none" stroke={C.gold} strokeOpacity={0.16 - i * 0.02} strokeWidth="1" strokeDasharray="2 6" />
+          <path key={i} d={d} className="sv-contour" fill="none" stroke={C.gold} strokeOpacity={0.16 - i * 0.02} strokeWidth="1" strokeDasharray="2 6" style={{ animationDelay: `${i * -1.4}s` }} />
         ))}
+
+        {/* ambient radar scan sweeping down the country */}
+        <g clipPath="url(#svKenyaClip)">
+          <rect x="0" width={VW} height="120" fill="url(#svScan)">
+            <animate attributeName="y" from={-120} to={VH} dur="5.5s" repeatCount="indefinite" />
+          </rect>
+          <rect x="0" width={VW} height="1.5" fill={C.gold2} opacity="0.55">
+            <animate attributeName="y" from={0} to={VH + 120} dur="5.5s" repeatCount="indefinite" />
+          </rect>
+        </g>
 
         {/* city ticks + labels for orientation */}
         {CITIES.map((c) => (
@@ -280,18 +307,21 @@ export default function SavannahCommand() {
           );
         })}
 
-        {/* Research origin — Nairobi, where MediMatch was built (click to dive in) */}
+        {/* Research origin — Nairobi, where the field study was done (click to dive in) */}
         <g className="sv-origin sv-clickable" transform={`translate(${px(36.817).toFixed(1)} ${py(-1.286).toFixed(1)})`}
-          onClick={() => setFocus('nairobi')}><title>Open Nairobi County — geospatial AI close-up</title>
+          onClick={() => setFocus('nairobi')}><title>Open Nairobi County — research base & geospatial AI close-up</title>
+          {/* generous invisible hit target so it's easy to click */}
+          <circle r="26" fill="transparent" />
           <circle className="sv-origin-pulse" r="4" fill={C.gold}>
-            <animate attributeName="r" values="4;15;4" dur="2.8s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.35;0;0.35" dur="2.8s" repeatCount="indefinite" />
+            <animate attributeName="r" values="5;20;5" dur="2.6s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.45;0;0.45" dur="2.6s" repeatCount="indefinite" />
           </circle>
-          <circle r="5.6" fill="none" stroke={C.gold2} strokeWidth="1.1" strokeOpacity="0.8" />
-          <circle r="2.9" fill={C.gold2} stroke="#0e1322" strokeWidth="1" />
-          <g transform="translate(9 -3)">
-            <text className="sv-origin-name">Nairobi</text>
-            <text className="sv-origin-sub" y="9">MediMatch research base</text>
+          <circle r="8" fill="none" stroke={C.gold2} strokeWidth="1.3" strokeOpacity="0.85" />
+          <circle r="3.6" fill={C.gold2} stroke="#0e1322" strokeWidth="1.2" />
+          <g className="sv-origin-tag" transform="translate(11 -4)">
+            <rect x="-3" y="-12" width="150" height="30" rx="6" className="sv-origin-chip" />
+            <text className="sv-origin-name">Nairobi research base</text>
+            <text className="sv-origin-sub" y="10">Click to explore ›</text>
           </g>
         </g>
       </svg>
@@ -373,6 +403,9 @@ export default function SavannahCommand() {
           <button className="sv-btn" onClick={() => run()} disabled={!plan}>Run redistribution</button>
           <button className={`sv-btn ghost ${auto ? 'on' : ''}`} onClick={() => setAuto((a) => !a)}>{auto ? 'Auto-play on' : 'Auto-play off'}</button>
         </div>
+        <button className="sv-btn deep" onClick={() => setFocus('nairobi')} disabled={!nai}>
+          Open Nairobi research base <span>›</span>
+        </button>
         {scenarios.length > 0 && (
           <div className="sv-scen">
             <span>Urgent scenarios</span>
@@ -402,9 +435,9 @@ export default function SavannahCommand() {
           <div className="sv-focus-card">
             <button className="sv-focus-back" onClick={() => setFocus('national')}>‹ National view</button>
             <div className="sv-focus-head">
-              <span className="sv-eyebrow"><i className="sv-live" /> Geospatial AI · Nairobi research base</span>
+              <span className="sv-eyebrow"><i className="sv-live" /> Nairobi County · research base & geospatial AI</span>
               <h2>Inside Nairobi County</h2>
-              <p>Kenyatta National Hospital’s surplus is matched to sub-county facilities in shortfall — ranked by distance, urgency and product fit, then routed on real roads.</p>
+              <p>Our field study was conducted here. Kenyatta National Hospital’s surplus is matched to sub-county facilities in shortfall — ranked by distance, urgency and product fit, then routed on real roads.</p>
             </div>
             <div className="sv-focus-grid">
               <svg className="sv-focus-map" viewBox={`0 0 ${nai.W} ${nai.H}`} preserveAspectRatio="xMidYMid meet">
@@ -445,6 +478,19 @@ export default function SavannahCommand() {
                 <li><b>Match</b><span>KNH surplus is allocated to the most urgent, nearest needs first — {nai.routes.reduce((s, r) => s + r.qty, 0)} units across {nai.routes.length} transfers.</span></li>
                 <li><b>Route</b><span>Each transfer is drawn on the real Nairobi road network with live ETA.</span></li>
               </ol>
+            </div>
+
+            <div className="sv-research">
+              <div className="sv-research-h">
+                <span>Field study · Nairobi County</span>
+                <em>Why this matters — what {RESEARCH.n} healthcare professionals told us</em>
+              </div>
+              <div className="sv-research-stats">
+                {RESEARCH.stats.map((s) => (
+                  <div key={s.label}><b>{s.v}</b><span>{s.label}</span></div>
+                ))}
+              </div>
+              <p className="sv-research-foot">Survey of {RESEARCH.n} clinical, pharmacy & administrative staff across Nairobi County hospitals (2025). Nationally, KEMSA’s order-fill rate sat at just <b>57%</b> mid-2025 — the gap MediMatch closes.</p>
             </div>
           </div>
         </div>

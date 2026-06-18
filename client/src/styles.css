@@ -1301,6 +1301,12 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 /* Nairobi research-origin marker */
 .sv-origin-name { fill: var(--cream); font-size: 11px; font-weight: 800; letter-spacing: 0.02em; font-family: Inter, sans-serif; }
 .sv-origin-sub { fill: var(--gold2); font-size: 6.6px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-family: Inter, sans-serif; }
+.sv-origin-chip { fill: rgba(11,17,32,0.5); stroke: rgba(248,210,122,0.22); stroke-width: 0.8; transition: fill .15s, stroke .15s; }
+.sv-origin:hover .sv-origin-chip { fill: rgba(20,28,46,0.8); stroke: rgba(248,210,122,0.6); }
+.sv-origin:hover .sv-origin-sub { fill: var(--gold); }
+/* ambient: topographic contours drift, keeping the map alive */
+.sv-contour { animation: svContourDrift 9s linear infinite; }
+@keyframes svContourDrift { to { stroke-dashoffset: -80; } }
 
 /* routes draw themselves */
 .sv-route { stroke-dasharray: 1; stroke-dashoffset: 1; animation: svDraw 1.3s var(--ease-out) forwards; }
@@ -1395,6 +1401,24 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
   color: #0b1120; background: linear-gradient(135deg, var(--gold2), var(--terra)); }
 .sv-ai-steps b { display: block; font-size: 13px; color: var(--cream); margin-bottom: 1px; }
 .sv-ai-steps span { font-size: 12px; line-height: 1.5; color: var(--sand); }
+/* research findings strip */
+.sv-research { margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(240,179,46,0.16); }
+.sv-research-h { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.sv-research-h span { font-size: 10px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.sv-research-h em { font-style: normal; font-size: 12px; color: var(--sand); }
+.sv-research-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.sv-research-stats div { padding: 12px 14px; border-radius: 12px; background: rgba(240,179,46,0.06); border: 1px solid rgba(240,179,46,0.12); }
+.sv-research-stats b { display: block; font-family: var(--font-display); font-size: 26px; line-height: 1; color: var(--gold2); }
+.sv-research-stats span { display: block; margin-top: 6px; font-size: 11px; line-height: 1.4; color: var(--sand); }
+.sv-research-foot { margin: 14px 0 0; font-size: 11.5px; line-height: 1.6; color: var(--sand); }
+.sv-research-foot b { color: var(--gold2); }
+/* prominent deep-link button into the Nairobi close-up */
+.sv-btn.deep { width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, rgba(248,210,122,0.16), rgba(232,112,60,0.16)); border: 1px solid rgba(248,210,122,0.4);
+  color: var(--gold2); font-weight: 800; }
+.sv-btn.deep:hover { background: linear-gradient(135deg, rgba(248,210,122,0.28), rgba(232,112,60,0.26)); transform: translateY(-1px); }
+.sv-btn.deep span { transition: transform .15s; }
+.sv-btn.deep:hover span { transform: translateX(3px); }
 
 /* impact panel */
 .sv-panel { top: 22px; right: 22px; width: 320px; padding: 18px 20px; border-radius: 16px; border-top: 3px solid var(--gold); }
