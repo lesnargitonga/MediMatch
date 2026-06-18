@@ -520,7 +520,6 @@ export default function Dashboard() {
                       {typeof distanceKm === 'number' && Number.isFinite(distanceKm) && (
                         <span className="chip"><span className="dot" /> {distanceKm.toFixed(1)} km away</span>
                       )}
-                      {loc ? <span className="chip"><span className="dot" /> {String(loc).slice(0, 64)}</span> : null}
                       {coords.lat != null && coords.lon != null && (
                         <>
                         <button className="btn btn-outline" onClick={() => {
@@ -554,7 +553,7 @@ export default function Dashboard() {
                       )}
                       {!isOwner && (l as any).owner_id && (
                         <>
-                          <button className="btn btn-primary" onClick={() => {
+                          <button className="btn btn-accent" onClick={() => {
                             const ownerName = (l as any).owner_name || 'User';
                             setChatOpen({ otherUserId: (l as any).owner_id, otherUserName: ownerName, listingId: l.id });
                           }}>Message</button>
