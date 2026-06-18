@@ -1391,9 +1391,47 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 .sv-intro { position: absolute; inset: 0; z-index: 60; display: grid; align-content: center; justify-items: start;
   padding-left: clamp(28px, 8vw, 110px); cursor: pointer;
   background: linear-gradient(90deg, rgba(8,12,22,0.92) 0%, rgba(8,12,22,0.58) 46%, rgba(8,12,22,0.08) 72%, transparent 100%);
-  animation: svIntroOut 0.7s ease 3.7s both; }
-.sv-globe { position: absolute; inset: 0; z-index: 55; animation: svIntroOut 0.8s ease 3.5s both; }
+  animation: svIntroOut 0.6s ease 4.6s both; }
+.sv-globe { position: absolute; inset: 0; z-index: 55; background: #080d1a; animation: svIntroOut 0.8s ease 5.9s both; }
 .sv-globe canvas { display: block; }
+
+/* intro gesture: a hand flicks the globe, then a finger taps Kenya */
+.sv-hands { position: absolute; inset: 0; z-index: 58; pointer-events: none; overflow: hidden; }
+.sv-hand { position: absolute; width: 132px; height: 132px; opacity: 0;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6)) drop-shadow(0 0 14px rgba(245,196,81,0.4)); }
+.sv-hand--flip { left: 42%; top: 34%; transform-origin: 50% 60%;
+  animation: svFlip 0.95s cubic-bezier(.5,0,.3,1) 0.5s both; }
+.sv-tap-anchor { position: absolute; left: 60%; top: 43%; }
+/* point-down hand: fingertip is at ~60%/93% of the sprite, so hang it above Kenya */
+.sv-hand--tap { left: -79px; top: -120px; transform-origin: 60% 93%;
+  animation: svTap 1.7s cubic-bezier(.34,1.3,.4,1) 3.7s both; }
+.sv-tap-ring { content: ""; position: absolute; left: 0; top: 0; width: 20px; height: 20px;
+  margin: -10px 0 0 -10px; border-radius: 50%; border: 2px solid var(--gold); opacity: 0;
+  box-shadow: 0 0 16px rgba(245,196,81,0.7); animation: svTapRing 0.8s ease-out 4.72s both; }
+/* a quick left-to-right swipe across the globe, in the direction it spins */
+@keyframes svFlip {
+  0% { opacity: 0; transform: translateX(-230px) rotate(-16deg) scale(.98); }
+  20% { opacity: 1; }
+  80% { opacity: 1; transform: translateX(170px) rotate(10deg) scale(1.02); }
+  100% { opacity: 0; transform: translateX(240px) rotate(14deg) scale(1.02); }
+}
+@keyframes svTap {
+  0% { opacity: 0; transform: translateY(-40px) scale(.8); }
+  26% { opacity: 1; transform: translateY(0) scale(1); }
+  50% { transform: translateY(0) scale(1); }
+  59% { transform: translateY(9px) scale(.94); }  /* press lands on Kenya ~4.7s */
+  70% { transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-24px) scale(.97); }
+}
+@keyframes svTapRing { 0% { opacity: 0; transform: scale(.3); } 14% { opacity: .85; } 100% { opacity: 0; transform: scale(6.5); } }
+/* the map "lands" — a quick zoom out of Kenya as the globe hands off */
+.sv-map--land { transform-origin: 60% 45%; animation: svMapLand 1.5s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes svMapLand {
+  0% { transform: scale(1.5); opacity: .2; filter: blur(5px); }
+  45% { opacity: 1; filter: blur(0); }
+  74% { transform: scale(.99); }
+  100% { transform: scale(1); filter: blur(0); }
+}
 .sv-intro-kicker { display: flex; align-items: center; gap: 10px; color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: 0.16em; }
 .sv-intro h1 { font-family: var(--font-display); margin: 20px 0 16px; display: grid; gap: 2px; font-size: clamp(42px, 6.4vw, 88px); line-height: 0.92; letter-spacing: -0.02em; color: var(--cream); }
 .sv-intro h1 span { display: block; opacity: 0; transform: translateY(20px); filter: blur(8px); animation: svReveal 0.8s var(--ease-out) forwards; animation-delay: var(--d); }
@@ -1425,4 +1463,6 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
   .sv-spark, .sv-arrive, .sv-ping { animation: none; display: none; }
   .sv-intro { animation: none; }
   .sv-intro h1 span, .sv-intro p, .sv-intro-go { opacity: 1; transform: none; filter: none; animation: none; }
+  .sv-hands { display: none; }
+  .sv-map--land { animation: none; }
 }

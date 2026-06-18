@@ -98,12 +98,15 @@ export default function SavannahCommand() {
   const [selId, setSelId] = useState<number | null>(null);
   const [auto, setAuto] = useState(true);
   const [intro, setIntro] = useState(true);
+  const [landing, setLanding] = useState(false);
   const timers = useRef<number[]>([]);
   const started = useRef(false);
   const showGlobe = useMemo(() => webglAvailable(), []);
 
   useEffect(() => {
     let off = false;
+    // Warm the lazy globe chunk while the plan loads so it paints without a gap.
+    if (showGlobe) import('./GlobeIntro');
     API.get('/redistribution/plan?roads=0').then(({ data }) => { if (!off) setPlan(data); }).catch(() => { if (!off) setError('Could not load redistribution plan.'); });
     return () => { off = true; };
   }, []);
@@ -128,9 +131,13 @@ export default function SavannahCommand() {
     if (!plan || started.current) return;
     started.current = true;
     setSelId(plan.routes[0]?.id ?? null);
-    const t1 = window.setTimeout(() => setIntro(false), 4300);
-    const t2 = window.setTimeout(() => run(plan.routes[0]?.id), 4600);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    // With the globe, run the full cinematic (flip → tap Kenya → punch into the
+    // map). Without WebGL we just hold the headline briefly over the 2D map.
+    const intoMap = showGlobe ? 6700 : 3200;
+    const t1 = window.setTimeout(() => { setIntro(false); setLanding(true); }, intoMap);
+    const t2 = window.setTimeout(() => run(plan.routes[0]?.id), intoMap + 250);
+    const t3 = window.setTimeout(() => setLanding(false), intoMap + 1500);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan]);
   useEffect(() => () => clear(), []);
@@ -164,7 +171,7 @@ export default function SavannahCommand() {
       <div className="sv-glow" aria-hidden />
 
       {/* ===== Bespoke SVG map ===== */}
-      <svg className="sv-map" viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" aria-hidden>
+      <svg className={`sv-map${landing ? ' sv-map--land' : ''}`} viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" aria-hidden>
         <defs>
           <radialGradient id="svLand" cx="42%" cy="38%" r="75%">
             <stop offset="0%" stopColor="#23304a" />
@@ -239,9 +246,20 @@ export default function SavannahCommand() {
         })}
       </svg>
 
-      {/* ===== Intro: 3D globe dive + headline, then hands off to the map ===== */}
+      {/* ===== Intro: a hand flips the globe, taps Kenya, then the map ===== */}
       {intro && plan && showGlobe && (
         <GlobeBoundary><Suspense fallback={null}><GlobeIntro /></Suspense></GlobeBoundary>
+      )}
+      {intro && plan && showGlobe && (
+        <div className="sv-hands" aria-hidden>
+          {/* back of hand that flicks the globe into a spin */}
+          <img className="sv-hand sv-hand--flip" src="/intro-hand-back.svg" alt="" />
+          {/* finger that presses Kenya */}
+          <div className="sv-tap-anchor">
+            <span className="sv-tap-ring" />
+            <img className="sv-hand sv-hand--tap" src="/intro-hand-point.svg" alt="" />
+          </div>
+        </div>
       )}
       {intro && plan && (
         <div className="sv-intro" onClick={() => { setIntro(false); run(plan.routes[0]?.id); }}>
