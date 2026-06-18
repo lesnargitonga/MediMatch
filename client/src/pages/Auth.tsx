@@ -13,9 +13,9 @@ export default function Auth() {
   const nav = useNavigate();
   const { user, setUser, refresh } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('lesnar@admin.com');
-  const [password, setPassword] = useState('liltosh280');
-  const [name, setName] = useState('Lesnar Admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   // Removed org fields for simplicity

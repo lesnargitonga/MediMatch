@@ -26,7 +26,6 @@
     "pdf-lib": "^1.17.1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.76.1",
     "cookie-parser": "^1.4.7",
     "use-debounce": "^10.0.6"
   }

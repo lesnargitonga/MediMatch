@@ -19,9 +19,6 @@ try {
     });
   }
 } catch {}
-// Minimal runtime diagnostic to help debug connectivity
-// eslint-disable-next-line no-console
-console.info('[API] baseURL =', resolvedBase);
 
 const API = axios.create({
   baseURL: resolvedBase,

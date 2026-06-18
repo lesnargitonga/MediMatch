@@ -28,6 +28,7 @@ export default function Dashboard() {
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState<number>(1);
   const [isUrgent, setIsUrgent] = useState(false);
+  const [category, setCategory] = useState<string>('general');
   const [lat, setLat] = useState<string>('');
   const [lon, setLon] = useState<string>('');
   const [locationQuery, setLocationQuery] = useState('');
@@ -53,12 +54,25 @@ export default function Dashboard() {
     try { const raw = localStorage.getItem('favorites'); return raw ? JSON.parse(raw) : []; } catch { return []; }
   });
   const [chatOpen, setChatOpen] = useState<{ otherUserId: number; otherUserName: string; listingId?: number } | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    API.get('/favorites/listings/saved').then(res => {
+      const ids: number[] = (res.data || []).map((l: any) => l.id);
+      setFavorites(ids);
+      localStorage.setItem('favorites', JSON.stringify(ids));
+    }).catch(() => {});
+  }, [user]);
   const [ratingOpen, setRatingOpen] = useState<{ userId: number; userName: string; listingId?: number } | null>(null);
 
   function saveFavorites(next: number[]) { setFavorites(next); localStorage.setItem('favorites', JSON.stringify(next)); }
-  function toggleFavorite(id: number) {
-    if (favorites.includes(id)) saveFavorites(favorites.filter(x => x !== id));
-    else saveFavorites([...favorites, id]);
+  async function toggleFavorite(id: number) {
+    const isFav = favorites.includes(id);
+    saveFavorites(isFav ? favorites.filter(x => x !== id) : [...favorites, id]);
+    try {
+      if (isFav) await API.delete(`/favorites/listings/save/${id}`);
+      else await API.post('/favorites/listings/save', { listing_id: id });
+    } catch {}
   }
   function extractLatLon(val: any): { lat?: number; lon?: number } {
     if (!val) return {};
@@ -141,6 +155,7 @@ export default function Dashboard() {
         title,
         description,
         quantity,
+        category,
         is_urgent: isUrgent,
         location: { lat: latNum, lon: lonNum }
       };
@@ -151,6 +166,7 @@ export default function Dashboard() {
       setDescription('');
       setQuantity(1);
       setIsUrgent(false);
+      setCategory('general');
       setLat('');
       setLon('');
       setFieldErrors({});
@@ -169,8 +185,8 @@ export default function Dashboard() {
     if (!editingId) return;
     try {
       const payload: any = { title, description, quantity };
-  const res = await API.patch(`/listings?id=eq.${editingId}`, payload);
-  setListings(prev => prev.map(l => (l.id === editingId ? { ...l, ...res.data } : l)));
+      const res = await API.put(`/listings/${editingId}`, payload);
+      setListings(prev => prev.map(l => (l.id === editingId ? { ...l, ...res.data } : l)));
       toast.success('Listing updated');
       setEditingId(null);
       setTitle(''); setDescription(''); setQuantity(1); setLat(''); setLon('');
@@ -182,7 +198,7 @@ export default function Dashboard() {
 
   async function removeListing(id: number) {
     try {
-  await API.delete(`/listings?id=eq.${id}`);
+  await API.delete(`/listings/${id}`);
       setListings(prev => prev.filter(l => l.id !== id));
       toast.success('Listing deleted');
     } catch (err: any) {
@@ -272,6 +288,16 @@ export default function Dashboard() {
           <div className="form-group">
             <label>Quantity</label>
             <input type="number" value={quantity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(Math.max(1, Number(e.target.value)))} min={1} step={1} />
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <select value={category} onChange={e => setCategory(e.target.value)}>
+              <option value="general">General</option>
+              <option value="medication">Medication</option>
+              <option value="equipment">Equipment</option>
+              <option value="supplies">Supplies</option>
+              <option value="other">Other</option>
+            </select>
           </div>
           <div className="form-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
@@ -1088,16 +1114,6 @@ function SuggestedSection(props: {
             return Number.isFinite(n) ? n : 0;
           };
           const fav = favorites.includes(r.id);
-          // Score breakdown
-          const components = [
-            { key: 'c_distance', label: 'Distance', weight: 0.35 },
-            { key: 'c_urgency', label: 'Urgency', weight: 0.20 },
-            { key: 'c_reputation', label: 'Reputation', weight: 0.20 },
-            { key: 'c_recency', label: 'Recency', weight: 0.15 },
-            { key: 'c_verified', label: 'Verification', weight: 0.05 },
-            { key: 'c_category', label: 'Category', weight: 0.04 },
-            { key: 'c_quantity', label: 'Quantity', weight: 0.01 },
-          ];
           return (
             <div key={r.id} className="listing-item">
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}>
@@ -1114,18 +1130,13 @@ function SuggestedSection(props: {
                   <span className="chip" title={`Rating ${toNum(r.average_rating).toFixed(1)} from ${r.total_ratings} review(s)`}>⭐ {toNum(r.average_rating).toFixed(1)} ({r.total_ratings})</span>
                 )}
               </div>
-              <details style={{ marginBottom: 8 }}>
-                <summary className="muted-small" style={{ cursor:'pointer' }}>Score breakdown</summary>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:8, marginTop:8 }}>
-                  {components.map(c => (
-                    <div key={c.key} className="card" style={{ padding:'6px 8px' }}>
-                      <div style={{ fontSize:'0.75rem', fontWeight:600 }}>{c.label}</div>
-                      <div style={{ fontSize:'0.7rem' }}>comp: {toNum(r[c.key]).toFixed(2)}</div>
-                      <div style={{ fontSize:'0.7rem' }}>weighted: {(toNum(r[c.key]) * c.weight).toFixed(3)}</div>
-                    </div>
-                  ))}
-                </div>
-              </details>
+              {/* Quality signal tags */}
+              <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginBottom:8 }}>
+                {toNum(r.c_distance) > 0.7 && <span className="chip" style={{ color:'#0b5fff', borderColor:'#c7d9ff' }}>Nearby</span>}
+                {toNum(r.c_recency) > 0.8 && <span className="chip" style={{ color:'#059669', borderColor:'#a7f3d0' }}>Recent</span>}
+                {toNum(r.c_reputation) > 0.6 && <span className="chip" style={{ color:'#7c3aed', borderColor:'#ddd6fe' }}>Trusted</span>}
+                {toNum(r.c_quantity) > 0.5 && <span className="chip" style={{ color:'#b45309', borderColor:'#fde68a' }}>High qty</span>}
+              </div>
               <div className="chips">
                 {r.location_wkt && (
                   <button className="btn btn-outline" onClick={()=>{

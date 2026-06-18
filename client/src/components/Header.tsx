@@ -15,34 +15,29 @@ export default function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState(0);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch unread count
+  // Fetch unread count — omit unreadCount from deps to avoid restarting the interval on every tick
   useEffect(() => {
     if (!user) return;
-    
+
     const fetchUnreadCount = async () => {
       try {
         const res = await API.get('/notifications/unread-count');
         const newCount = res.data.count || 0;
-        console.log('Unread count:', newCount, 'Previous:', unreadCount);
-        setUnreadCount(newCount);
-        
-        // Trigger notification list refresh if dropdown is open and count changed
-        if (showDropdown && newCount !== unreadCount) {
-          console.log('Triggering notification refresh due to count change');
-          setLastFetchTime(Date.now());
-        }
-      } catch (error) {
-        console.error('Failed to fetch unread count:', error);
-      }
+        setUnreadCount(prev => {
+          if (showDropdown && newCount !== prev) setLastFetchTime(Date.now());
+          return newCount;
+        });
+      } catch {}
     };
 
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 5000); // Poll every 5 seconds
+    const interval = setInterval(fetchUnreadCount, 5000);
 
     return () => clearInterval(interval);
-  }, [user, showDropdown, unreadCount]);
+  }, [user, showDropdown]);
 
   // Fetch notifications when dropdown opens and auto-refresh
   useEffect(() => {
@@ -54,14 +49,9 @@ export default function Header() {
     const fetchNotifications = async () => {
       try {
         const res = await API.get('/notifications?limit=10');
-        console.log('Fetched notifications:', res.data);
         setNotifications(res.data.notifications || []);
         setLoading(false);
-      } catch (error: any) {
-        console.error('Failed to fetch notifications:', error);
-        if (loading) {
-          toast.error('Failed to load notifications');
-        }
+      } catch {
         setLoading(false);
       }
     };
@@ -136,7 +126,7 @@ export default function Header() {
             <img src="/images/logo.svg" alt="MediMatch" />
             <a href="/" className="logo-text" style={{ textDecoration:'none' }}>MediMatch</a>
           </div>
-          <div className="nav">
+          <div className="nav nav-desktop">
             <NavLink to="/" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Home</NavLink>
             <NavLink to="/listings" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Listings</NavLink>
             {user && (
@@ -149,6 +139,15 @@ export default function Header() {
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <HealthBadge />
+          {/* Mobile hamburger */}
+          <button
+            className="btn btn-outline nav-hamburger"
+            onClick={() => setMobileNavOpen(x => !x)}
+            aria-label="Menu"
+            style={{ padding: '6px 10px', fontSize: '1.1rem' }}
+          >
+            {mobileNavOpen ? '✕' : '☰'}
+          </button>
           {user && (
             <div style={{ position: 'relative' }} ref={dropdownRef}>
               <button 
@@ -193,8 +192,8 @@ export default function Header() {
                   right: 20,
                   width: 450,
                   maxWidth: 'calc(100vw - 40px)',
-                  backgroundColor: 'var(--bg-color)',
-                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--card-border)',
                   borderRadius: 12,
                   boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                   zIndex: 99999,
@@ -205,11 +204,11 @@ export default function Header() {
                 }}>
                   <div style={{ 
                     padding: '16px 20px', 
-                    borderBottom: '1px solid var(--border-color)', 
+                    borderBottom: '1px solid var(--card-border)', 
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center',
-                    backgroundColor: 'var(--bg-color)',
+                    backgroundColor: 'var(--surface)',
                     flexShrink: 0
                   }}>
                     <strong style={{ fontSize: '1.1rem' }}>Notifications</strong>
@@ -242,7 +241,7 @@ export default function Header() {
                             onClick={() => handleNotificationClick(notif)}
                             style={{
                               padding: '16px 20px',
-                              borderBottom: '1px solid var(--border-color)',
+                              borderBottom: '1px solid var(--card-border)',
                               cursor: notif.link ? 'pointer' : 'default',
                               backgroundColor: notif.is_read ? 'transparent' : 'rgba(59, 130, 246, 0.08)',
                               transition: 'all 0.2s',
@@ -299,11 +298,36 @@ export default function Header() {
               )}
             </div>
           )}
-          {user ? <div className="muted-small">Signed in as <strong>{user.name || user.email}</strong>{user.role === 'admin' ? ' (Admin)' : ''}</div> : null}
-          {user ? <button className="btn btn-primary" onClick={handleLogout}>Logout</button> : null}
+          {user ? (
+            <div className="muted-small" style={{ whiteSpace: 'nowrap' }}>
+              Signed in as <strong>{user.name || user.email}</strong>{user.role === 'admin' ? ' (Admin)' : ''}
+            </div>
+          ) : null}
+          {user
+            ? <button className="btn btn-primary" onClick={handleLogout}>Logout</button>
+            : <NavLink to="/login" className="btn btn-primary" style={{ textDecoration: 'none', padding: '10px 16px' }}>Sign in</NavLink>
+          }
           <ThemeToggle />
         </div>
       </nav>
+      {/* Mobile nav drawer */}
+      {mobileNavOpen && (
+        <div className="nav-mobile" onClick={() => setMobileNavOpen(false)}>
+          <NavLink to="/" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Home</NavLink>
+          <NavLink to="/listings" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Listings</NavLink>
+          {user && (
+            <NavLink to="/dashboard" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>{user.role === 'admin' ? 'Admin' : 'Dashboard'}</NavLink>
+          )}
+          {user?.role === 'admin' && (
+            <NavLink to="/admin" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Review</NavLink>
+          )}
+          {user ? (
+            <button className="btn btn-primary" style={{ width:'100%', marginTop: 8 }} onClick={handleLogout}>Logout</button>
+          ) : (
+            <NavLink to="/auth" className="btn btn-primary" style={{ display:'block', marginTop: 8, textAlign:'center' }}>Sign in</NavLink>
+          )}
+        </div>
+      )}
       <div className="brand-ribbon" />
     </div>
   );

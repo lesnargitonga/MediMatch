@@ -117,7 +117,7 @@ router.get('/reports/summary.csv', async (_req, res) => {
 
 router.get('/users', async (_req, res) => {
   try {
-    const { rows } = await pool.query('SELECT id,email,name,role,org_name,org_type,org_license_id,org_verified,created_at FROM users ORDER BY created_at DESC LIMIT 200');
+    const { rows } = await pool.query('SELECT id,email,name,role,org_name,org_type,org_license_id,org_verified,disabled,created_at FROM users ORDER BY created_at DESC LIMIT 200');
     return res.json(rows);
   } catch { return res.status(500).json({ error: 'server error' }); }
 });
@@ -183,15 +183,6 @@ router.get('/listings', async (_req, res) => {
   try {
     const { rows } = await pool.query('SELECT id, owner_id, title, category, quantity, is_hidden, ST_AsText(location) as location_wkt, created_at FROM listings ORDER BY created_at DESC LIMIT 200');
     return res.json(rows);
-  } catch { return res.status(500).json({ error: 'server error' }); }
-});
-
-router.delete('/listings/:id', async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: 'invalid id' });
-    await pool.query('DELETE FROM listings WHERE id=$1', [id]);
-    return res.json({ ok: true });
   } catch { return res.status(500).json({ error: 'server error' }); }
 });
 
