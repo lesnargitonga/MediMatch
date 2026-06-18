@@ -180,7 +180,7 @@ export async function login(req: Request, res: Response) {
   });
   // Remove sensitive fields before sending user object
   const { password_hash, ...safeUser } = user;
-  res.json({ user: safeUser });
+  res.json({ token, user: safeUser });
 }
 
 export async function me(req: Request, res: Response) {

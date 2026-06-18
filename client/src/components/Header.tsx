@@ -127,8 +127,9 @@ export default function Header() {
             <a href="/" className="logo-text" style={{ textDecoration:'none' }}>MediMatch</a>
           </div>
           <div className="nav nav-desktop">
-            <NavLink to="/" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Home</NavLink>
+            <NavLink to="/" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Command</NavLink>
             <NavLink to="/listings" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Listings</NavLink>
+            <NavLink to="/about" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Platform</NavLink>
             {user && (
               <NavLink to="/dashboard" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>{user.role === 'admin' ? 'Admin' : 'Dashboard'}</NavLink>
             )}
@@ -243,16 +244,16 @@ export default function Header() {
                               padding: '16px 20px',
                               borderBottom: '1px solid var(--card-border)',
                               cursor: notif.link ? 'pointer' : 'default',
-                              backgroundColor: notif.is_read ? 'transparent' : 'rgba(59, 130, 246, 0.08)',
+                              backgroundColor: notif.is_read ? 'transparent' : 'rgba(14,165,113,0.10)',
                               transition: 'all 0.2s',
                             }}
                             onMouseEnter={(e) => { 
                               if (notif.link) {
-                                e.currentTarget.style.backgroundColor = notif.is_read ? 'rgba(0,0,0,0.03)' : 'rgba(59, 130, 246, 0.12)';
+                                e.currentTarget.style.backgroundColor = notif.is_read ? 'rgba(0,0,0,0.03)' : 'rgba(14,165,113,0.16)';
                               }
                             }}
                             onMouseLeave={(e) => { 
-                              e.currentTarget.style.backgroundColor = notif.is_read ? 'transparent' : 'rgba(59, 130, 246, 0.08)'; 
+                              e.currentTarget.style.backgroundColor = notif.is_read ? 'transparent' : 'rgba(14,165,113,0.10)'; 
                             }}
                           >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 6 }}>
@@ -262,7 +263,7 @@ export default function Header() {
                                     width: 8,
                                     height: 8,
                                     borderRadius: '50%',
-                                    backgroundColor: '#3b82f6',
+                                    backgroundColor: '#0ea571',
                                     flexShrink: 0
                                   }} />
                                 )}
@@ -313,8 +314,9 @@ export default function Header() {
       {/* Mobile nav drawer */}
       {mobileNavOpen && (
         <div className="nav-mobile" onClick={() => setMobileNavOpen(false)}>
-          <NavLink to="/" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Home</NavLink>
+          <NavLink to="/" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Command</NavLink>
           <NavLink to="/listings" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Listings</NavLink>
+          <NavLink to="/about" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>Platform</NavLink>
           {user && (
             <NavLink to="/dashboard" className={({isActive}) => `subtle ${isActive ? 'active' : ''}`}>{user.role === 'admin' ? 'Admin' : 'Dashboard'}</NavLink>
           )}

@@ -13,6 +13,7 @@ import chatRouter from './routes/chat.routes';
 import ratingsRouter from './routes/ratings.routes';
 import notificationsRouter from './routes/notifications.routes';
 import favoritesRouter from './routes/favorites.routes';
+import redistributionRouter from './routes/redistribution.routes';
 
 const app = express();
 
@@ -36,7 +37,10 @@ app.use((req, res, next) => {
 
 // CORS allowlist (comma-separated origins in CORS_ORIGIN), fallback to * in dev
 const allowlist = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
-const devOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
+const devOrigins = [5173, 5174, 5175].flatMap((port) => [
+	`http://localhost:${port}`,
+	`http://127.0.0.1:${port}`,
+]);
 const corsOptions: cors.CorsOptions = {
 	origin: (origin, cb) => {
 		if (!origin || devOrigins.includes(origin)) return cb(null, true);
@@ -66,6 +70,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/api/auth', usersRouter);
 app.use('/api/listings', listingsRouter);
 app.use('/api/matches', matchesRouter);
+app.use('/api/redistribution', redistributionRouter);
 app.use('/api', systemRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/chat', chatRouter);

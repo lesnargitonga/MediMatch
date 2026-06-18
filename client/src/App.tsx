@@ -26,7 +26,7 @@ export default function App() {
             <Outlet />
           </main>
           <footer className="footer">
-            <div>&copy; {new Date().getFullYear()} MediMatch — Connecting supplies with those in need.</div>
+            <div>&copy; {new Date().getFullYear()} MediMatch — Geospatial redistribution intelligence by Lesnar AI.</div>
           </footer>
         </div>
       </div>

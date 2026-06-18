@@ -20,6 +20,7 @@ export async function getListings(req: Request, res: Response) {
         average_rating: owner?.average_rating || 0, total_ratings: owner?.total_ratings || 0,
         title: l.title, description: l.description, quantity: l.quantity,
         category: l.category || 'general', is_urgent: l.is_urgent || false,
+        kind: l.kind || 'offer',
         location_wkt: l.location_wkt, created_at: l.created_at,
       };
     }));

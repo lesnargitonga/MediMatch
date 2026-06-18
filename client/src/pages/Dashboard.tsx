@@ -1132,7 +1132,7 @@ function SuggestedSection(props: {
               </div>
               {/* Quality signal tags */}
               <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginBottom:8 }}>
-                {toNum(r.c_distance) > 0.7 && <span className="chip" style={{ color:'#0b5fff', borderColor:'#c7d9ff' }}>Nearby</span>}
+                {toNum(r.c_distance) > 0.7 && <span className="chip" style={{ color:'#0ea571', borderColor:'#c7d9ff' }}>Nearby</span>}
                 {toNum(r.c_recency) > 0.8 && <span className="chip" style={{ color:'#059669', borderColor:'#a7f3d0' }}>Recent</span>}
                 {toNum(r.c_reputation) > 0.6 && <span className="chip" style={{ color:'#7c3aed', borderColor:'#ddd6fe' }}>Trusted</span>}
                 {toNum(r.c_quantity) > 0.5 && <span className="chip" style={{ color:'#b45309', borderColor:'#fde68a' }}>High qty</span>}

@@ -155,7 +155,7 @@ export default function ChatModal({ conversationId: initialConvId, otherUserId, 
                     maxWidth: '70%',
                     padding: '10px 14px',
                     borderRadius: 12,
-                    background: isMe ? 'linear-gradient(135deg, #0b5fff, #0a58ff)' : 'var(--surface)',
+                    background: isMe ? 'linear-gradient(135deg, #0ea571, #0b8f63)' : 'var(--surface)',
                     color: isMe ? '#fff' : 'var(--text)',
                     border: isMe ? 'none' : '1px solid var(--card-border)',
                     wordWrap: 'break-word'

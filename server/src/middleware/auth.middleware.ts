@@ -4,8 +4,9 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret';
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Read JWT from httpOnly cookie
-  const token = req.cookies?.token;
+  // Browser sessions use the httpOnly cookie; bearer auth keeps API/test clients compatible.
+  const bearer = req.headers.authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const token = req.cookies?.token || bearer;
   if (!token) {
     console.warn('[AUTH] No token cookie present for', req.method, req.path);
     return res.status(401).json({ error: 'no token' });

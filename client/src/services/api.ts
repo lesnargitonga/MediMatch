@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-// Resolve API base URL with a sensible local fallback for dev.
-// Note: import.meta.env is only available inside bundled code (not in browser console).
-const envBase = (import.meta as any)?.env?.VITE_API_BASE_URL as string | undefined;
+// Vite only replaces direct import.meta.env access during bundling.
+const envBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
 let resolvedBase = envBase?.replace(/\/$/, '');
 if (!resolvedBase) {
   // Default to the current page host to keep cookies same-site
