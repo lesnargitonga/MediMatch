@@ -97,7 +97,7 @@ function GlobeRig({ onKenya }: { onKenya?: (xPct: number, yPct: number) => void 
   const group = useRef<THREE.Group>(null);
   const fillRef = useRef<THREE.Mesh>(null);
   const lineRef = useRef<THREE.Line>(null);
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const start = useRef<number | null>(null);
   const reported = useRef(false);
   const { fill, line } = useMemo(kenyaGeometry, []);
@@ -122,10 +122,15 @@ function GlobeRig({ onKenya }: { onKenya?: (xPct: number, yPct: number) => void 
     }
 
     // --- camera: dive during the spin, then a gentle push on the press so
-    // Kenya stays large and centred — matching the 2D map it hands off to. ---
+    // Kenya stays large and centred — matching the 2D map it hands off to.
+    // On portrait/narrow screens keep the whole lit globe in frame instead of
+    // diving into a dark ocean slice. ---
     const dive = easeOut(clamp01((el - SPIN_START) / (SPIN_END - SPIN_START)));
     const press = easeOut(clamp01((el - PRESS_START) / (PRESS_END - PRESS_START)));
-    camera.position.z = 4.6 - 1.65 * dive - 0.35 * press;
+    const narrow = size.width / Math.max(1, size.height) < 0.85;
+    const zStart = narrow ? 6.2 : 4.6;
+    const zSettle = narrow ? 4.3 : 2.95;
+    camera.position.z = zStart - (zStart - zSettle) * dive - 0.35 * press;
     camera.position.y = 0.18 * dive;
     camera.lookAt(0, 0, 0);
 

@@ -191,6 +191,8 @@ export default function SavannahCommand() {
     if (nodes.length < 2) return null;
     const routes = plan.routes.filter((r) => r.from.county === 'Nairobi' && r.to.county === 'Nairobi');
     const lons = nodes.map((n) => n.lon), lats = nodes.map((n) => n.lat);
+    // include road geometry so real-road paths stay inside the frame
+    for (const r of routes) for (const [la, lo] of (r.geometry || [])) { lats.push(la); lons.push(lo); }
     const pad = 0.012;
     const minLon = Math.min(...lons) - pad, maxLon = Math.max(...lons) + pad;
     const minLat = Math.min(...lats) - pad, maxLat = Math.max(...lats) + pad;
@@ -264,6 +266,14 @@ export default function SavannahCommand() {
             <text x="5" y="3.5" className="sv-city">{c.n}</text>
           </g>
         ))}
+
+        {/* shockwave from the Nairobi command centre each time a run fires */}
+        {running && (
+          <g key={`shock-${runToken}`} clipPath="url(#svKenyaClip)">
+            <circle className="sv-shock" cx={px(36.817)} cy={py(-1.286)} fill="none" stroke={C.gold2} />
+            <circle className="sv-shock sv-shock2" cx={px(36.817)} cy={py(-1.286)} fill="none" stroke={C.terra} />
+          </g>
+        )}
 
         {/* routes — draw themselves, then a light pulse keeps travelling */}
         <g key={runToken}>
@@ -449,7 +459,10 @@ export default function SavannahCommand() {
                 <rect x="0" y="0" width={nai.W} height={nai.H} fill="url(#naiGlow)" rx="14" />
                 {nai.routes.map((r, i) => {
                   const x1 = nai.fx(r.from.lon), y1 = nai.fy(r.from.lat), x2 = nai.fx(r.to.lon), y2 = nai.fy(r.to.lat);
-                  const d = `M${x1} ${y1} Q${(x1 + x2) / 2} ${(y1 + y2) / 2 - 26} ${x2} ${y2}`;
+                  // real road geometry when available, else a gentle arc
+                  const d = r.geometry && r.geometry.length > 2
+                    ? r.geometry.map((p, j) => `${j ? 'L' : 'M'}${nai.fx(p[1]).toFixed(1)} ${nai.fy(p[0]).toFixed(1)}`).join(' ')
+                    : `M${x1} ${y1} Q${(x1 + x2) / 2} ${(y1 + y2) / 2 - 26} ${x2} ${y2}`;
                   return (
                     <g key={r.id}>
                       <path id={`np-${r.id}`} d={d} fill="none" stroke="none" />
