@@ -1777,3 +1777,49 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 .lst .btn.btn-outline, .lst .btn.on-image { background: transparent; border: 1px solid rgba(248,210,122,0.35); color: var(--gold2); }
 .lst .skeleton { background: linear-gradient(90deg, rgba(240,179,46,0.06), rgba(240,179,46,0.12), rgba(240,179,46,0.06)); }
 .lst .empty { text-align: center; padding: 48px; }
+
+/* =========================================================================
+ * Dashboard makeover (.dsh) — warm Savannah identity
+ * ========================================================================= */
+.dsh {
+  --gold: #f0b32e; --gold2: #f8d27a; --acacia: #37c07e; --terra: #e8703c;
+  --cream: #f4ead6; --sand: #b6a78b;
+  position: relative; width: 100vw; margin-left: calc(50% - 50vw);
+  min-height: 100vh; padding: 24px max(24px, calc(50vw - 660px)) 80px;
+  background: #080d1a; color: var(--cream); overflow: hidden;
+}
+.dsh > * { position: relative; z-index: 1; }
+.dsh .lx-aurora { opacity: 0.45; }
+.dsh-head { padding: 40px 0 20px; }
+.dsh-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--gold2); padding: 6px 13px; border-radius: 999px; border: 1px solid rgba(248,210,122,0.28); background: rgba(248,210,122,0.06); }
+.dsh-head h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 4vw, 50px); letter-spacing: -0.02em; margin: 14px 0 8px; color: var(--cream); }
+.dsh-head p { margin: 0; max-width: 600px; font-size: 14px; line-height: 1.6; color: var(--sand); }
+
+.dsh .tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px; border-radius: 14px;
+  background: rgba(18,26,46,0.5); border: 1px solid rgba(240,179,46,0.12); margin-bottom: 18px; }
+.dsh .tab { background: transparent; border: none; color: var(--sand); font-weight: 700; font-size: 13px; padding: 9px 16px; border-radius: 10px; cursor: pointer; transition: all .15s; }
+.dsh .tab:hover { color: var(--cream); background: rgba(240,179,46,0.08); }
+.dsh .tab.active { color: #0b1120; background: linear-gradient(135deg, var(--gold2), var(--terra)); box-shadow: 0 8px 22px rgba(232,112,60,0.3); }
+
+.dsh .card { background: linear-gradient(180deg, rgba(22,30,48,0.7), rgba(13,19,33,0.6)) !important;
+  border: 1px solid rgba(240,179,46,0.14); border-radius: 16px; backdrop-filter: blur(8px); color: var(--cream); }
+.dsh .card .card { background: rgba(10,16,30,0.45) !important; }
+.dsh .muted, .dsh .muted-small, .dsh .subtle { color: var(--sand); }
+.dsh strong, .dsh h1, .dsh h2, .dsh h3, .dsh .heading { color: var(--cream); }
+.dsh .heading { font-family: var(--font-display); }
+.dsh input, .dsh select, .dsh textarea { background: rgba(10,16,30,0.8); border: 1px solid rgba(240,179,46,0.2); color: var(--cream); border-radius: 10px; }
+.dsh input::placeholder, .dsh textarea::placeholder { color: var(--sand); }
+.dsh select option { background: #131c33; }
+
+.dsh .btn { background: rgba(244,234,214,0.06); border: 1px solid rgba(244,234,214,0.2); color: var(--cream); border-radius: 10px; font-weight: 700; }
+.dsh .btn:hover { background: rgba(244,234,214,0.14); }
+.dsh .btn-primary { background: linear-gradient(135deg, var(--gold2), var(--terra)); color: #0b1120; border: none; box-shadow: 0 10px 26px rgba(232,112,60,0.28); }
+.dsh .btn-outline, .dsh .btn-secondary { background: transparent; border: 1px solid rgba(248,210,122,0.35); color: var(--gold2); }
+.dsh .chip { background: rgba(240,179,46,0.08); border: 1px solid rgba(240,179,46,0.2); color: var(--gold2); }
+.dsh .chip .dot { background: var(--gold); }
+.dsh table { color: var(--cream); }
+.dsh th { color: var(--gold2); border-bottom-color: rgba(240,179,46,0.18) !important; }
+.dsh td { border-bottom-color: rgba(240,179,46,0.08) !important; }
+.dsh .reputation-card { border-left: 3px solid var(--gold); }
+.dsh a { color: var(--gold2); }

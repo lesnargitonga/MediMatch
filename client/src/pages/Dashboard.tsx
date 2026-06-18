@@ -207,13 +207,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
-      <div className="hero bg-image" style={{ marginBottom: 12, ['--hero-bg' as any]: 'url(/images/pic-3.jpeg)' }}>
-        <div className="hero-copy glass-card">
-          <div className="heading" style={{ marginTop: 0 }}>Dashboard</div>
-          <div className="muted" style={{ maxWidth: 640 }}>Manage your listings, explore nearby posts, and connect with others. Your organization’s reputation helps build trust.</div>
-        </div>
-      </div>
+    <div className="dsh">
+      <div className="lx-aurora" aria-hidden />
+      <header className="dsh-head">
+        <div className="dsh-eyebrow"><span className="lx-pulse" /> Coordinator workspace</div>
+        <h1>Redistribution dashboard</h1>
+        <p>Manage listings, explore nearby posts and connect with facilities — your organization’s reputation builds trust.</p>
+      </header>
       <div className="tabs">
         <button className={`tab ${tab==='overview'?'active':''}`} onClick={()=>setTab('overview')}>Overview</button>
         {role !== 'admin' && (
