@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState, Suspense, lazy } from 'rea
 import API from '../services/api';
 
 const GlobeIntro = lazy(() => import('./GlobeIntro'));
+const Nairobi3D = lazy(() => import('./Nairobi3D'));
 
 // The 3D globe is a progressive enhancement: if WebGL is unavailable or the
 // scene throws, we silently fall back to the 2D intro + map (never break).
@@ -25,7 +26,8 @@ class GlobeBoundary extends React.Component<{ children: React.ReactNode }, { fai
  * React, so it stays smooth by construction.
  * ========================================================================= */
 
-type Node = { id: number; org_name: string; county: string; lat: number; lon: number; role: 'hub' | 'need' | 'mixed'; surplusUnits: number; needUnits: number; urgent: boolean };
+type Item = { title: string; category: string; quantity: number; urgent?: boolean };
+type Node = { id: number; org_name: string; county: string; lat: number; lon: number; role: 'hub' | 'need' | 'mixed'; surplusUnits: number; needUnits: number; urgent: boolean; offers?: Item[]; requests?: Item[] };
 type Route = {
   id: number; item: string; category: string; qty: number; urgent: boolean; distance_km: number;
   from: { id: number; org: string; county: string; lat: number; lon: number };
@@ -112,6 +114,7 @@ export default function SavannahCommand() {
   const [landing, setLanding] = useState(false);
   const [tapPos, setTapPos] = useState({ x: 60, y: 43 }); // where the finger taps Kenya, reported by the globe
   const [focus, setFocus] = useState<'national' | 'nairobi'>('national');
+  const [selFac, setSelFac] = useState<Node | null>(null);
   const timers = useRef<number[]>([]);
   const started = useRef(false);
   const showGlobe = useMemo(() => webglAvailable(), []);
@@ -141,11 +144,12 @@ export default function SavannahCommand() {
     setSelId(pid);
     setStage('detect');
     setRunToken((x) => x + 1);
-    const total = 0.6 + plan.routes.length * 0.28 + 1.6;
-    timers.current.push(window.setTimeout(() => setStage('rank'), 1100));
-    timers.current.push(window.setTimeout(() => setStage('route'), 2200));
-    timers.current.push(window.setTimeout(() => setStage('impact'), total * 1000));
-    if (auto) timers.current.push(window.setTimeout(() => run(), total * 1000 + 6000));
+    // The pipeline view stays put — the operator steps through it (or toggles
+    // auto-play). No more text changing on its own.
+    if (auto) {
+      const i = plan.routes.findIndex((r) => r.id === pid);
+      timers.current.push(window.setTimeout(() => run(plan.routes[(i + 1) % plan.routes.length]?.id), 5200));
+    }
   }
 
   const introTimers = useRef<number[]>([]);
@@ -386,7 +390,9 @@ export default function SavannahCommand() {
             <h2>{story.t}</h2>
             <p>{story.b}</p>
           </div>
-          <div className="sv-steps">{(['detect', 'rank', 'route', 'impact'] as Stage[]).map((s) => <i key={s} className={s === stage ? 'on' : ''} />)}</div>
+          <div className="sv-steps">{(['detect', 'rank', 'route', 'impact'] as Stage[]).map((s) => (
+            <button key={s} className={s === stage ? 'on' : ''} onClick={() => setStage(s)} aria-label={s} title={s} />
+          ))}</div>
         </section>
       )}
 
@@ -441,56 +447,55 @@ export default function SavannahCommand() {
       {/* ===== Nairobi County close-up — geospatial AI in action ===== */}
       {focus === 'nairobi' && nai && (
         <div className="sv-focus" role="dialog" aria-label="Nairobi County close-up">
-          <div className="sv-focus-scrim" onClick={() => setFocus('national')} />
+          <div className="sv-focus-scrim" onClick={() => { setFocus('national'); setSelFac(null); }} />
           <div className="sv-focus-card">
-            <button className="sv-focus-back" onClick={() => setFocus('national')}>‹ National view</button>
+            <button className="sv-focus-back" onClick={() => { setFocus('national'); setSelFac(null); }}>‹ National view</button>
             <div className="sv-focus-head">
               <span className="sv-eyebrow"><i className="sv-live" /> Nairobi County · research base & geospatial AI</span>
               <h2>Inside Nairobi County</h2>
               <p>Our field study was conducted here. Kenyatta National Hospital’s surplus is matched to sub-county facilities in shortfall — ranked by distance, urgency and product fit, then routed on real roads.</p>
             </div>
             <div className="sv-focus-grid">
-              <svg className="sv-focus-map" viewBox={`0 0 ${nai.W} ${nai.H}`} preserveAspectRatio="xMidYMid meet">
-                <defs>
-                  <radialGradient id="naiGlow" cx="50%" cy="50%" r="60%">
-                    <stop offset="0%" stopColor="#1d2c46" /><stop offset="100%" stopColor="#0e1626" />
-                  </radialGradient>
-                </defs>
-                <rect x="0" y="0" width={nai.W} height={nai.H} fill="url(#naiGlow)" rx="14" />
-                {nai.routes.map((r, i) => {
-                  const x1 = nai.fx(r.from.lon), y1 = nai.fy(r.from.lat), x2 = nai.fx(r.to.lon), y2 = nai.fy(r.to.lat);
-                  // real road geometry when available, else a gentle arc
-                  const d = r.geometry && r.geometry.length > 2
-                    ? r.geometry.map((p, j) => `${j ? 'L' : 'M'}${nai.fx(p[1]).toFixed(1)} ${nai.fy(p[0]).toFixed(1)}`).join(' ')
-                    : `M${x1} ${y1} Q${(x1 + x2) / 2} ${(y1 + y2) / 2 - 26} ${x2} ${y2}`;
-                  return (
-                    <g key={r.id}>
-                      <path id={`np-${r.id}`} d={d} fill="none" stroke="none" />
-                      <path d={d} className="sv-focus-route" fill="none" stroke={r.urgent ? C.terra : C.acacia}
-                        strokeWidth="2" pathLength={1} style={{ animationDelay: `${0.3 + i * 0.16}s` }} />
-                      <circle r="2.6" fill="#fff" className="sv-spark">
-                        <animateMotion dur="2.4s" begin={`${0.6 + i * 0.16}s`} repeatCount="indefinite"><mpath href={`#np-${r.id}`} /></animateMotion>
-                      </circle>
-                    </g>
-                  );
-                })}
-                {nai.nodes.map((n) => {
-                  const x = nai.fx(n.lon), y = nai.fy(n.lat), hub = n.role === 'hub' || n.surplusUnits > 0;
-                  return (
-                    <g key={n.id} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`} className="sv-focus-node">
-                      {n.urgent && <circle r="6" fill="none" stroke={C.terra} className="sv-ping" />}
-                      <circle r={hub ? 6 : 4} fill={hub ? C.gold2 : n.urgent ? C.red : C.acacia} stroke="#0b1120" strokeWidth="1.4" />
-                      <text x={hub ? 10 : 8} y="3.5" className="sv-focus-label">{n.org_name.replace(/ Hospital| Teaching.*| County.*/i, '')}</text>
-                    </g>
-                  );
-                })}
-              </svg>
-              <ol className="sv-ai-steps">
-                <li><b>Detect</b><span>{nai.nodes.filter((n) => n.needUnits > 0).length} sub-county facilities report shortfall — oxygen & insulin.</span></li>
-                <li><b>Rank</b><span>Each need is scored across candidate hubs by distance × urgency × product fit.</span></li>
-                <li><b>Match</b><span>KNH surplus is allocated to the most urgent, nearest needs first — {nai.routes.reduce((s, r) => s + r.qty, 0)} units across {nai.routes.length} transfers.</span></li>
-                <li><b>Route</b><span>Each transfer is drawn on the real Nairobi road network with live ETA.</span></li>
-              </ol>
+              {showGlobe ? (
+                <Suspense fallback={<div className="sv-n3d sv-n3d-load"><span /> Building 3D city…</div>}>
+                  <Nairobi3D nodes={nai.nodes as any} routes={nai.routes as any} selectedId={selFac?.id ?? null} onSelect={(n: any) => setSelFac(n)} />
+                </Suspense>
+              ) : (
+                <svg className="sv-focus-map" viewBox={`0 0 ${nai.W} ${nai.H}`} preserveAspectRatio="xMidYMid meet">
+                  <rect x="0" y="0" width={nai.W} height={nai.H} fill="#0e1626" rx="14" />
+                  {nai.nodes.map((n) => {
+                    const x = nai.fx(n.lon), y = nai.fy(n.lat), hub = n.role === 'hub' || n.surplusUnits > 0;
+                    return (
+                      <g key={n.id} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`} onClick={() => setSelFac(n)} className="sv-clickable">
+                        <circle r={hub ? 6 : 4} fill={hub ? C.gold2 : n.urgent ? C.red : C.acacia} stroke="#0b1120" strokeWidth="1.4" />
+                        <text x={hub ? 10 : 8} y="3.5" className="sv-focus-label">{n.org_name.replace(/ Hospital| Teaching.*| County.*/i, '')}</text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              )}
+              {selFac ? (
+                <div className="sv-fac">
+                  <button className="sv-fac-back" onClick={() => setSelFac(null)}>‹ All facilities</button>
+                  <span className={`sv-fac-role r-${selFac.role}`}>{selFac.role === 'hub' ? 'Surplus hub' : selFac.role === 'mixed' ? 'Hub + need' : selFac.urgent ? 'Urgent need' : 'In need'}</span>
+                  <h3>{selFac.org_name}</h3>
+                  <div className="sv-fac-meta">{selFac.county} County{selFac.surplusUnits > 0 ? ` · ${selFac.surplusUnits} units surplus` : ''}{selFac.needUnits > 0 ? ` · ${selFac.needUnits} units short` : ''}</div>
+                  {!!selFac.offers?.length && (
+                    <div className="sv-fac-list"><h4>Offering</h4>{selFac.offers!.map((o, i) => <div key={i}><span>{o.title}</span><b>{o.quantity}</b></div>)}</div>
+                  )}
+                  {!!selFac.requests?.length && (
+                    <div className="sv-fac-list"><h4>Needs</h4>{selFac.requests!.map((o, i) => <div key={i} className={o.urgent ? 'urg' : ''}><span>{o.title}</span><b>{o.quantity}</b></div>)}</div>
+                  )}
+                  <div className="sv-fac-flows">{nai.routes.filter((r) => r.from.id === selFac.id || r.to.id === selFac.id).length} live transfer(s) connected</div>
+                </div>
+              ) : (
+                <ol className="sv-ai-steps">
+                  <li><b>Detect</b><span>{nai.nodes.filter((n) => n.needUnits > 0).length} facilities across Nairobi report shortfall — oxygen, insulin & more.</span></li>
+                  <li><b>Rank</b><span>Each need is scored across candidate hubs by distance × urgency × product fit.</span></li>
+                  <li><b>Match</b><span>Surplus is allocated to the most urgent, nearest needs first — {nai.routes.reduce((s, r) => s + r.qty, 0)} units across {nai.routes.length} transfers.</span></li>
+                  <li><b>Route</b><span>Click any facility in the 3D model to inspect its stock and live transfers.</span></li>
+                </ol>
+              )}
             </div>
 
             <div className="sv-research">
