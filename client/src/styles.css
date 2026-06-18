@@ -1298,6 +1298,9 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 
 .sv-map { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sv-city { fill: var(--sand); font-size: 8px; font-weight: 600; letter-spacing: 0.03em; opacity: 0.65; font-family: Inter, sans-serif; }
+/* Nairobi research-origin marker */
+.sv-origin-name { fill: var(--cream); font-size: 11px; font-weight: 800; letter-spacing: 0.02em; font-family: Inter, sans-serif; }
+.sv-origin-sub { fill: var(--gold2); font-size: 6.6px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-family: Inter, sans-serif; }
 
 /* routes draw themselves */
 .sv-route { stroke-dasharray: 1; stroke-dashoffset: 1; animation: svDraw 1.3s var(--ease-out) forwards; }

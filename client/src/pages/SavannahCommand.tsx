@@ -54,7 +54,7 @@ const KENYA: [number, number][] = [
   [-4.67677, 39.20222],
 ];
 const CITIES = [
-  { n: 'Nairobi', lat: -1.286, lon: 36.817 }, { n: 'Mombasa', lat: -4.043, lon: 39.668 },
+  { n: 'Mombasa', lat: -4.043, lon: 39.668 },
   { n: 'Kisumu', lat: -0.092, lon: 34.768 }, { n: 'Eldoret', lat: 0.514, lon: 35.27 },
   { n: 'Nakuru', lat: -0.303, lon: 36.08 }, { n: 'Garissa', lat: -0.453, lon: 39.646 },
   { n: 'Wajir', lat: 1.747, lon: 40.058 }, { n: 'Marsabit', lat: 2.33, lon: 37.99 },
@@ -107,7 +107,15 @@ export default function SavannahCommand() {
     let off = false;
     // Warm the lazy globe chunk while the plan loads so it paints without a gap.
     if (showGlobe) import('./GlobeIntro');
-    API.get('/redistribution/plan?roads=0').then(({ data }) => { if (!off) setPlan(data); }).catch(() => { if (!off) setError('Could not load redistribution plan.'); });
+    // Load instantly with curved arcs, then upgrade to real road geometry in the
+    // background (usually ready before the globe intro hands off to the map).
+    API.get('/redistribution/plan?roads=0').then(({ data }) => {
+      if (off) return;
+      setPlan(data);
+      API.get('/redistribution/plan?roads=1').then(({ data: roads }) => {
+        if (!off && roads?.impact?.roads_used) setPlan(roads);
+      }).catch(() => {});
+    }).catch(() => { if (!off) setError('Could not load redistribution plan.'); });
     return () => { off = true; };
   }, []);
 
@@ -127,20 +135,22 @@ export default function SavannahCommand() {
     if (auto) timers.current.push(window.setTimeout(() => run(), total * 1000 + 6000));
   }
 
+  const introTimers = useRef<number[]>([]);
   useEffect(() => {
     if (!plan || started.current) return;
     started.current = true;
     setSelId(plan.routes[0]?.id ?? null);
     // With the globe, run the full cinematic (flip → tap Kenya → punch into the
     // map). Without WebGL we just hold the headline briefly over the 2D map.
+    // These timers live in a ref so a background plan upgrade (roads geometry)
+    // re-rendering this effect can't clear them before they fire.
     const intoMap = showGlobe ? 6700 : 3200;
-    const t1 = window.setTimeout(() => { setIntro(false); setLanding(true); }, intoMap);
-    const t2 = window.setTimeout(() => run(plan.routes[0]?.id), intoMap + 250);
-    const t3 = window.setTimeout(() => setLanding(false), intoMap + 1500);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    introTimers.current.push(window.setTimeout(() => { setIntro(false); setLanding(true); }, intoMap));
+    introTimers.current.push(window.setTimeout(() => run(plan.routes[0]?.id), intoMap + 250));
+    introTimers.current.push(window.setTimeout(() => setLanding(false), intoMap + 1500));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan]);
-  useEffect(() => () => clear(), []);
+  useEffect(() => () => { clear(); introTimers.current.forEach(clearTimeout); }, []);
 
   const lead = plan?.routes.find((r) => r.id === selId) || plan?.routes[0];
   const scenarios = useMemo(() => (plan?.routes || []).filter((r) => r.urgent).slice(0, 4), [plan]);
@@ -244,6 +254,20 @@ export default function SavannahCommand() {
             </g>
           );
         })}
+
+        {/* Research origin — Nairobi, where MediMatch was built */}
+        <g className="sv-origin" transform={`translate(${px(36.817).toFixed(1)} ${py(-1.286).toFixed(1)})`}>
+          <circle className="sv-origin-pulse" r="4" fill={C.gold}>
+            <animate attributeName="r" values="4;15;4" dur="2.8s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.35;0;0.35" dur="2.8s" repeatCount="indefinite" />
+          </circle>
+          <circle r="5.6" fill="none" stroke={C.gold2} strokeWidth="1.1" strokeOpacity="0.8" />
+          <circle r="2.9" fill={C.gold2} stroke="#0e1322" strokeWidth="1" />
+          <g transform="translate(9 -3)">
+            <text className="sv-origin-name">Nairobi</text>
+            <text className="sv-origin-sub" y="9">MediMatch research base</text>
+          </g>
+        </g>
       </svg>
 
       {/* ===== Intro: a hand flips the globe, taps Kenya, then the map ===== */}
