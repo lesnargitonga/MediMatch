@@ -31,51 +31,39 @@ export default function Login() {
 	}
 
 	return (
-		<div style={{ maxWidth: 440, margin: '48px auto' }}>
-			<div className="card fade-in-up">
-				<div style={{ marginBottom: 24 }}>
-					<div className="brand-accent" />
-					<div className="heading" style={{ marginBottom: 4 }}>Sign in</div>
-					<div className="muted" style={{ fontSize: '0.95rem' }}>Welcome back to MediMatch</div>
-				</div>
-				<form onSubmit={handleLogin}>
-					<div className="form-group">
-						<label>Email</label>
-						<input
-							type="email"
-							value={email}
-							onChange={e => setEmail(e.target.value)}
-							placeholder="you@example.com"
-							required
-							autoComplete="email"
-						/>
+		<div className="auth">
+			<div className="lx-aurora" aria-hidden />
+			<div className="auth-shell">
+				<aside className="auth-brand">
+					<div className="auth-kicker"><span className="lx-pulse" /> Coordinator access</div>
+					<h1>Coordinate care at<br /><span className="hl">national scale.</span></h1>
+					<p>Sign in to manage listings, run redistribution and act on ranked, verified recommendations across the network.</p>
+					<div className="auth-stats">
+						<div><b>50</b><span>Nairobi facilities</span></div>
+						<div><b>96%</b><span>Demand coverage</span></div>
+						<div><b>90.3%</b><span>Would adopt</span></div>
 					</div>
-					<div className="form-group">
-						<label>Password</label>
-						<input
-							type="password"
-							value={password}
-							onChange={e => setPassword(e.target.value)}
-							placeholder="Your password"
-							required
-							autoComplete="current-password"
-						/>
+				</aside>
+				<div className="auth-card">
+					<div className="auth-h">Sign in</div>
+					<div className="auth-sub">Welcome back to MediMatch</div>
+					<form onSubmit={handleLogin}>
+						<div className="auth-field">
+							<label>Email</label>
+							<input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
+						</div>
+						<div className="auth-field">
+							<label>Password</label>
+							<input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Your password" required autoComplete="current-password" />
+						</div>
+						{error && <div className="auth-error">{error}</div>}
+						<button type="submit" className="auth-submit" disabled={loading}>
+							{loading ? 'Signing in…' : 'Sign in →'}
+						</button>
+					</form>
+					<div className="auth-foot">
+						Don't have an account? <Link to="/register">Create one</Link>
 					</div>
-					{error && <div className="text-danger" style={{ marginBottom: 12 }}>{error}</div>}
-					<button
-						type="submit"
-						className="btn btn-primary"
-						style={{ width: '100%', marginTop: 4 }}
-						disabled={loading}
-					>
-						{loading ? 'Signing in…' : 'Sign in'}
-					</button>
-				</form>
-				<div className="muted-small" style={{ marginTop: 20, textAlign: 'center' }}>
-					Don't have an account?{' '}
-					<Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
-						Create one
-					</Link>
 				</div>
 			</div>
 		</div>

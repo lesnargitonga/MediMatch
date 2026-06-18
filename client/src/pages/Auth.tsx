@@ -50,14 +50,23 @@ export default function Auth() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '48px auto' }}>
-      <div className="card fade-in-up">
-        <div style={{ marginBottom: 24 }}>
-          <div className="brand-accent" />
-          <div className="heading" style={{ marginBottom: 4 }}>Create account</div>
-          <div className="muted" style={{ fontSize: '0.95rem' }}>Join MediMatch to post and discover listings</div>
-        </div>
-        <form onSubmit={handleRegister}>
+    <div className="auth">
+      <div className="lx-aurora" aria-hidden />
+      <div className="auth-shell">
+        <aside className="auth-brand">
+          <div className="auth-kicker"><span className="lx-pulse" /> Join the network</div>
+          <h1>Put your surplus<br /><span className="hl">to work.</span></h1>
+          <p>Create a facility account to list surplus, flag urgent needs and receive ranked, verified transfer recommendations.</p>
+          <div className="auth-stats">
+            <div><b>57.7%</b><span>Report wastage</span></div>
+            <div><b>55.7%</b><span>Monthly stockouts</span></div>
+            <div><b>Equity</b><span>Urgent-first</span></div>
+          </div>
+        </aside>
+        <div className="auth-card">
+          <div className="auth-h">Create account</div>
+          <div className="auth-sub">Join MediMatch to post and discover listings</div>
+          <form onSubmit={handleRegister}>
           <div className="form-group">
             <label>Full name</label>
             <input
@@ -144,11 +153,9 @@ export default function Auth() {
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
-        <div className="muted-small" style={{ marginTop: 20, textAlign: 'center' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
-            Sign in
-          </Link>
+          <div className="auth-foot">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </div>
         </div>
       </div>
     </div>
