@@ -1,173 +1,156 @@
-
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Auth() {
-  const [adminCode, setAdminCode] = useState('');
-  const [orgName, setOrgName] = useState('');
-  const [orgType, setOrgType] = useState('');
-  const [orgLicenseId, setOrgLicenseId] = useState('');
   const nav = useNavigate();
-  const { user, setUser, refresh } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const { user, refresh } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [orgName, setOrgName] = useState('');
+  const [orgType, setOrgType] = useState('');
+  const [orgLicenseId, setOrgLicenseId] = useState('');
+  const [adminCode, setAdminCode] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
-  // Removed org fields for simplicity
 
-  const canRegister = () => {
-    if (isLogin) return true;
-    // Admin: only require name, email, password, adminCode
-    // User: require org fields
-    if (adminCode.trim() === 'ADMIN2025') {
-      return (
-        name.trim().length > 0 &&
-        email.trim().length > 3 &&
-        password.trim().length >= 6 &&
-        adminCode.trim().length > 0
-      );
-    } else {
-      return (
-        name.trim().length > 0 &&
-        email.trim().length > 3 &&
-        password.trim().length >= 6 &&
-        orgName.trim().length >= 2 &&
-        orgType.trim().length >= 2 &&
-        orgLicenseId.trim().length >= 2
-      );
-    }
-  };
-
-  async function doLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    try {
-      await API.post('/auth/login', { email, password }, { withCredentials: true });
-      await refresh();
-      toast.success('Welcome back!');
-      // Navigation is handled by useEffect below
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || err?.message || 'Login failed';
-      setError(msg);
-      toast.error(msg);
-      console.error('Login error:', err);
-    }
-  }
-
-  async function doRegister(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    try {
-      let payload: any;
-      if (adminCode.trim() === 'ADMIN2025') {
-        payload = {
-          email,
-          password,
-          name,
-          role: 'admin',
-          org_name: 'AdminOrg',
-          org_type: 'Admin',
-          org_license_id: 'ADM123'
-        };
-      } else {
-        payload = {
-          email,
-          password,
-          name,
-          role: 'user',
-          org_name: orgName,
-          org_type: orgType,
-          org_license_id: orgLicenseId
-        };
-      }
-      await API.post('/auth/register', payload, { withCredentials: true });
-      toast.success('Account created! Please log in.');
-      // After account creation, go to Login instead of auto-login
-      setIsLogin(true);
-      setInfo('Your account was created successfully. Please log in.');
-      // Optional: navigate to explicit login route
-      try { nav('/login'); } catch {}
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || err?.message || 'Register failed';
-      setError(msg);
-      toast.error(msg);
-      console.error('Register error:', err);
-    }
-  }
-  // ...existing code...
-  // React to user state and navigate accordingly
   useEffect(() => {
-    if (user) {
-      if (user.role === 'admin') nav('/dashboard');
-      else nav('/');
-    }
+    if (user) nav(user.role === 'admin' ? '/dashboard' : '/');
   }, [user, nav]);
 
-    return (
-      <div className="auth-page">
-      <form className="auth-form" onSubmit={isLogin ? doLogin : doRegister}>
-        <h2>{isLogin ? 'Login' : 'Register'}</h2>
-        {error && <div className="error">{error}</div>}
-        {info && <div className="info">{info}</div>}
-        {isLogin ? (
-          <>
-            <div>
-              <label>Email</label>
-              <input value={email} onChange={e => setEmail(e.target.value)} required type="email" />
-            </div>
-            <div>
-              <label>Password</label>
-              <input value={password} onChange={e => setPassword(e.target.value)} required type="password" />
-            </div>
-          </>
-        ) : (
-          <>
-            <div>
-              <label>Name</label>
-              <input value={name} onChange={e => setName(e.target.value)} required type="text" />
-            </div>
-            <div>
-              <label>Email</label>
-              <input value={email} onChange={e => setEmail(e.target.value)} required type="email" />
-            </div>
-            <div>
-              <label>Password</label>
-              <input value={password} onChange={e => setPassword(e.target.value)} required type="password" />
-            </div>
-            <div>
-              <label>Admin Code (optional)</label>
-              <input value={adminCode} onChange={e => setAdminCode(e.target.value)} type="text" placeholder="ADMIN2025 for admin" />
-            </div>
-            {adminCode.trim() !== 'ADMIN2025' && (
-              <>
-                <div>
-                  <label>Organization Name</label>
-                  <input value={orgName} onChange={e => setOrgName(e.target.value)} required type="text" />
-                </div>
-                <div>
-                  <label>Organization Type</label>
-                  <input value={orgType} onChange={e => setOrgType(e.target.value)} required type="text" />
-                </div>
-                <div>
-                  <label>License/Registration ID</label>
-                  <input value={orgLicenseId} onChange={e => setOrgLicenseId(e.target.value)} required type="text" />
-                </div>
-              </>
-            )}
-          </>
-        )}
-        <div style={{ marginTop: 16 }}>
-          <button type="submit" disabled={!canRegister()}>{isLogin ? 'Login' : 'Register'}</button>
-          <button type="button" onClick={() => { setIsLogin(x => !x); setError(null); setInfo(null); }} style={{ marginLeft: 8 }}>
-            {isLogin ? 'Create account' : 'Back to login'}
-          </button>
+  const isAdmin = adminCode.trim() === 'ADMIN2025';
+
+  const canSubmit = () => {
+    if (!name.trim() || email.length < 4 || password.length < 6) return false;
+    if (isAdmin) return true;
+    return orgName.trim().length >= 2 && orgType.trim().length >= 2 && orgLicenseId.trim().length >= 2;
+  };
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const payload: any = isAdmin
+        ? { email, password, name, role: 'admin', org_name: 'AdminOrg', org_type: 'Admin', org_license_id: 'ADM123' }
+        : { email, password, name, role: 'user', org_name: orgName, org_type: orgType, org_license_id: orgLicenseId };
+      await API.post('/auth/register', payload, { withCredentials: true });
+      await refresh();
+      toast.success('Account created! Welcome to MediMatch.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || 'Registration failed';
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: 480, margin: '48px auto' }}>
+      <div className="card fade-in-up">
+        <div style={{ marginBottom: 24 }}>
+          <div className="brand-accent" />
+          <div className="heading" style={{ marginBottom: 4 }}>Create account</div>
+          <div className="muted" style={{ fontSize: '0.95rem' }}>Join MediMatch to post and discover listings</div>
         </div>
-      </form>
+        <form onSubmit={handleRegister}>
+          <div className="form-group">
+            <label>Full name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Your name"
+              required
+              autoComplete="name"
+            />
+          </div>
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              autoComplete="email"
+            />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              required
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="form-group">
+            <label>Admin code <span className="muted-small">(optional)</span></label>
+            <input
+              type="text"
+              value={adminCode}
+              onChange={e => setAdminCode(e.target.value)}
+              placeholder="Leave blank for a standard account"
+            />
+          </div>
+          {!isAdmin && (
+            <>
+              <div className="form-group">
+                <label>Organization name</label>
+                <input
+                  type="text"
+                  value={orgName}
+                  onChange={e => setOrgName(e.target.value)}
+                  placeholder="e.g. Mercy General Hospital"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Organization type</label>
+                <input
+                  type="text"
+                  value={orgType}
+                  onChange={e => setOrgType(e.target.value)}
+                  placeholder="e.g. Hospital, Clinic, NGO"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>License / registration ID</label>
+                <input
+                  type="text"
+                  value={orgLicenseId}
+                  onChange={e => setOrgLicenseId(e.target.value)}
+                  placeholder="Your org's license number"
+                  required
+                />
+              </div>
+            </>
+          )}
+          {error && <div className="text-danger" style={{ marginBottom: 12 }}>{error}</div>}
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: '100%', marginTop: 4 }}
+            disabled={loading || !canSubmit()}
+          >
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+        <div className="muted-small" style={{ marginTop: 20, textAlign: 'center' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
+            Sign in
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
