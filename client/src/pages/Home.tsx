@@ -8,20 +8,18 @@ export default function Home() {
   const nav = useNavigate();
   const token = user ? true : false;
   const properName = user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : null;
-  const [stats, setStats] = useState<{ listings: number }>({ listings: 0 });
+  const [stats, setStats] = useState<{ listings: number; users: number }>({ listings: 0, users: 0 });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         setLoading(true);
-        const res = await API.get('/listings?select=id');
-        const count = Array.isArray(res.data) ? res.data.length : 0;
-        if (!cancelled) setStats({ listings: count });
-      } catch (e: any) {
-        if (!cancelled) setError('Unable to load current listings.');
+        const res = await API.get('/stats');
+        if (!cancelled) setStats({ listings: res.data.listings ?? 0, users: res.data.users ?? 0 });
+      } catch {
+        // stats are decorative — silently ignore failures
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -51,14 +49,14 @@ export default function Home() {
 
       {/* Quick stats chips */}
       <div className="chips" style={{ marginBottom: 16 }}>
-        <span className="chip"><span className="dot" /> {loading ? 'Loading…' : `${stats.listings} listings available`}</span>
+        {!loading && stats.listings > 0 && <span className="chip"><span className="dot" /> {stats.listings} listings active</span>}
+        {!loading && stats.users > 0 && <span className="chip"><span className="dot" /> {stats.users} organisations</span>}
         {token ? <span className="chip"><span className="dot" /> Signed in</span> : <span className="chip"><span className="dot" /> Guest mode</span>}
-        {error && <span className="chip warn"><span className="dot" /> {error}</span>}
       </div>
 
       <section>
         <div className="heading" style={{ fontSize: '1.25rem' }}>What you can do</div>
-        <div className="fade-in-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+        <div className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
           <div className="card feature-card">
             <span className="icon-circle"><img src="/images/icon-list.svg" alt="List" /></span>
             <div>

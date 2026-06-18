@@ -94,7 +94,7 @@ html,body,#root { height: 100% }
 .btn-primary:hover { box-shadow: 0 14px 32px rgba(11,95,255,0.28) }
 .btn:focus-visible { outline: 3px solid rgba(11,95,255,0.25); outline-offset: 2px }
 .btn-ghost { background: transparent; border: 1px solid rgba(15,23,42,0.04) }
-.btn-outline { background: #fff; border: 1px solid var(--card-border); color: var(--text) }
+.btn-outline { background: var(--surface); border: 1px solid var(--card-border); color: var(--text) }
 /* High-contrast secondary button for dark/image backgrounds */
 .btn-secondary { background: #ffffff; color: #0f172a; border: 1px solid #e6eefc; box-shadow: 0 4px 14px rgba(2,6,23,0.12) }
 [data-theme="dark"] .btn-secondary { background: #e2e8f0; color: #0b1220; border-color: #cbd5e1; box-shadow: 0 4px 14px rgba(0,0,0,0.25) }
@@ -122,9 +122,13 @@ a.btn.btn-primary { color: #fff }
 /* Forms */
 .form-group { margin-bottom: 14px }
 label { display:block; margin-bottom:8px; font-weight:700; color:var(--text); font-size:0.95rem }
-input, textarea, select { width:100%; padding:12px 14px; border:1px solid #e6eefc; border-radius: var(--radius-sm); font-size:0.95rem; background: #fbfdff; transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease }
+input, textarea, select { width:100%; padding:12px 14px; border:1px solid #e6eefc; border-radius: var(--radius-sm); font-size:0.95rem; background: #fbfdff; color: var(--text); transition: box-shadow .15s ease, border-color .15s ease }
 input:hover, textarea:hover, select:hover { border-color: #d7e6ff }
-input:focus, textarea:focus { outline: none; box-shadow: 0 6px 20px rgba(11,95,255,0.06); border-color: var(--primary-600) }
+input:focus, textarea:focus, select:focus { outline: none; box-shadow: 0 6px 20px rgba(11,95,255,0.08); border-color: var(--primary-600) }
+[data-theme="dark"] input, [data-theme="dark"] textarea, [data-theme="dark"] select { background: #0d1b30; border-color: #1e2f47; color: #e2e8f0 }
+[data-theme="dark"] input:hover, [data-theme="dark"] textarea:hover, [data-theme="dark"] select:hover { border-color: #2a3f5c }
+input:disabled, textarea:disabled, select:disabled { opacity: 0.6; cursor: not-allowed; background: #f1f5f9 }
+[data-theme="dark"] input:disabled, [data-theme="dark"] textarea:disabled { background: #0b1525 }
 
 /* Listings */
 .listings { display:grid; grid-template-columns: 1fr; gap:14px }
@@ -149,8 +153,16 @@ input:focus, textarea:focus { outline: none; box-shadow: 0 6px 20px rgba(11,95,2
 .icon-circle img { width: 18px; height: 18px }
 
 /* entrance */
-.fade-in-up { animation: fadeInUp .35s ease-out both }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: translateY(0) } }
+.fade-in-up { animation: fadeInUp .4s ease-out both }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
+.fade-in-up:nth-child(2) { animation-delay: .05s }
+.fade-in-up:nth-child(3) { animation-delay: .10s }
+.fade-in-up:nth-child(4) { animation-delay: .15s }
+.stagger > * { animation: fadeInUp .4s ease-out both }
+.stagger > *:nth-child(1) { animation-delay: .00s }
+.stagger > *:nth-child(2) { animation-delay: .06s }
+.stagger > *:nth-child(3) { animation-delay: .12s }
+.stagger > *:nth-child(4) { animation-delay: .18s }
 
 /* Tabs */
 .tabs { display:flex; gap:10px; margin-bottom: 14px }
@@ -160,7 +172,22 @@ input:focus, textarea:focus { outline: none; box-shadow: 0 6px 20px rgba(11,95,2
 [data-theme="dark"] .tab:hover { filter: brightness(1.05) }
 
 /* Footer */
-footer.footer { margin-top: 32px; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--card-border); padding-top: 12px }
+footer.footer { margin-top: 40px; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--card-border); padding-top: 16px; text-align: center }
+
+/* Details / FAQ */
+details { border-bottom: 1px solid var(--card-border); padding: 4px 0 }
+details:last-of-type { border-bottom: none }
+details summary { padding: 12px 0; cursor: pointer; font-weight: 600; color: var(--text); list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none }
+details summary::-webkit-details-marker { display: none }
+details summary::after { content: '+'; font-size: 1.2rem; color: var(--muted); transition: transform .2s ease }
+details[open] summary::after { content: '−' }
+details .muted-small { padding: 0 0 14px 0; line-height: 1.6 }
+
+/* Blockquote / Testimonials */
+blockquote { margin: 0 }
+blockquote p { font-size: 0.95rem; line-height: 1.6; color: var(--text); font-style: italic; margin: 0 0 8px }
+blockquote p::before { content: '"'; color: var(--primary); font-size: 1.4rem; line-height: 0; vertical-align: -0.3em; margin-right: 2px }
+blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; line-height: 0; vertical-align: -0.3em; margin-left: 2px }
 
 /* Skeletons */
 /* Hero section */
