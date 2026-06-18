@@ -93,12 +93,13 @@ function kenyaGeometry() {
   return { fill, line };
 }
 
-function GlobeRig() {
+function GlobeRig({ onKenya }: { onKenya?: (xPct: number, yPct: number) => void }) {
   const group = useRef<THREE.Group>(null);
   const fillRef = useRef<THREE.Mesh>(null);
   const lineRef = useRef<THREE.Line>(null);
   const { camera } = useThree();
   const start = useRef<number | null>(null);
+  const reported = useRef(false);
   const { fill, line } = useMemo(kenyaGeometry, []);
   const lineObj = useMemo(() => new THREE.Line(line, new THREE.LineBasicMaterial({ color: GOLD, transparent: true, opacity: 0 })), [line]);
 
@@ -138,6 +139,15 @@ function GlobeRig() {
     if (lineRef.current) {
       (lineRef.current.material as THREE.Material).opacity = appear * (0.7 + 0.3 * flare);
     }
+
+    // --- report Kenya's on-screen position once settled, so the DOM finger
+    // can land exactly on it at any viewport size / aspect ratio ---
+    if (!reported.current && el >= SPIN_END && group.current && onKenya) {
+      reported.current = true;
+      const v = latlon(0.6, 38).applyEuler(group.current.rotation);
+      v.project(camera);
+      onKenya((v.x * 0.5 + 0.5) * 100, (-v.y * 0.5 + 0.5) * 100);
+    }
   });
 
   return (
@@ -168,7 +178,7 @@ function GlobeRig() {
   );
 }
 
-export default function GlobeIntro() {
+export default function GlobeIntro({ onKenya }: { onKenya?: (xPct: number, yPct: number) => void }) {
   return (
     <div className="sv-globe">
       <Canvas
@@ -181,7 +191,7 @@ export default function GlobeIntro() {
         <directionalLight position={[5, 3, 5]} intensity={1.2} color="#ffe6b0" />
         <directionalLight position={[-5, -2, -3]} intensity={0.3} color="#e8703c" />
         <Stars />
-        <GlobeRig />
+        <GlobeRig onKenya={onKenya} />
       </Canvas>
     </div>
   );

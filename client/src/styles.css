@@ -1351,6 +1351,50 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 .sv-steps i { height: 3px; border-radius: 3px; background: rgba(182,167,139,0.22); }
 .sv-steps i.on { background: linear-gradient(90deg, var(--gold), var(--terra)); box-shadow: 0 0 8px rgba(240,179,46,0.6); }
 @keyframes svIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.sv-story { animation: svIn .4s var(--ease-out) both; }
+.sv-story-body { animation: svFade .45s var(--ease-out) both; }
+@keyframes svFade { from { opacity: 0; transform: translateY(6px); filter: blur(3px); } to { opacity: 1; transform: none; filter: blur(0); } }
+.sv-story-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.sv-story-nav button { width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(240,179,46,0.28);
+  background: rgba(240,179,46,0.08); color: var(--gold2); font-size: 16px; line-height: 1; cursor: pointer;
+  display: grid; place-items: center; transition: background .15s, transform .15s; }
+.sv-story-nav button:hover { background: rgba(240,179,46,0.2); transform: translateY(-1px); }
+.sv-story-nav span { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: var(--sand); }
+
+/* juice: facility dots lift + glow on hover */
+.sv-clickable:hover { filter: drop-shadow(0 0 6px rgba(248,210,122,0.9)); }
+.sv-node.sv-clickable:hover circle { r: 4.6; }
+
+/* Nairobi County close-up drawer */
+.sv-live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--acacia); margin-right: 6px;
+  box-shadow: 0 0 0 0 rgba(55,192,126,0.6); animation: svLive 1.8s ease-out infinite; }
+@keyframes svLive { 0% { box-shadow: 0 0 0 0 rgba(55,192,126,0.6); } 70%,100% { box-shadow: 0 0 0 7px rgba(55,192,126,0); } }
+.sv-focus { position: absolute; inset: 0; z-index: 80; display: grid; place-items: center; padding: 24px;
+  animation: svFocusIn .3s ease both; }
+.sv-focus-scrim { position: absolute; inset: 0; background: rgba(6,10,18,0.72); backdrop-filter: blur(3px); }
+.sv-focus-card { position: relative; width: min(880px, 100%); border-radius: 20px; padding: 22px 24px 26px;
+  background: linear-gradient(180deg, rgba(22,30,48,0.96), rgba(13,19,33,0.96)); border: 1px solid rgba(240,179,46,0.22);
+  box-shadow: 0 40px 120px rgba(0,0,0,0.6); animation: svFocusCard .45s var(--ease-out) both; }
+@keyframes svFocusIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes svFocusCard { from { opacity: 0; transform: translateY(18px) scale(0.97); } to { opacity: 1; transform: none; } }
+.sv-focus-back { background: none; border: none; color: var(--gold2); font-size: 12.5px; font-weight: 800; cursor: pointer; padding: 0; margin-bottom: 8px; }
+.sv-focus-back:hover { color: var(--gold); }
+.sv-focus-head h2 { font-family: var(--font-display); margin: 6px 0 8px; font-size: 30px; letter-spacing: -0.02em; color: var(--cream); }
+.sv-focus-head p { margin: 0; max-width: 620px; font-size: 13px; line-height: 1.6; color: var(--sand); }
+.sv-focus-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px; margin-top: 18px; align-items: center; }
+.sv-focus-map { width: 100%; height: auto; border-radius: 14px; }
+.sv-focus-route { stroke-dasharray: 1; stroke-dashoffset: 1; stroke-opacity: 0.85; stroke-linecap: round; animation: svDraw 1.2s var(--ease-out) both; }
+.sv-focus-label { fill: var(--cream); font-size: 9px; font-weight: 700; font-family: Inter, sans-serif; opacity: 0.9; }
+.sv-focus-node { transition: transform .15s ease; }
+.sv-ai-steps { list-style: none; margin: 0; padding: 0; counter-reset: ai; display: grid; gap: 12px; }
+.sv-ai-steps li { position: relative; padding-left: 38px; opacity: 0; animation: svFade .5s var(--ease-out) forwards; }
+.sv-ai-steps li:nth-child(1) { animation-delay: .15s; } .sv-ai-steps li:nth-child(2) { animation-delay: .35s; }
+.sv-ai-steps li:nth-child(3) { animation-delay: .55s; } .sv-ai-steps li:nth-child(4) { animation-delay: .75s; }
+.sv-ai-steps li::before { counter-increment: ai; content: counter(ai); position: absolute; left: 0; top: 0;
+  width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-size: 12px; font-weight: 800;
+  color: #0b1120; background: linear-gradient(135deg, var(--gold2), var(--terra)); }
+.sv-ai-steps b { display: block; font-size: 13px; color: var(--cream); margin-bottom: 1px; }
+.sv-ai-steps span { font-size: 12px; line-height: 1.5; color: var(--sand); }
 
 /* impact panel */
 .sv-panel { top: 22px; right: 22px; width: 320px; padding: 18px 20px; border-radius: 16px; border-top: 3px solid var(--gold); }
@@ -1460,6 +1504,9 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
   .sv-panel { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; }
   .sv-legend { display: none; }
   .sv-intro { padding: 28px; background: linear-gradient(180deg, rgba(8,12,22,0.95), rgba(8,12,22,0.7)); }
+  /* shrink the gesturing hands so the finger still lands on a small Kenya */
+  .sv-hand { width: 92px; height: 92px; }
+  .sv-hand--tap { left: -55px; top: -84px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sv-route { stroke-dashoffset: 0; animation: none; }

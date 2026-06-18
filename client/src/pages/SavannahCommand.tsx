@@ -99,6 +99,8 @@ export default function SavannahCommand() {
   const [auto, setAuto] = useState(true);
   const [intro, setIntro] = useState(true);
   const [landing, setLanding] = useState(false);
+  const [tapPos, setTapPos] = useState({ x: 60, y: 43 }); // where the finger taps Kenya, reported by the globe
+  const [focus, setFocus] = useState<'national' | 'nairobi'>('national');
   const timers = useRef<number[]>([]);
   const started = useRef(false);
   const showGlobe = useMemo(() => webglAvailable(), []);
@@ -163,6 +165,29 @@ export default function SavannahCommand() {
   const coverage = plan?.impact.coverage_pct ?? 0;
 
   function selectScenario(r: Route) { setAuto(false); setIntro(false); run(r.id); }
+  function stepScenario(dir: number) {
+    if (!plan?.routes.length) return;
+    const i = Math.max(0, plan.routes.findIndex((r) => r.id === lead?.id));
+    selectScenario(plan.routes[(i + dir + plan.routes.length) % plan.routes.length]);
+  }
+  const leadIdx = plan ? Math.max(0, plan.routes.findIndex((r) => r.id === lead?.id)) : 0;
+
+  // Nairobi County close-up: intra-city flows from the KNH hub to sub-county
+  // facilities — the geospatial-AI matching shown at street scale.
+  const nai = useMemo(() => {
+    if (!plan) return null;
+    const nodes = plan.nodes.filter((n) => n.county === 'Nairobi');
+    if (nodes.length < 2) return null;
+    const routes = plan.routes.filter((r) => r.from.county === 'Nairobi' && r.to.county === 'Nairobi');
+    const lons = nodes.map((n) => n.lon), lats = nodes.map((n) => n.lat);
+    const pad = 0.012;
+    const minLon = Math.min(...lons) - pad, maxLon = Math.max(...lons) + pad;
+    const minLat = Math.min(...lats) - pad, maxLat = Math.max(...lats) + pad;
+    const W = 380, H = 300;
+    const fx = (lon: number) => ((lon - minLon) / (maxLon - minLon)) * W;
+    const fy = (lat: number) => ((maxLat - lat) / (maxLat - minLat)) * H;
+    return { nodes, routes, W, H, fx, fy };
+  }, [plan]);
 
   const story = useMemo(() => {
     if (!lead || !plan) return null;
@@ -255,8 +280,9 @@ export default function SavannahCommand() {
           );
         })}
 
-        {/* Research origin — Nairobi, where MediMatch was built */}
-        <g className="sv-origin" transform={`translate(${px(36.817).toFixed(1)} ${py(-1.286).toFixed(1)})`}>
+        {/* Research origin — Nairobi, where MediMatch was built (click to dive in) */}
+        <g className="sv-origin sv-clickable" transform={`translate(${px(36.817).toFixed(1)} ${py(-1.286).toFixed(1)})`}
+          onClick={() => setFocus('nairobi')}><title>Open Nairobi County — geospatial AI close-up</title>
           <circle className="sv-origin-pulse" r="4" fill={C.gold}>
             <animate attributeName="r" values="4;15;4" dur="2.8s" repeatCount="indefinite" />
             <animate attributeName="opacity" values="0.35;0;0.35" dur="2.8s" repeatCount="indefinite" />
@@ -272,14 +298,14 @@ export default function SavannahCommand() {
 
       {/* ===== Intro: a hand flips the globe, taps Kenya, then the map ===== */}
       {intro && plan && showGlobe && (
-        <GlobeBoundary><Suspense fallback={null}><GlobeIntro /></Suspense></GlobeBoundary>
+        <GlobeBoundary><Suspense fallback={null}><GlobeIntro onKenya={(x, y) => setTapPos({ x, y })} /></Suspense></GlobeBoundary>
       )}
       {intro && plan && showGlobe && (
         <div className="sv-hands" aria-hidden>
           {/* back of hand that flicks the globe into a spin */}
           <img className="sv-hand sv-hand--flip" src="/intro-hand-back.svg" alt="" />
-          {/* finger that presses Kenya */}
-          <div className="sv-tap-anchor">
+          {/* finger that presses Kenya — anchored to its real on-screen spot */}
+          <div className="sv-tap-anchor" style={{ left: `${tapPos.x}%`, top: `${tapPos.y}%` }}>
             <span className="sv-tap-ring" />
             <img className="sv-hand sv-hand--tap" src="/intro-hand-point.svg" alt="" />
           </div>
@@ -306,11 +332,20 @@ export default function SavannahCommand() {
 
       {/* ===== Narrative ===== */}
       {story && (
-        <section className={`sv-story s-${stage}`} key={stage}>
-          <span className="sv-step">{story.k}</span>
-          <span className="sv-eyebrow">{story.e}</span>
-          <h2>{story.t}</h2>
-          <p>{story.b}</p>
+        <section className={`sv-story s-${stage}`}>
+          {plan && plan.routes.length > 1 && (
+            <div className="sv-story-nav">
+              <button onClick={() => stepScenario(-1)} aria-label="Previous case">‹</button>
+              <span>{leadIdx + 1} / {plan.routes.length}</span>
+              <button onClick={() => stepScenario(1)} aria-label="Next case">›</button>
+            </div>
+          )}
+          <div key={`${lead?.id}-${stage}`} className="sv-story-body">
+            <span className="sv-step">{story.k}</span>
+            <span className="sv-eyebrow">{story.e}</span>
+            <h2>{story.t}</h2>
+            <p>{story.b}</p>
+          </div>
           <div className="sv-steps">{(['detect', 'rank', 'route', 'impact'] as Stage[]).map((s) => <i key={s} className={s === stage ? 'on' : ''} />)}</div>
         </section>
       )}
@@ -359,6 +394,61 @@ export default function SavannahCommand() {
         <span><i style={{ background: C.gold }} /> Mixed</span>
         <em>Case study: Nairobi County · synthetic data, no patient records · coordinator verification required</em>
       </footer>
+
+      {/* ===== Nairobi County close-up — geospatial AI in action ===== */}
+      {focus === 'nairobi' && nai && (
+        <div className="sv-focus" role="dialog" aria-label="Nairobi County close-up">
+          <div className="sv-focus-scrim" onClick={() => setFocus('national')} />
+          <div className="sv-focus-card">
+            <button className="sv-focus-back" onClick={() => setFocus('national')}>‹ National view</button>
+            <div className="sv-focus-head">
+              <span className="sv-eyebrow"><i className="sv-live" /> Geospatial AI · Nairobi research base</span>
+              <h2>Inside Nairobi County</h2>
+              <p>Kenyatta National Hospital’s surplus is matched to sub-county facilities in shortfall — ranked by distance, urgency and product fit, then routed on real roads.</p>
+            </div>
+            <div className="sv-focus-grid">
+              <svg className="sv-focus-map" viewBox={`0 0 ${nai.W} ${nai.H}`} preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <radialGradient id="naiGlow" cx="50%" cy="50%" r="60%">
+                    <stop offset="0%" stopColor="#1d2c46" /><stop offset="100%" stopColor="#0e1626" />
+                  </radialGradient>
+                </defs>
+                <rect x="0" y="0" width={nai.W} height={nai.H} fill="url(#naiGlow)" rx="14" />
+                {nai.routes.map((r, i) => {
+                  const x1 = nai.fx(r.from.lon), y1 = nai.fy(r.from.lat), x2 = nai.fx(r.to.lon), y2 = nai.fy(r.to.lat);
+                  const d = `M${x1} ${y1} Q${(x1 + x2) / 2} ${(y1 + y2) / 2 - 26} ${x2} ${y2}`;
+                  return (
+                    <g key={r.id}>
+                      <path id={`np-${r.id}`} d={d} fill="none" stroke="none" />
+                      <path d={d} className="sv-focus-route" fill="none" stroke={r.urgent ? C.terra : C.acacia}
+                        strokeWidth="2" pathLength={1} style={{ animationDelay: `${0.3 + i * 0.16}s` }} />
+                      <circle r="2.6" fill="#fff" className="sv-spark">
+                        <animateMotion dur="2.4s" begin={`${0.6 + i * 0.16}s`} repeatCount="indefinite"><mpath href={`#np-${r.id}`} /></animateMotion>
+                      </circle>
+                    </g>
+                  );
+                })}
+                {nai.nodes.map((n) => {
+                  const x = nai.fx(n.lon), y = nai.fy(n.lat), hub = n.role === 'hub' || n.surplusUnits > 0;
+                  return (
+                    <g key={n.id} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`} className="sv-focus-node">
+                      {n.urgent && <circle r="6" fill="none" stroke={C.terra} className="sv-ping" />}
+                      <circle r={hub ? 6 : 4} fill={hub ? C.gold2 : n.urgent ? C.red : C.acacia} stroke="#0b1120" strokeWidth="1.4" />
+                      <text x={hub ? 10 : 8} y="3.5" className="sv-focus-label">{n.org_name.replace(/ Hospital| Teaching.*| County.*/i, '')}</text>
+                    </g>
+                  );
+                })}
+              </svg>
+              <ol className="sv-ai-steps">
+                <li><b>Detect</b><span>{nai.nodes.filter((n) => n.needUnits > 0).length} sub-county facilities report shortfall — oxygen & insulin.</span></li>
+                <li><b>Rank</b><span>Each need is scored across candidate hubs by distance × urgency × product fit.</span></li>
+                <li><b>Match</b><span>KNH surplus is allocated to the most urgent, nearest needs first — {nai.routes.reduce((s, r) => s + r.qty, 0)} units across {nai.routes.length} transfers.</span></li>
+                <li><b>Route</b><span>Each transfer is drawn on the real Nairobi road network with live ETA.</span></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!plan && !error && <div className="sv-loading"><span /> Building national redistribution plan…</div>}
       {error && <div className="sv-error">{error}</div>}
