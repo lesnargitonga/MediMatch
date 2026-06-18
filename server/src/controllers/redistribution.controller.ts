@@ -48,7 +48,7 @@ function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: num
 }
 
 /** Curved great-circle-ish arc between two points (fallback when roads unavailable). */
-function arc(a: { lat: number; lon: number }, b: { lat: number; lon: number }, steps = 48): [number, number][] {
+function arc(a: { lat: number; lon: number }, b: { lat: number; lon: number }, steps = 28): [number, number][] {
   const mid = { lat: (a.lat + b.lat) / 2, lon: (a.lon + b.lon) / 2 };
   // perpendicular offset for a gentle curve
   const dx = b.lon - a.lon, dy = b.lat - a.lat;
