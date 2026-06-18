@@ -8,6 +8,7 @@ import Auth from './pages/Auth';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import CommandMap from './pages/CommandMap';
+import SavannahCommand from './pages/SavannahCommand';
 import Listings from './pages/Listings';
 import ListingDetail from './pages/ListingDetail';
 import NotFound from './pages/NotFound';
@@ -34,8 +35,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <Routes>
-        <Route path="/" element={<CommandMap />} />
-        <Route path="command" element={<CommandMap />} />
+        <Route path="/" element={<SavannahCommand />} />
+        <Route path="command" element={<SavannahCommand />} />
+        <Route path="command-legacy" element={<CommandMap />} />
         <Route element={<App />}>
           <Route path="about" element={<Home />} />
           <Route path="listings" element={<Listings />} />
