@@ -1,67 +1,180 @@
-﻿# MediMatch
+# MediMatch
 
-MediMatch is a full-stack medical supply redistribution platform scaffold. It combines authentication, listing management, admin reporting, and a map-ready client foundation for coordinating the movement of available supplies between facilities.
+**MediMatch** is a full-stack medical supply redistribution platform that connects hospitals, clinics, NGOs, and suppliers to move surplus or urgently needed supplies to where they are needed most.
 
-## Showcase Focus
+> Built with TypeScript end-to-end. React + Vite client, Node.js/Express API, PostgreSQL + PostGIS, JWT auth.
 
-- Full-stack TypeScript application design.
-- Healthcare logistics product thinking.
-- Flexible backend architecture with Postgres, file, and in-memory data modes.
+---
 
-## System Capabilities
+## Features
 
-- User registration, login, and profile retrieval.
-- Listing creation and retrieval for supply availability workflows.
-- Admin summary reporting in JSON and CSV.
-- Health, readiness, and stats endpoints for operational visibility.
-- Multiple persistence modes: Postgres, file-based, and in-memory mock DB.
-- React client with login and dashboard foundations.
+| Area | What's built |
+|---|---|
+| **Auth** | Register, login, logout · JWT in httpOnly cookies · role-based routing (user / admin) |
+| **Listings** | Create, browse, edit, delete · category, urgency flag, quantity · location autocomplete via Nominatim |
+| **Smart matching** | Multi-factor scoring: distance 35%, urgency 20%, reputation 20%, recency 15%, verified 5%, category 4%, quantity 1% |
+| **Messaging** | Chat between listing owner and requester |
+| **Notifications** | Bell dropdown with unread count, per-user notification feed |
+| **Ratings** | Star ratings on users/orgs · aggregate displayed on listings and profiles |
+| **Favorites** | Save/unsave listings, synced to server |
+| **Map** | Leaflet popup with pin for any listing with coordinates |
+| **Admin panel** | User management (role, verify, enable/disable) · listing moderation · CSV export |
+| **Dark / light mode** | Full theme support via `data-theme` + localStorage |
+| **Mobile nav** | Hamburger drawer on small screens |
+
+---
 
 ## Tech Stack
 
-- Node.js and TypeScript
-- Express API server
-- React + Vite client
-- PostgreSQL / PostGIS
-- Docker Compose for local database services
+**Client** — React 18, TypeScript, Vite, React Router v6, react-leaflet, react-hot-toast, NProgress, Axios
+
+**Server** — Node.js, Express 4, TypeScript, Zod validation, bcrypt, JWT
+
+**Database** — PostgreSQL 15 + PostGIS 3 (geography columns, `ST_DWithin` distance queries)
+
+**Dev tooling** — ts-node-dev, Docker Compose
+
+---
 
 ## Quick Start
 
+### Option A — No setup required (mock DB)
+
 ```bash
+git clone <repo-url>
+cd MediMatch
 npm install
-npm run db:up
+```
+
+Create `server/.env` (copy from `server/.env.example`):
+
+```env
+PORT=4000
+USE_MOCK_DB=true
+JWT_SECRET=dev_secret
+JWT_EXPIRES_IN=7d
+CORS_ORIGIN=http://localhost:5173
+NODE_ENV=development
+DISABLE_RATE_LIMIT=true
+```
+
+```bash
 npm run dev
 ```
 
-This starts the API and client from the workspace root. The main surfaces are:
+- **Client:** http://localhost:5173
+- **API:** http://localhost:4000
 
-- API server: `http://localhost:4000`
-- Web client: `http://localhost:5173`
+### Option B — Postgres + PostGIS
 
-## Mock-Mode Demo
+```bash
+docker compose -f docker-compose.postgres.yml up -d
+```
 
-For a fast local demo without Docker:
+Create `server/.env`:
 
-1. Copy `server/.env.example` to `server/.env`.
-2. Keep `USE_MOCK_DB=true`.
-3. Run `npm run dev`.
+```env
+PORT=4000
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/medimatch
+JWT_SECRET=change_me_in_production
+JWT_EXPIRES_IN=7d
+CORS_ORIGIN=http://localhost:5173
+NODE_ENV=development
+```
 
-## Local Accounts
+```bash
+npm run dev
+```
 
-- Admin: `lesnar@admin.com` / `admin123`
-- User: `user1@example.com` / `password123`
+---
 
-## Repository Map
+## Demo Accounts (mock DB mode)
 
-- `server/src/app.ts`: API setup and middleware.
-- `server/src/routes/`: users, listings, matches, admin, chat, ratings, notifications, and favorites routes.
-- `server/src/db/`: persistence backends and database helpers.
-- `client/src/`: React client surfaces.
-- `shared/`: shared types and cross-package contracts.
-- `db/`: local database support and compose files.
+| Role | Email | Password | Notes |
+|---|---|---|---|
+| **Admin** | `admin@medimatch.test` | `Admin1234` | Full admin panel access |
+| **User** | `demo@medimatch.test` | `Demo1234` | City General Hospital, verified, ⭐ 4.8 |
+| **Supplier** | `supplier@medimatch.test` | `Supply1234` | MedSupply Co., unverified |
 
-## Notes
+To register a new **admin** account via the UI, enter code **`ADMIN2025`** in the "Admin code" field on the register page.
 
-- This repository is a strong scaffold rather than a finished healthcare product.
-- Several domains such as chat, ratings, notifications, and favorites are present as build surfaces and extension points.
-- Environment settings such as `JWT_SECRET`, `DATABASE_URL`, `CORS_ORIGIN`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` control local and production-like runs.
+---
+
+## Project Structure
+
+```
+MediMatch/
+├── client/                  # React + Vite frontend
+│   └── src/
+│       ├── pages/           # Home, Login, Auth (register), Dashboard,
+│       │                    # Listings, ListingDetail
+│       ├── components/      # Header, MapModal, ChatModal, RatingModal,
+│       │                    # ProtectedRoute
+│       ├── context/         # AuthContext (JWT state + refresh)
+│       └── services/        # Axios API instance
+├── server/                  # Express API
+│   └── src/
+│       ├── routes/          # auth, listings, matches, admin, chat,
+│       │                    # ratings, notifications, favorites
+│       ├── controllers/     # Business logic per domain
+│       ├── middleware/       # Auth guard, rate limiter
+│       ├── mock/db.ts       # In-memory seed data (3 users, 3 listings)
+│       └── db/fileDb.ts     # JSON file persistence backend
+├── docs/                    # Project logbook and implementation docs
+├── server/.env.example      # Environment variable reference
+└── docker-compose.postgres.yml
+```
+
+---
+
+## API Reference (key endpoints)
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | — | Register new account |
+| POST | `/api/auth/login` | — | Login, sets JWT cookie |
+| GET | `/api/auth/me` | ✓ | Current user profile |
+| PUT | `/api/auth/me` | ✓ | Update profile / password |
+| GET | `/api/listings` | — | All visible listings with owner info |
+| GET | `/api/listings/:id` | — | Single listing with owner info |
+| POST | `/api/listings` | ✓ | Create listing |
+| PUT | `/api/listings/:id` | ✓ | Edit own listing |
+| DELETE | `/api/listings/:id` | ✓ | Delete own listing |
+| GET | `/api/matches/suggest` | ✓ | Scored match suggestions |
+| GET | `/api/chat/conversations` | ✓ | Message thread list |
+| GET/POST | `/api/chat/messages` | ✓ | Messages in a thread |
+| POST | `/api/ratings` | ✓ | Rate a user |
+| GET/POST | `/api/notifications` | ✓ | Notification feed |
+| GET | `/api/favorites/listings/saved` | ✓ | Saved listings |
+| POST | `/api/favorites/listings/save` | ✓ | Save a listing |
+| GET | `/api/admin/stats` | admin | Platform stats |
+| GET | `/api/admin/users` | admin | All users |
+| PUT | `/api/admin/users/:id` | admin | Update role / verify / disable |
+| GET | `/api/admin/reports/summary.csv` | admin | CSV report download |
+
+---
+
+## Environment Variables
+
+See `server/.env.example` for the full reference.
+
+| Variable | Description |
+|---|---|
+| `PORT` | API server port (default `4000`) |
+| `JWT_SECRET` | **Required in production.** Secret for signing tokens |
+| `JWT_EXPIRES_IN` | Token lifetime (default `7d`) |
+| `CORS_ORIGIN` | Allowed client origin |
+| `USE_MOCK_DB=true` | In-memory data — no DB needed |
+| `USE_FILE_DB=true` | JSON file at `server/data/filedb.json` |
+| `DATABASE_URL` | Postgres connection string (when not using mock/file) |
+| `DISABLE_RATE_LIMIT=true` | Disable rate limiting in dev |
+
+---
+
+## Deployment
+
+1. Set `NODE_ENV=production` and a strong `JWT_SECRET`.
+2. Build the client: `npm run build --prefix client` and serve `client/dist/` via Nginx or a CDN.
+3. Deploy the API to any Node host (Railway, Render, Fly.io).
+4. For Postgres: enable PostGIS and run `db/init/postgis.sql` once to apply the schema.
+5. Set `CORS_ORIGIN` to your production client URL.
