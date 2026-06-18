@@ -244,16 +244,16 @@ export default function Header() {
                               padding: '16px 20px',
                               borderBottom: '1px solid var(--card-border)',
                               cursor: notif.link ? 'pointer' : 'default',
-                              backgroundColor: notif.is_read ? 'transparent' : 'rgba(14,165,113,0.10)',
+                              backgroundColor: notif.is_read ? 'transparent' : 'rgba(240,179,46,0.10)',
                               transition: 'all 0.2s',
                             }}
                             onMouseEnter={(e) => { 
                               if (notif.link) {
-                                e.currentTarget.style.backgroundColor = notif.is_read ? 'rgba(0,0,0,0.03)' : 'rgba(14,165,113,0.16)';
+                                e.currentTarget.style.backgroundColor = notif.is_read ? 'rgba(0,0,0,0.03)' : 'rgba(240,179,46,0.16)';
                               }
                             }}
                             onMouseLeave={(e) => { 
-                              e.currentTarget.style.backgroundColor = notif.is_read ? 'transparent' : 'rgba(14,165,113,0.10)'; 
+                              e.currentTarget.style.backgroundColor = notif.is_read ? 'transparent' : 'rgba(240,179,46,0.10)'; 
                             }}
                           >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 6 }}>
@@ -263,7 +263,7 @@ export default function Header() {
                                     width: 8,
                                     height: 8,
                                     borderRadius: '50%',
-                                    backgroundColor: '#0ea571',
+                                    backgroundColor: '#f0b32e',
                                     flexShrink: 0
                                   }} />
                                 )}

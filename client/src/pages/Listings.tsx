@@ -76,12 +76,17 @@ export default function Listings() {
   }, [items, groupByOrg]);
 
   return (
-    <section>
+    <section className="lst">
+      <div className="lx-aurora" aria-hidden />
       {/* Context header */}
-      <div className="heading" style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-        <span>Listings</span>
-        <span className="muted-small">{items.length} item{items.length!==1?'s':''}{category!=='all' ? ` • ${category}` : ''}</span>
-      </div>
+      <header className="lst-head">
+        <div>
+          <div className="lst-eyebrow"><span className="lx-pulse" /> The platform · live exchange</div>
+          <h1>Surplus &amp; need listings</h1>
+          <p>Browse what facilities are offering and requesting across the network — grouped, searchable and mappable.</p>
+        </div>
+        <span className="lst-count"><b>{items.length}</b> item{items.length!==1?'s':''}{category!=='all' ? ` · ${category}` : ''}</span>
+      </header>
       {/* Sticky filter bar */}
       <div className="card" style={{ position:'sticky', top: 58, zIndex: 5, boxShadow:'0 6px 12px rgba(0,0,0,0.04)', marginBottom: 12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap', backdropFilter:'saturate(180%) blur(6px)' }}>
         <input placeholder="Search by title or description" value={filterText} onChange={e=>setFilterText(e.target.value)} style={{ flex:'1 1 200px', minWidth: 0 }} />
