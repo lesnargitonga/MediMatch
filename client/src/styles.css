@@ -1410,6 +1410,14 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
   backdrop-filter: blur(4px); transition: background .15s; }
 .sv-n3d-zoom button:hover { background: rgba(240,179,46,0.22); }
 .sv-n3d-hint { position: absolute; right: 12px; bottom: 12px; font-size: 10.5px; color: var(--sand); opacity: 0.7; pointer-events: none; }
+/* real Nairobi MapLibre map */
+.sv-nmap { position: relative; height: 380px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(240,179,46,0.16); background: #0a1426; }
+.sv-nmap .maplibregl-canvas { border-radius: 14px; }
+.sv-nmap .maplibregl-ctrl-group { background: rgba(10,18,34,0.86); border: 1px solid rgba(240,179,46,0.22); box-shadow: none; }
+.sv-nmap .maplibregl-ctrl-group button + button { border-top: 1px solid rgba(240,179,46,0.14); }
+.sv-nmap .maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(0.92) sepia(0.2) saturate(1.4) hue-rotate(2deg); }
+.sv-nmap .maplibregl-ctrl-attrib { background: rgba(10,18,34,0.55); }
+.sv-nmap .maplibregl-ctrl-attrib a { color: var(--sand); }
 /* clicked-facility detail */
 .sv-fac { display: flex; flex-direction: column; gap: 8px; animation: svFade .3s var(--ease-out) both; }
 .sv-fac-back { align-self: flex-start; background: none; border: none; color: var(--gold2); font-size: 12px; font-weight: 800; cursor: pointer; padding: 0; }

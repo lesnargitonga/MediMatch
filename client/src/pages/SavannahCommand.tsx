@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState, Suspense, lazy } from 'rea
 import API from '../services/api';
 
 const GlobeIntro = lazy(() => import('./GlobeIntro'));
-const Nairobi3D = lazy(() => import('./Nairobi3D'));
+const NairobiMap = lazy(() => import('./NairobiMap'));
 
 // The 3D globe is a progressive enhancement: if WebGL is unavailable or the
 // scene throws, we silently fall back to the 2D intro + map (never break).
@@ -457,8 +457,8 @@ export default function SavannahCommand() {
             </div>
             <div className="sv-focus-grid">
               {showGlobe ? (
-                <Suspense fallback={<div className="sv-n3d sv-n3d-load"><span /> Building 3D city…</div>}>
-                  <Nairobi3D nodes={nai.nodes as any} routes={nai.routes as any} selectedId={selFac?.id ?? null} onSelect={(n: any) => setSelFac(n)} />
+                <Suspense fallback={<div className="sv-nmap sv-n3d-load"><span /> Loading Nairobi map…</div>}>
+                  <NairobiMap nodes={nai.nodes as any} routes={nai.routes as any} selectedId={selFac?.id ?? null} onSelect={(n: any) => setSelFac(n)} />
                 </Suspense>
               ) : (
                 <svg className="sv-focus-map" viewBox={`0 0 ${nai.W} ${nai.H}`} preserveAspectRatio="xMidYMid meet">
