@@ -84,12 +84,12 @@ export default function Listings() {
       </div>
       {/* Sticky filter bar */}
       <div className="card" style={{ position:'sticky', top: 58, zIndex: 5, boxShadow:'0 6px 12px rgba(0,0,0,0.04)', marginBottom: 12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap', backdropFilter:'saturate(180%) blur(6px)' }}>
-        <input placeholder="Search by title or description" value={filterText} onChange={e=>setFilterText(e.target.value)} style={{ flex:'1 1 240px' }} />
-        <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)}>
+        <input placeholder="Search by title or description" value={filterText} onChange={e=>setFilterText(e.target.value)} style={{ flex:'1 1 200px', minWidth: 0 }} />
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)} style={{ width:'auto', minWidth: 130 }}>
           <option value="newest">Sort: Newest</option>
           <option value="nearest">Sort: Nearest</option>
         </select>
-        <select value={category} onChange={e=>setCategory(e.target.value as any)}>
+        <select value={category} onChange={e=>setCategory(e.target.value as any)} style={{ width:'auto', minWidth: 140 }}>
           {CATEGORIES.map(c => (<option key={c} value={c}>{c === 'all' ? 'All categories' : `Category: ${c}`}</option>))}
         </select>
         <label style={{ display:'inline-flex', alignItems:'center', gap:6 }}>

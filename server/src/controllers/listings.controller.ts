@@ -10,15 +10,19 @@ export async function getListings(req: Request, res: Response) {
   const validCategory = qCategory && (ListingCategories as readonly string[]).includes(qCategory) ? qCategory : undefined;
   if (process.env.USE_MOCK_DB === 'true') {
     const filtered = validCategory ? mockDB.listings.filter((l:any)=> (l.category||'general')===validCategory) : mockDB.listings;
-    return res.json(filtered.map((l: any) => ({
-      id: l.id,
-      title: l.title,
-      description: l.description,
-      quantity: l.quantity,
-      category: l.category || 'general',
-      location_wkt: l.location_wkt,
-      created_at: l.created_at
-    })));
+    return res.json(filtered.map((l: any) => {
+      const owner = mockDB.users.find((u: any) => u.id === l.owner_id);
+      return {
+        id: l.id, owner_id: l.owner_id,
+        owner_name: owner?.name || null, owner_email: owner?.email || null,
+        org_name: owner?.org_name || null, org_type: owner?.org_type || null,
+        org_verified: owner?.org_verified || false,
+        average_rating: owner?.average_rating || 0, total_ratings: owner?.total_ratings || 0,
+        title: l.title, description: l.description, quantity: l.quantity,
+        category: l.category || 'general', is_urgent: l.is_urgent || false,
+        location_wkt: l.location_wkt, created_at: l.created_at,
+      };
+    }));
   }
 
   if (process.env.USE_FILE_DB === 'true') {
@@ -50,6 +54,53 @@ export async function getListings(req: Request, res: Response) {
   } catch (err: any) {
     // log full error for debugging DB/SQL issues
     console.error('getListings error:', err?.message || err, err?.stack || 'no stack');
+    res.status(500).json({ error: 'server error' });
+  } finally {
+    client.release();
+  }
+}
+
+export async function getListingById(req: Request, res: Response) {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'invalid id' });
+
+  if (process.env.USE_MOCK_DB === 'true') {
+    const l = mockDB.listings.find((l: any) => l.id === id);
+    if (!l) return res.status(404).json({ error: 'not found' });
+    const owner = mockDB.users.find((u: any) => u.id === l.owner_id);
+    return res.json({
+      id: l.id, owner_id: l.owner_id,
+      owner_name: owner?.name || null, owner_email: owner?.email || null,
+      org_name: owner?.org_name || null, org_type: owner?.org_type || null, org_verified: owner?.org_verified || false,
+      average_rating: owner?.average_rating || 0, total_ratings: owner?.total_ratings || 0,
+      title: l.title, description: l.description, quantity: l.quantity,
+      category: l.category || 'general', is_urgent: l.is_urgent || false,
+      location_wkt: l.location_wkt, created_at: l.created_at,
+    });
+  }
+
+  if (process.env.USE_FILE_DB === 'true') {
+    const list = fileDb.getListings();
+    const l = list.find((x: any) => x.id === id);
+    if (!l) return res.status(404).json({ error: 'not found' });
+    return res.json(l);
+  }
+
+  const client = await pool.connect();
+  try {
+    const { rows } = await client.query(
+      `SELECT l.id, l.owner_id, u.name as owner_name, u.email as owner_email,
+              u.org_name, u.org_type, u.org_verified, u.average_rating, u.total_ratings,
+              l.title, l.description, l.quantity, l.category, l.is_urgent,
+              ST_AsText(l.location) as location_wkt, l.created_at
+       FROM listings l LEFT JOIN users u ON l.owner_id = u.id
+       WHERE l.id = $1 AND l.is_hidden = false`,
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'not found' });
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'server error' });
   } finally {
     client.release();

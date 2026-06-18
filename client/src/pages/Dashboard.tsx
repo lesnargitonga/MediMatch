@@ -214,17 +214,17 @@ export default function Dashboard() {
           <div className="muted" style={{ maxWidth: 640 }}>Manage your listings, explore nearby posts, and connect with others. Your organization’s reputation helps build trust.</div>
         </div>
       </div>
-      <div style={{ display:'flex', gap:8, marginBottom: 14 }}>
-        <button className={`btn ${tab==='overview'?'btn-primary':''}`} onClick={()=>setTab('overview')}>Overview</button>
+      <div className="tabs">
+        <button className={`tab ${tab==='overview'?'active':''}`} onClick={()=>setTab('overview')}>Overview</button>
         {role !== 'admin' && (
-          <button className={`btn ${tab==='create'?'btn-primary':''}`} onClick={()=>setTab('create')}>Create</button>
+          <button className={`tab ${tab==='create'?'active':''}`} onClick={()=>setTab('create')}>Create</button>
         )}
-        <button className={`btn ${tab==='browse'?'btn-primary':''}`} onClick={()=>setTab('browse')}>Browse</button>
-        <button className={`btn ${tab==='suggested'?'btn-primary':''}`} onClick={()=>setTab('suggested')}>Suggested</button>
-        <button className={`btn ${tab==='messages'?'btn-primary':''}`} onClick={()=>setTab('messages')}>Messages</button>
-        <button className={`btn ${tab==='account'?'btn-primary':''}`} onClick={()=>setTab('account')}>Account</button>
+        <button className={`tab ${tab==='browse'?'active':''}`} onClick={()=>setTab('browse')}>Browse</button>
+        <button className={`tab ${tab==='suggested'?'active':''}`} onClick={()=>setTab('suggested')}>Suggested</button>
+        <button className={`tab ${tab==='messages'?'active':''}`} onClick={()=>setTab('messages')}>Messages</button>
+        <button className={`tab ${tab==='account'?'active':''}`} onClick={()=>setTab('account')}>Account</button>
         {role === 'admin' && (
-          <button className={`btn ${tab==='admin'?'btn-primary':''}`} onClick={()=>setTab('admin')}>Admin</button>
+          <button className={`tab ${tab==='admin'?'active':''}`} onClick={()=>setTab('admin')}>Admin</button>
         )}
       </div>
 
@@ -704,7 +704,7 @@ function AccountSection() {
       ) : (
         <>
           {/* Reputation Display */}
-          <div className="card" style={{ marginBottom: 20, background: 'linear-gradient(135deg, #f3f4f6, #e5e7eb)', border: '1px solid #d1d5db' }}>
+          <div className="card reputation-card" style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <strong style={{ fontSize: '1.1rem' }}>Your Reputation</strong>
               {me.org_verified && (

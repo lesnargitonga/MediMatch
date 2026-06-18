@@ -44,10 +44,10 @@ export default function ListingDetail() {
     (async () => {
       setLoading(true);
       try {
-        const res = await API.get(`/listings?id=eq.${id}&select=*`);
+        const res = await API.get(`/listings/${id}`);
         if (!cancelled) {
-          if (res.data && res.data.length > 0) {
-            setListing(res.data[0]);
+          if (res.data) {
+            setListing(res.data);
           } else {
             setError('Listing not found');
           }
@@ -63,62 +63,80 @@ export default function ListingDetail() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="card">
-          <div className="skeleton" style={{ width: '40%', height: 24, marginBottom: 12 }} />
-          <div className="skeleton" style={{ width: '90%', height: 16, marginBottom: 8 }} />
-          <div className="skeleton" style={{ width: '65%', height: 16 }} />
-        </div>
+      <div className="card">
+        <div className="skeleton" style={{ width: '40%', height: 24, marginBottom: 12 }} />
+        <div className="skeleton" style={{ width: '90%', height: 16, marginBottom: 8 }} />
+        <div className="skeleton" style={{ width: '65%', height: 16 }} />
       </div>
     );
   }
 
   if (error) {
-    return <div className="container"><div className="card text-danger">{error}</div></div>;
+    return <div className="card text-danger">{error}</div>;
   }
 
   if (!listing) {
-    return <div className="container"><div className="card">Listing not found.</div></div>;
+    return <div className="card">Listing not found.</div>;
   }
 
   const coords = extractLatLon(listing.location_wkt || listing.location);
 
+  const l = listing as any;
+  const ownerName = l.owner_name || l.owner_email || 'Unknown';
+
   return (
-    <div className="container">
-      <div className="hero bg-image" style={{ marginBottom: 12, ['--hero-bg' as any]: 'url(/images/pic-5.jpg)' }}>
+    <div>
+      <div className="hero bg-image" style={{ marginBottom: 20, ['--hero-bg' as any]: 'url(/images/pic-5.jpg)' }}>
         <div className="hero-copy glass-card">
-          <div className="heading" style={{ marginTop: 0 }}>Listing</div>
-          <div className="muted" style={{ maxWidth: 640 }}>Details, quantity, and location for this item.</div>
+          <div className="brand-accent" />
+          <div className="heading" style={{ marginTop: 0 }}>{listing.title}</div>
+          <div className="muted">
+            {listing.category && <span style={{ textTransform: 'capitalize' }}>{listing.category}</span>}
+            {listing.created_at && <span> · Posted {new Date(listing.created_at).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' })}</span>}
+          </div>
         </div>
       </div>
       <div className="card">
-        <h1 className="heading">{listing.title}</h1>
-        <div className="muted" style={{ marginBottom: 16 }}>
-          Posted on: {listing.created_at ? new Date(listing.created_at).toLocaleString() : 'N/A'}
-        </div>
-
-        <p>{listing.description || 'No description provided.'}</p>
-
+        {/* Chips row */}
         <div className="chips" style={{ marginBottom: 16 }}>
-          <span className="chip"><span className="dot" /> Quantity: {listing.quantity || 1}</span>
-          {listing.category && <span className="chip"><span className="dot" /> Category: {listing.category}</span>}
+          <span className="chip"><span className="dot" /> Qty: {listing.quantity || 1}</span>
+          {listing.category && <span className="chip"><span className="dot" />{listing.category}</span>}
+          {l.is_urgent && <span className="badge" style={{ background:'linear-gradient(135deg,#ef4444,#dc2626)', color:'#fff' }}>URGENT</span>}
+          {l.org_verified && <span className="badge" style={{ background:'linear-gradient(135deg,#10b981,#059669)', color:'#fff' }}>✓ Verified</span>}
         </div>
 
-        {coords.lat != null && coords.lon != null && (
-          <div>
-            <h2 className="heading" style={{ fontSize: '1.25rem', marginTop: 24 }}>Location</h2>
-            <p className="muted">
-              Latitude: {coords.lat}, Longitude: {coords.lon}
-            </p>
-            <button className="btn btn-outline" onClick={() => setMapOpen({ lat: coords.lat!, lon: coords.lon!, title: listing.title })}>
-              View on Map
-            </button>
+        {/* Description */}
+        <p style={{ fontSize:'1rem', lineHeight:1.6, marginBottom: 16 }}>{listing.description || 'No description provided.'}</p>
+
+        {/* Owner info */}
+        {l.owner_id && (
+          <div className="card" style={{ marginBottom: 16, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
+            <div>
+              <div className="muted-small" style={{ marginBottom: 2 }}>Posted by</div>
+              <strong>{ownerName}</strong>
+              {l.org_name && <div className="muted-small">{l.org_name}{l.org_type ? ` · ${l.org_type}` : ''}</div>}
+              {l.average_rating > 0 && (
+                <div className="muted-small" style={{ marginTop: 4 }}>
+                  ⭐ {parseFloat(l.average_rating).toFixed(1)} ({l.total_ratings} review{l.total_ratings !== 1 ? 's' : ''})
+                </div>
+              )}
+            </div>
+            {user && user.id !== l.owner_id && (
+              <div style={{ display:'flex', gap:8 }}>
+                <button className="btn btn-primary" onClick={() => setChatOpen({ otherUserId: l.owner_id, otherUserName: ownerName, listingId: listing.id })}>Message</button>
+                <button className="btn btn-outline" onClick={() => setRatingOpen({ userId: l.owner_id, userName: ownerName, listingId: listing.id })}>Rate</button>
+              </div>
+            )}
           </div>
         )}
-        {(listing as any).owner_id && user && user.id !== (listing as any).owner_id && (
-          <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-            <button className="btn" onClick={() => setChatOpen({ otherUserId: (listing as any).owner_id, otherUserName: (listing as any).owner_name || (listing as any).owner_email || 'User', listingId: listing.id })}>Message owner</button>
-            <button className="btn btn-outline" onClick={() => setRatingOpen({ userId: (listing as any).owner_id, userName: (listing as any).owner_name || (listing as any).owner_email || 'User', listingId: listing.id })}>Rate owner</button>
+
+        {/* Location */}
+        {coords.lat != null && coords.lon != null && (
+          <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+            <button className="btn btn-primary" onClick={() => setMapOpen({ lat: coords.lat!, lon: coords.lon!, title: listing.title })}>
+              View on Map
+            </button>
+            <span className="muted-small">Location available</span>
           </div>
         )}
       </div>
