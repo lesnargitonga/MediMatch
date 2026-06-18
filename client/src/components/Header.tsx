@@ -136,8 +136,8 @@ export default function Header() {
             <a href="/" className="logo-text" style={{ textDecoration:'none' }}>MediMatch</a>
           </div>
           <div className="nav">
-            <NavLink to="/dashboard" className={() => navClass(location.pathname === '/dashboard' && !['map', 'suggested'].includes(dashboardTab || ''))}>Command</NavLink>
-            <NavLink to="/dashboard?demoTab=map" className={() => navClass(location.pathname === '/dashboard' && dashboardTab === 'map')}>Map</NavLink>
+            <NavLink to="/" className={() => navClass(location.pathname === '/')}>Command</NavLink>
+            <NavLink to="/command" className={() => navClass(location.pathname === '/command')}>Map</NavLink>
             <NavLink to="/dashboard?demoTab=suggested" className={() => navClass(location.pathname === '/dashboard' && dashboardTab === 'suggested')}>Matches</NavLink>
             <NavLink to="/listings" className={({isActive}) => navClass(isActive)}>Listings</NavLink>
             <NavLink to="/admin" className={({isActive}) => navClass(isActive)}>Review</NavLink>

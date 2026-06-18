@@ -34,12 +34,13 @@ app.use((req, res, next) => {
 	next();
 });
 
-// CORS allowlist (comma-separated origins in CORS_ORIGIN), fallback to * in dev
+// CORS: in production enforce allowlist; in dev allow all origins so local-IP access works
+const isProd = process.env.NODE_ENV === 'production';
 const allowlist = (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 const corsOptions: cors.CorsOptions = {
 	origin: (origin, cb) => {
 		if (!origin) return cb(null, true);
-		if (!allowlist.length) return cb(null, true); // open in dev (no allowlist configured)
+		if (!isProd) return cb(null, true); // open in dev regardless of allowlist
 		if (allowlist.includes(origin)) return cb(null, true);
 		return cb(new Error('Not allowed by CORS'), false);
 	},

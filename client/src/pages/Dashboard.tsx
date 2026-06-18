@@ -147,7 +147,7 @@ function MetricCards({ urgentNeeds, availableSupplies, nearestListing }: { urgen
           onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 12px 32px ${c.color}22, 0 2px 8px rgba(0,0,0,0.08)'`)}
           onMouseLeave={e => (e.currentTarget.style.boxShadow = '')}
         >
-          <div style={{ position:'absolute', top:16, right:16, fontSize:'1.4rem', opacity:0.25 }}>{c.icon}</div>
+          <div style={{ position:'absolute', top:16, right:16, fontSize:'1.4rem', opacity:0.25 }} />
           <div style={{ fontSize:'3.2rem', fontWeight:900, color:c.color, lineHeight:1, letterSpacing:'-0.04em', animation:'count-reveal 0.5s ease both' }}>{c.value}</div>
           <div style={{ fontSize:'0.72rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--muted)', marginTop:10 }}>{c.label}</div>
           {c.sub && <div style={{ fontSize:'0.8rem', color:'var(--muted)', marginTop:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{c.sub}</div>}
@@ -614,7 +614,7 @@ export default function Dashboard() {
           <div className="subtle" style={{ marginBottom: 10 }}>Available listings near you</div>
           <div className="card" style={{ marginBottom: 12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
             <input placeholder="Search by title or description" value={filterText} onChange={e=>setFilterText(e.target.value)} style={{ flex:'1 1 200px' }} />
-            <select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)} style={{ minWidth: 140 }}>
+            <select value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)} style={{ width:'auto' }}>
               <option value="all">All Categories</option>
               <option value="medication">Medication</option>
               <option value="equipment">Equipment</option>
@@ -622,14 +622,14 @@ export default function Dashboard() {
               <option value="general">General</option>
               <option value="other">Other</option>
             </select>
-            <select value={distanceFilter} onChange={e=>setDistanceFilter(Number(e.target.value))} style={{ minWidth: 120 }}>
+            <select value={distanceFilter} onChange={e=>setDistanceFilter(Number(e.target.value))} style={{ width:'auto' }}>
               <option value="999999">Any Distance</option>
               <option value="5">Within 5 km</option>
               <option value="10">Within 10 km</option>
               <option value="25">Within 25 km</option>
               <option value="50">Within 50 km</option>
             </select>
-            <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)} style={{ minWidth: 120 }}>
+            <select value={sortBy} onChange={e=>setSortBy(e.target.value as any)} style={{ width:'auto' }}>
               <option value="newest">Sort: Newest</option>
               <option value="nearest">Sort: Nearest</option>
             </select>
@@ -712,18 +712,18 @@ export default function Dashboard() {
                       </div>
                       <div className="muted-small">{l.created_at ? (() => {
                         const date = new Date(l.created_at);
-                        return date.toLocaleString(undefined, { 
-                          year: 'numeric', 
-                          month: '2-digit', 
-                          day: '2-digit', 
-                          hour: '2-digit', 
+                        return date.toLocaleString(undefined, {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
                           minute: '2-digit',
                           hour12: false
                         });
                       })() : ''}</div>
                     </div>
                     <div className="muted">{l.description || 'no description'}</div>
-                    
+
                     {/* Owner reputation info */}
                     {(l as any).owner_name && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, marginBottom: 4 }}>
@@ -1364,7 +1364,7 @@ function SuggestedSection(props: {
         </div>
       </div>
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom: 12 }}>
-        <select value={recCategory} onChange={e=>setRecCategory(e.target.value)} style={{ minWidth:140 }}>
+        <select value={recCategory} onChange={e=>setRecCategory(e.target.value)} style={{ width:'auto' }}>
           <option value="all">All Categories</option>
           <option value="medication">Medication</option>
           <option value="equipment">Equipment</option>
@@ -1372,7 +1372,7 @@ function SuggestedSection(props: {
           <option value="general">General</option>
           <option value="other">Other</option>
         </select>
-        <select value={recRadius} onChange={e=>setRecRadius(Number(e.target.value))} style={{ minWidth:130 }}>
+        <select value={recRadius} onChange={e=>setRecRadius(Number(e.target.value))} style={{ width:'auto' }}>
           <option value={10}>Within 10 km</option>
           <option value={25}>Within 25 km</option>
           <option value={50}>Within 50 km</option>

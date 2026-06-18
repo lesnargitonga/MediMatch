@@ -83,8 +83,8 @@ export default function Auth() {
         <svg viewBox="0 0 320 180" style={{ width:'100%', maxWidth:360, margin:'28px 0', opacity:0.85 }} aria-hidden="true">
           <defs>
             <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#14b8a6" />
-              <stop offset="100%" stopColor="#8b5cf6" />
+              <stop offset="0%" stopColor="#22C55E" />
+              <stop offset="100%" stopColor="#F59E0B" />
             </linearGradient>
             <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
@@ -92,7 +92,7 @@ export default function Auth() {
           <path d="M 50 90 Q 120 40 180 80 Q 240 120 280 70" stroke="url(#lineGrad)" strokeWidth="2" fill="none" strokeDasharray="6 3" opacity="0.6">
             <animate attributeName="stroke-dashoffset" from="0" to="-50" dur="4s" repeatCount="indefinite"/>
           </path>
-          <path d="M 80 130 Q 140 160 200 140 Q 250 125 290 145" stroke="#f43f5e" strokeWidth="1.5" fill="none" strokeDasharray="5 3" opacity="0.4">
+          <path d="M 80 130 Q 140 160 200 140 Q 250 125 290 145" stroke="#DC2626" strokeWidth="1.5" fill="none" strokeDasharray="5 3" opacity="0.4">
             <animate attributeName="stroke-dashoffset" from="0" to="-40" dur="5s" repeatCount="indefinite"/>
           </path>
           {/* Supply nodes — green */}
@@ -103,15 +103,15 @@ export default function Auth() {
           </circle>
           <circle cx="80" cy="130" r="8" fill="#10b981" filter="url(#glow)"/>
           {/* Need nodes — red */}
-          <circle cx="180" cy="80" r="12" fill="#f43f5e" filter="url(#glow)"/>
-          <circle cx="180" cy="80" r="20" fill="none" stroke="#f43f5e" strokeWidth="1.5" opacity="0.3">
+          <circle cx="180" cy="80" r="12" fill="#DC2626" filter="url(#glow)"/>
+          <circle cx="180" cy="80" r="20" fill="none" stroke="#DC2626" strokeWidth="1.5" opacity="0.3">
             <animate attributeName="r" from="12" to="26" dur="2.4s" repeatCount="indefinite"/>
             <animate attributeName="opacity" from="0.5" to="0" dur="2.4s" repeatCount="indefinite"/>
           </circle>
-          <circle cx="280" cy="70" r="9" fill="#8b5cf6" filter="url(#glow)"/>
-          <circle cx="200" cy="140" r="7" fill="#f43f5e" opacity="0.8"/>
+          <circle cx="280" cy="70" r="9" fill="#D97706" filter="url(#glow)"/>
+          <circle cx="200" cy="140" r="7" fill="#DC2626" opacity="0.8"/>
           {/* Score badge */}
-          <rect x="152" y="44" width="44" height="22" rx="11" fill="rgba(139,92,246,0.85)"/>
+          <rect x="152" y="44" width="44" height="22" rx="11" fill="rgba(217,119,6,0.9)"/>
           <text x="174" y="59" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="900">92</text>
         </svg>
 
@@ -151,7 +151,7 @@ export default function Auth() {
             <p className="muted-small">{isLogin ? 'Demo: lesnar@admin.com / admin123' : 'Register your organization or create an admin account.'}</p>
           </div>
 
-          {error && <div style={{ background:'var(--urgent-subtle)', border:'1px solid rgba(244,63,94,0.25)', borderRadius:8, padding:'10px 12px', color:'var(--urgent)', fontSize:'0.875rem', marginBottom:14, fontWeight:600 }}>{error}</div>}
+          {error && <div style={{ background:'var(--urgent-subtle)', border:'1px solid rgba(220,38,38,0.25)', borderRadius:8, padding:'10px 12px', color:'var(--urgent)', fontSize:'0.875rem', marginBottom:14, fontWeight:600 }}>{error}</div>}
           {info  && <div style={{ background:'var(--supply-subtle)', border:'1px solid rgba(5,150,105,0.2)', borderRadius:8, padding:'10px 12px', color:'var(--supply)', fontSize:'0.875rem', marginBottom:14, fontWeight:600 }}>{info}</div>}
 
           {isLogin && (

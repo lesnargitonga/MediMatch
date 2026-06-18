@@ -7,6 +7,7 @@ import Admin from './pages/Admin';
 import Auth from './pages/Auth';
 import Home from './pages/Home';
 import Demo from './pages/Demo';
+import CommandMap from './pages/CommandMap';
 import Listings from './pages/Listings';
 import ListingDetail from './pages/ListingDetail';
 import NotFound from './pages/NotFound';
@@ -33,8 +34,10 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <Routes>
-        <Route path="/" element={<App />}>
-          <Route index element={<Home />} />
+        <Route path="/" element={<CommandMap />} />
+        <Route path="/command" element={<CommandMap />} />
+        <Route element={<App />}>
+          <Route path="platform" element={<Home />} />
           <Route path="demo" element={<Demo />} />
           <Route path="listings" element={<Listings />} />
           <Route path="listings/:id" element={<ListingDetail />} />
