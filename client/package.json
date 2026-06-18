@@ -8,6 +8,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/fiber": "^8.18.0",
+    "@types/three": "^0.160.0",
     "axios": "^1.4.0",
     "leaflet": "^1.9.4",
     "medimatch": "file:..",
@@ -17,6 +19,7 @@
     "react-hot-toast": "^2.4.1",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.18.0",
+    "three": "^0.160.1",
     "use-debounce": "^10.1.1"
   },
   "devDependencies": {

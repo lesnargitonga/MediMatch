@@ -1,5 +1,21 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, Suspense, lazy } from 'react';
 import API from '../services/api';
+
+const GlobeIntro = lazy(() => import('./GlobeIntro'));
+
+// The 3D globe is a progressive enhancement: if WebGL is unavailable or the
+// scene throws, we silently fall back to the 2D intro + map (never break).
+function webglAvailable() {
+  try {
+    const c = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
+  } catch { return false; }
+}
+class GlobeBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() { return this.state.failed ? null : this.props.children; }
+}
 
 /* ===========================================================================
  * MediMatch — Savannah Command
@@ -84,6 +100,7 @@ export default function SavannahCommand() {
   const [intro, setIntro] = useState(true);
   const timers = useRef<number[]>([]);
   const started = useRef(false);
+  const showGlobe = useMemo(() => webglAvailable(), []);
 
   useEffect(() => {
     let off = false;
@@ -111,8 +128,8 @@ export default function SavannahCommand() {
     if (!plan || started.current) return;
     started.current = true;
     setSelId(plan.routes[0]?.id ?? null);
-    const t1 = window.setTimeout(() => setIntro(false), 3600);
-    const t2 = window.setTimeout(() => run(plan.routes[0]?.id), 3900);
+    const t1 = window.setTimeout(() => setIntro(false), 4300);
+    const t2 = window.setTimeout(() => run(plan.routes[0]?.id), 4600);
     return () => { clearTimeout(t1); clearTimeout(t2); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan]);
@@ -222,7 +239,10 @@ export default function SavannahCommand() {
         })}
       </svg>
 
-      {/* ===== Intro ===== */}
+      {/* ===== Intro: 3D globe dive + headline, then hands off to the map ===== */}
+      {intro && plan && showGlobe && (
+        <GlobeBoundary><Suspense fallback={null}><GlobeIntro /></Suspense></GlobeBoundary>
+      )}
       {intro && plan && (
         <div className="sv-intro" onClick={() => { setIntro(false); run(plan.routes[0]?.id); }}>
           <div className="sv-intro-kicker"><span className="sv-mark" /> MEDIMATCH · SILICON SAVANNAH</div>

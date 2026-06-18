@@ -1390,8 +1390,10 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 /* intro */
 .sv-intro { position: absolute; inset: 0; z-index: 60; display: grid; align-content: center; justify-items: start;
   padding-left: clamp(28px, 8vw, 110px); cursor: pointer;
-  background: linear-gradient(90deg, rgba(8,12,22,0.97) 0%, rgba(8,12,22,0.85) 45%, rgba(8,12,22,0.25) 78%, transparent 100%);
-  animation: svIntroOut 0.7s ease 3.1s both; }
+  background: linear-gradient(90deg, rgba(8,12,22,0.92) 0%, rgba(8,12,22,0.58) 46%, rgba(8,12,22,0.08) 72%, transparent 100%);
+  animation: svIntroOut 0.7s ease 3.7s both; }
+.sv-globe { position: absolute; inset: 0; z-index: 55; animation: svIntroOut 0.8s ease 3.5s both; }
+.sv-globe canvas { display: block; }
 .sv-intro-kicker { display: flex; align-items: center; gap: 10px; color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: 0.16em; }
 .sv-intro h1 { font-family: var(--font-display); margin: 20px 0 16px; display: grid; gap: 2px; font-size: clamp(42px, 6.4vw, 88px); line-height: 0.92; letter-spacing: -0.02em; color: var(--cream); }
 .sv-intro h1 span { display: block; opacity: 0; transform: translateY(20px); filter: blur(8px); animation: svReveal 0.8s var(--ease-out) forwards; animation-delay: var(--d); }
