@@ -324,7 +324,7 @@ export default function Header() {
           {user ? (
             <button className="btn btn-primary" style={{ width:'100%', marginTop: 8 }} onClick={handleLogout}>Logout</button>
           ) : (
-            <NavLink to="/auth" className="btn btn-primary" style={{ display:'block', marginTop: 8, textAlign:'center' }}>Sign in</NavLink>
+            <NavLink to="/login" className="btn btn-primary" style={{ display:'block', marginTop: 8, textAlign:'center' }}>Sign in</NavLink>
           )}
         </div>
       )}
