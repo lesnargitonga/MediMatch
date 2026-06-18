@@ -115,6 +115,7 @@ export default function SavannahCommand() {
   const [tapPos, setTapPos] = useState({ x: 60, y: 43 }); // where the finger taps Kenya, reported by the globe
   const [focus, setFocus] = useState<'national' | 'nairobi'>('national');
   const [selFac, setSelFac] = useState<Node | null>(null);
+  const [naiFilter, setNaiFilter] = useState<{ cat: string; urgent: boolean }>({ cat: 'all', urgent: false });
   const timers = useRef<number[]>([]);
   const started = useRef(false);
   const showGlobe = useMemo(() => webglAvailable(), []);
@@ -455,10 +456,24 @@ export default function SavannahCommand() {
               <h2>Inside Nairobi County</h2>
               <p>Our field study was conducted here. Kenyatta National Hospital’s surplus is matched to sub-county facilities in shortfall — ranked by distance, urgency and product fit, then routed on real roads.</p>
             </div>
+            <div className="sv-ops">
+              <div className="sv-ops-stats">
+                <div><b>{nai.nodes.length}</b><span>Facilities</span></div>
+                <div><b>{nai.nodes.filter((n) => n.needUnits > 0).length}</b><span>In shortfall</span></div>
+                <div><b>{nai.routes.length}</b><span>Transfers</span></div>
+                <div><b>{nai.routes.reduce((s, r) => s + r.qty, 0).toLocaleString()}</b><span>Units moved</span></div>
+              </div>
+              <div className="sv-ops-filters">
+                {([['all', 'All'], ['equipment', 'Equipment'], ['medication', 'Medication'], ['supplies', 'Supplies']] as const).map(([c, l]) => (
+                  <button key={c} className={naiFilter.cat === c ? 'on' : ''} onClick={() => setNaiFilter((f) => ({ ...f, cat: c }))}>{l}</button>
+                ))}
+                <button className={`urg ${naiFilter.urgent ? 'on' : ''}`} onClick={() => setNaiFilter((f) => ({ ...f, urgent: !f.urgent }))}>Urgent only</button>
+              </div>
+            </div>
             <div className="sv-focus-grid">
               {showGlobe ? (
                 <Suspense fallback={<div className="sv-nmap sv-n3d-load"><span /> Loading Nairobi map…</div>}>
-                  <NairobiMap nodes={nai.nodes as any} routes={nai.routes as any} selectedId={selFac?.id ?? null} onSelect={(n: any) => setSelFac(n)} />
+                  <NairobiMap nodes={nai.nodes as any} routes={nai.routes as any} selectedId={selFac?.id ?? null} onSelect={(n: any) => setSelFac(n)} filter={naiFilter} />
                 </Suspense>
               ) : (
                 <svg className="sv-focus-map" viewBox={`0 0 ${nai.W} ${nai.H}`} preserveAspectRatio="xMidYMid meet">

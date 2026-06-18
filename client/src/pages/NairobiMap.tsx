@@ -7,13 +7,16 @@ import 'maplibre-gl/dist/maplibre-gl.css';
  * pan, right-drag / ctrl-drag to rotate & tilt, scroll to zoom, click a facility
  * to inspect it. */
 
-type N = { id: number; org_name: string; county: string; lat: number; lon: number; role: 'hub' | 'need' | 'mixed'; surplusUnits: number; needUnits: number; urgent: boolean };
-type R = { id: number; urgent: boolean; geometry?: [number, number][]; from: { id: number; lat: number; lon: number }; to: { id: number; lat: number; lon: number } };
+type Item = { category: string };
+type N = { id: number; org_name: string; county: string; lat: number; lon: number; role: 'hub' | 'need' | 'mixed'; surplusUnits: number; needUnits: number; urgent: boolean; offers?: Item[]; requests?: Item[] };
+type R = { id: number; urgent: boolean; category?: string; geometry?: [number, number][]; from: { id: number; lat: number; lon: number }; to: { id: number; lat: number; lon: number } };
+export type NaiFilter = { cat: string; urgent: boolean };
 
 const STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const colorFor = (n: N) => (n.role === 'hub' ? '#37c07e' : n.role === 'mixed' ? '#f5c451' : n.urgent ? '#e8703c' : '#f25555');
+const catFor = (n: N) => (n.requests?.[0]?.category || n.offers?.[0]?.category || 'other');
 
-export default function NairobiMap({ nodes, routes, selectedId, onSelect }: { nodes: N[]; routes: R[]; selectedId: number | null; onSelect: (n: N) => void }) {
+export default function NairobiMap({ nodes, routes, selectedId, onSelect, filter }: { nodes: N[]; routes: R[]; selectedId: number | null; onSelect: (n: N) => void; filter: NaiFilter }) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const nodesRef = useRef(nodes); nodesRef.current = nodes;
@@ -41,7 +44,7 @@ export default function NairobiMap({ nodes, routes, selectedId, onSelect }: { no
       type: 'FeatureCollection' as const,
       features: nodes.map((n) => ({
         type: 'Feature' as const,
-        properties: { id: n.id, name: n.org_name, color: colorFor(n), units: Math.max(n.surplusUnits, n.needUnits), hub: n.role === 'hub' ? 1 : 0 },
+        properties: { id: n.id, name: n.org_name, color: colorFor(n), units: Math.max(n.surplusUnits, n.needUnits), hub: n.role === 'hub' ? 1 : 0, urgent: n.urgent ? 1 : 0, cat: catFor(n) },
         geometry: { type: 'Point' as const, coordinates: [n.lon, n.lat] },
       })),
     };
@@ -49,7 +52,7 @@ export default function NairobiMap({ nodes, routes, selectedId, onSelect }: { no
       type: 'FeatureCollection' as const,
       features: routes.map((r) => ({
         type: 'Feature' as const,
-        properties: { urgent: r.urgent ? 1 : 0 },
+        properties: { urgent: r.urgent ? 1 : 0, cat: r.category || 'other' },
         geometry: { type: 'LineString' as const, coordinates: (r.geometry && r.geometry.length > 1 ? r.geometry.map((p) => [p[1], p[0]]) : [[r.from.lon, r.from.lat], [r.to.lon, r.to.lat]]) },
       })),
     };
@@ -98,5 +101,29 @@ export default function NairobiMap({ nodes, routes, selectedId, onSelect }: { no
     map.setFilter('fac-sel', ['==', ['get', 'id'], selectedId ?? -1]);
   }, [selectedId]);
 
-  return <div className="sv-nmap" ref={ref} />;
+  // live filters: by supply category and urgency
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      if (!map.getLayer('fac')) return;
+      const catOk = (g: any): any => (filter.cat === 'all' ? true : ['==', ['get', 'cat'], filter.cat]);
+      // urgency on facilities keeps hubs visible as the supply source
+      const facFilter: any = ['all', catOk('fac'), filter.urgent ? ['any', ['==', ['get', 'urgent'], 1], ['==', ['get', 'hub'], 1]] : true];
+      const flowFilter: any = ['all', catOk('flow'), filter.urgent ? ['==', ['get', 'urgent'], 1] : true];
+      for (const id of ['fac', 'fac-glow', 'fac-label']) map.getLayer(id) && map.setFilter(id, facFilter);
+      for (const id of ['flows', 'flows-glow']) map.getLayer(id) && map.setFilter(id, flowFilter);
+    };
+    if (map.isStyleLoaded()) apply(); else map.once('idle', apply);
+  }, [filter.cat, filter.urgent]);
+
+  return (
+    <div className="sv-nmap" ref={ref}>
+      <div className="sv-nmap-legend">
+        <span><i style={{ background: '#37c07e' }} /> Surplus hub</span>
+        <span><i style={{ background: '#f25555' }} /> In need</span>
+        <span><i style={{ background: '#e8703c' }} /> Urgent</span>
+      </div>
+    </div>
+  );
 }
