@@ -1925,3 +1925,12 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 .sv-natwrap .maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(0.92) sepia(0.2) saturate(1.4) hue-rotate(2deg); }
 .sv-natwrap .maplibregl-ctrl-attrib { background: rgba(10,18,34,0.5); font-size: 9px; }
 .sv-natwrap .maplibregl-ctrl-attrib a { color: var(--sand); }
+
+/* AI brief inside the command briefing card */
+.sv-brief { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+.sv-brief-tag { display: inline-flex; align-items: center; gap: 7px; font-size: 9.5px; font-weight: 900; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--gold2); }
+.sv-brief p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--cream); min-height: 2.4em; }
+.sv-caret { display: inline-block; width: 6px; height: 13px; margin-left: 2px; vertical-align: -2px; background: var(--gold2);
+  animation: svCaret 0.7s step-end infinite; }
+@keyframes svCaret { 50% { opacity: 0; } }

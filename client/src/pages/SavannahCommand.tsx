@@ -93,6 +93,18 @@ function routePath(r: Route) {
   return g.map((p, i) => `${i ? 'L' : 'M'}${px(p[1]).toFixed(1)} ${py(p[0]).toFixed(1)}`).join(' ');
 }
 
+function useTypewriter(text: string, speed = 16) {
+  const [out, setOut] = useState('');
+  useEffect(() => {
+    setOut('');
+    if (!text) return;
+    let i = 0;
+    const id = window.setInterval(() => { i += 2; setOut(text.slice(0, i)); if (i >= text.length) window.clearInterval(id); }, speed);
+    return () => window.clearInterval(id);
+  }, [text, speed]);
+  return out;
+}
+
 function useCountUp(target: number, run: boolean, ms = 1600) {
   const [v, setV] = useState(0);
   useEffect(() => {
@@ -172,6 +184,20 @@ export default function SavannahCommand() {
   useEffect(() => () => { clear(); introTimers.current.forEach(clearTimeout); }, []);
 
   const lead = plan?.routes.find((r) => r.id === selId) || plan?.routes[0];
+  const [brief, setBrief] = useState('');
+  const [briefLoading, setBriefLoading] = useState(false);
+  const typedBrief = useTypewriter(brief);
+  useEffect(() => {
+    if (!lead) return;
+    let off = false;
+    setBriefLoading(true); setBrief('');
+    API.post('/redistribution/brief', {
+      fromOrg: lead.from.org, fromCounty: lead.from.county, toOrg: lead.to.org, toCounty: lead.to.county,
+      item: lead.item, qty: lead.qty, urgent: lead.urgent, distanceKm: lead.distance_km, etaMin: (lead as any).eta_min,
+    }).then(({ data }) => { if (!off) { setBrief(data.brief || ''); setBriefLoading(false); } }).catch(() => { if (!off) setBriefLoading(false); });
+    return () => { off = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead?.id]);
   const scenarios = useMemo(() => (plan?.routes || []).filter((r) => r.urgent).slice(0, 4), [plan]);
   const running = runToken > 0;
 
@@ -402,6 +428,10 @@ export default function SavannahCommand() {
             <span className="sv-eyebrow">{story.e}</span>
             <h2>{story.t}</h2>
             <p>{story.b}</p>
+          </div>
+          <div className="sv-brief">
+            <span className="sv-brief-tag"><i className="sv-live" /> AI brief</span>
+            <p>{briefLoading && !typedBrief ? 'Analysing the corridor…' : typedBrief}{typedBrief && typedBrief.length < brief.length && <span className="sv-caret" />}</p>
           </div>
           <div className="sv-steps">{(['detect', 'rank', 'route', 'impact'] as Stage[]).map((s) => (
             <button key={s} className={s === stage ? 'on' : ''} onClick={() => setStage(s)} aria-label={s} title={s} />

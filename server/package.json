@@ -17,10 +17,11 @@
     "db:inspect:file": "cross-env USE_FILE_DB=true node dist/tools/inspectDb.js",
     "db:inspect:mock": "cross-env USE_MOCK_DB=true node dist/tools/inspectDb.js",
     "db:import:file": "node dist/tools/importFromFileDb.js",
-    "db:seed": "npm run build && node dist/tools/migrate.js && node dist/tools/seed.js"
-  ,"admin:bootstrap": "npm run build && node dist/tools/bootstrapAdmin.js"
+    "db:seed": "npm run build && node dist/tools/migrate.js && node dist/tools/seed.js",
+    "admin:bootstrap": "npm run build && node dist/tools/bootstrapAdmin.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
