@@ -13,10 +13,11 @@ type R = { id: number; urgent: boolean; item?: string; geometry?: [number, numbe
 const STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const colorFor = (n: N) => (n.role === 'hub' ? '#37c07e' : n.role === 'mixed' ? '#f5c451' : n.urgent ? '#e8703c' : '#f25555');
 
-export default function NationalMap({ nodes, routes, leadId, onSelectRoute }: { nodes: N[]; routes: R[]; leadId: number | null; onSelectRoute: (id: number) => void }) {
+export default function NationalMap({ nodes, routes, leadId, onSelectRoute, onOpenNairobi }: { nodes: N[]; routes: R[]; leadId: number | null; onSelectRoute: (id: number) => void; onOpenNairobi?: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const onSelRef = useRef(onSelectRoute); onSelRef.current = onSelectRoute;
+  const onNaiRef = useRef(onOpenNairobi); onNaiRef.current = onOpenNairobi;
   const routesRef = useRef(routes); routesRef.current = routes;
 
   useEffect(() => {
@@ -96,6 +97,13 @@ export default function NationalMap({ nodes, routes, leadId, onSelectRoute }: { 
         map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
         map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
       }
+
+      // Nairobi research-base marker — always-visible entry into the close-up
+      const el = document.createElement('button');
+      el.className = 'sv-nai-pin';
+      el.innerHTML = '<span class="dot"></span><span class="lbl">Nairobi<br><small>Research base · open ›</small></span>';
+      el.onclick = (ev) => { ev.stopPropagation(); onNaiRef.current && onNaiRef.current(); };
+      new maplibregl.Marker({ element: el, anchor: 'left' }).setLngLat([36.82, -1.286]).addTo(map);
     });
 
     return () => { map.remove(); mapRef.current = null; };

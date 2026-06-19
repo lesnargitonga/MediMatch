@@ -4,6 +4,7 @@ import API from '../services/api';
 const GlobeIntro = lazy(() => import('./GlobeIntro'));
 const NairobiMap = lazy(() => import('./NairobiMap'));
 const NationalMap = lazy(() => import('./NationalMap'));
+const SimPanel = lazy(() => import('./SimPanel'));
 
 // The 3D globe is a progressive enhancement: if WebGL is unavailable or the
 // scene throws, we silently fall back to the 2D intro + map (never break).
@@ -149,6 +150,7 @@ export default function SavannahCommand() {
   const [naiFilter, setNaiFilter] = useState<{ cat: string; urgent: boolean }>({ cat: 'all', urgent: false });
   const [panelOpen, setPanelOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(true);
+  const [simOpen, setSimOpen] = useState(false);
   const timers = useRef<number[]>([]);
   const started = useRef(false);
   const showGlobe = useMemo(() => webglAvailable(), []);
@@ -265,7 +267,8 @@ export default function SavannahCommand() {
         <div className={`sv-natwrap${landing ? ' sv-natwrap--land' : ''}`}>
           <Suspense fallback={null}>
             <NationalMap nodes={plan.nodes} routes={plan.routes} leadId={lead?.id ?? null}
-              onSelectRoute={(id) => { const r = plan.routes.find((x) => x.id === id); if (r) selectScenario(r); }} />
+              onSelectRoute={(id) => { const r = plan.routes.find((x) => x.id === id); if (r) selectScenario(r); }}
+              onOpenNairobi={() => setFocus('nairobi')} />
           </Suspense>
         </div>
       )}
@@ -496,6 +499,9 @@ export default function SavannahCommand() {
         <button className="sv-btn deep" onClick={() => setFocus('nairobi')} disabled={!nai}>
           Open Nairobi research base <span>›</span>
         </button>
+        <button className="sv-btn deep alt" onClick={() => setSimOpen(true)} disabled={!plan}>
+          Project impact over time <span>↗</span>
+        </button>
         {scenarios.length > 0 && (
           <div className="sv-scen">
             <span>Urgent scenarios</span>
@@ -601,6 +607,15 @@ export default function SavannahCommand() {
             </div>
           </div>
         </div>
+      )}
+
+      {simOpen && plan && (
+        <Suspense fallback={null}>
+          <SimPanel
+            unitsPerCycle={plan.routes.reduce((s, r) => s + r.qty, 0)}
+            urgentPerCycle={plan.routes.filter((r) => r.urgent).length}
+            onClose={() => setSimOpen(false)} />
+        </Suspense>
       )}
 
       {!plan && !error && <div className="sv-loading"><span /> Building national redistribution plan…</div>}
