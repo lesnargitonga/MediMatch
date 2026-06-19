@@ -429,8 +429,8 @@ export default function SavannahCommand() {
         <nav><a href="/about">Platform</a><a href="/listings">Listings</a><a href="/login">Coordinator</a></nav>
       </header>
 
-      {/* ===== Map controls ===== */}
-      {plan && showGlobe && (
+      {/* ===== Map controls (hidden while the impact panel is open to avoid overlap) ===== */}
+      {plan && showGlobe && !panelOpen && (
         <div className="sv-mapctl">
           <button className={`sv-mapctl-btn${heat ? ' on' : ''}`} onClick={() => setHeat((h) => !h)}>
             <span className="dot" /> Demand heatmap
@@ -509,6 +509,10 @@ export default function SavannahCommand() {
         <div className="sv-controls">
           <button className="sv-btn" onClick={() => run()} disabled={!plan}>Run redistribution</button>
           <button className={`sv-btn ghost ${auto ? 'on' : ''}`} onClick={() => setAuto((a) => !a)}>{auto ? 'Auto-play on' : 'Auto-play off'}</button>
+        </div>
+        <div className="sv-controls">
+          <button className={`sv-btn ghost ${heat ? 'on' : ''}`} onClick={() => setHeat((h) => !h)}>{heat ? 'Heatmap on' : 'Demand heatmap'}</button>
+          <button className="sv-btn ghost" onClick={() => setSimOpen(true)}>↗ Project impact</button>
         </div>
         <button className="sv-btn deep" onClick={() => setFocus('nairobi')} disabled={!nai}>
           Open Nairobi research base <span>›</span>
