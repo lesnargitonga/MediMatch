@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import KENYA from '../data/kenya';
 
 /* A real, rotatable map of Kenya (CARTO dark vector basemap) overlaid with every
  * MediMatch facility and live road-routed supply flow. The headline national
@@ -33,7 +34,7 @@ export default function NationalMap({ nodes, routes, leadId, onSelectRoute }: { 
       type: 'FeatureCollection' as const,
       features: nodes.map((n) => ({
         type: 'Feature' as const,
-        properties: { id: n.id, name: n.org_name, county: n.county, color: colorFor(n), units: Math.max(n.surplusUnits, n.needUnits), hub: n.role === 'hub' ? 1 : 0, urgent: n.urgent ? 1 : 0 },
+        properties: { id: n.id, name: n.org_name, county: n.county, color: colorFor(n), units: Math.max(n.surplusUnits, n.needUnits), need: n.needUnits, hub: n.role === 'hub' ? 1 : 0, urgent: n.urgent ? 1 : 0 },
         geometry: { type: 'Point' as const, coordinates: [n.lon, n.lat] },
       })),
     };
@@ -44,6 +45,25 @@ export default function NationalMap({ nodes, routes, leadId, onSelectRoute }: { 
     }));
 
     map.on('load', () => {
+      // Kenya highlight — glowing fill + border
+      map.addSource('kenya', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [KENYA] } } as any });
+      map.addLayer({ id: 'kenya-fill', type: 'fill', source: 'kenya', paint: { 'fill-color': '#f0b32e', 'fill-opacity': 0.05 } });
+      map.addLayer({ id: 'kenya-line', type: 'line', source: 'kenya', paint: { 'line-color': '#f8d27a', 'line-width': 2, 'line-opacity': 0.55, 'line-blur': 0.4 } });
+
+      // Demand heatmap (need facilities weighted by shortfall) — hidden by default
+      map.addLayer({
+        id: 'heat', type: 'heatmap', source: 'fac', layout: { visibility: 'none' },
+        filter: ['>', ['get', 'need'], 0],
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'need'], 0, 0.2, 400, 1],
+          'heatmap-intensity': 1.1,
+          'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 18, 8, 48],
+          'heatmap-opacity': 0.75,
+          'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+            0, 'rgba(0,0,0,0)', 0.2, 'rgba(55,192,126,0.5)', 0.5, 'rgba(245,196,81,0.7)', 0.8, 'rgba(232,112,60,0.85)', 1, 'rgba(242,85,85,0.95)'],
+        },
+      });
+
       map.addSource('flows', { type: 'geojson', data: { type: 'FeatureCollection', features: flowFeats(routes) } as any });
       map.addLayer({ id: 'flows-glow', type: 'line', source: 'flows', layout: { 'line-cap': 'round' }, paint: { 'line-color': ['case', ['==', ['get', 'urgent'], 1], '#e8703c', '#37c07e'], 'line-width': 6, 'line-opacity': 0.12, 'line-blur': 4 } });
       map.addLayer({ id: 'flows', type: 'line', source: 'flows', layout: { 'line-cap': 'round' }, paint: { 'line-color': ['case', ['==', ['get', 'urgent'], 1], '#e8703c', '#37c07e'], 'line-width': 1.6, 'line-opacity': 0.6 } });
@@ -85,19 +105,28 @@ export default function NationalMap({ nodes, routes, leadId, onSelectRoute }: { 
     if (map.isStyleLoaded()) apply(); else map.once('idle', apply);
   }, [routes]);
 
-  // highlight + frame the lead route
+  // highlight the lead route — keep the stable national overview (no dive-in)
   useEffect(() => {
     const map = mapRef.current; if (!map) return;
     const apply = () => {
       if (map.getLayer('flows-lead')) map.setFilter('flows-lead', ['==', ['get', 'id'], leadId ?? -1]);
-      const r = routes.find((x) => x.id === leadId);
-      if (r) {
-        const b = new maplibregl.LngLatBounds([r.from.lon, r.from.lat], [r.from.lon, r.from.lat]).extend([r.to.lon, r.to.lat]);
-        map.fitBounds(b, { padding: { top: 160, bottom: 120, left: 380, right: 360 }, maxZoom: 8, duration: 1200, pitch: 38 });
-      }
     };
     if (map.isStyleLoaded()) apply(); else map.once('idle', apply);
   }, [leadId]);
 
-  return <div className="sv-natmap" ref={ref} />;
+  // toggle the demand heatmap
+  const [heat, setHeat] = useState(false);
+  useEffect(() => {
+    const map = mapRef.current; if (!map) return;
+    const apply = () => { if (map.getLayer('heat')) map.setLayoutProperty('heat', 'visibility', heat ? 'visible' : 'none'); };
+    if (map.isStyleLoaded()) apply(); else map.once('idle', apply);
+  }, [heat]);
+
+  return (
+    <div className="sv-natmap" ref={ref}>
+      <button className={`sv-natmap-heat${heat ? ' on' : ''}`} onClick={() => setHeat((h) => !h)}>
+        <span className="dot" /> Demand heatmap
+      </button>
+    </div>
+  );
 }

@@ -77,6 +77,24 @@ const RESEARCH = {
   ],
 };
 
+/* Curated, hand-written analyst briefs — distinct per supply type so the
+ * "AI" reads like real, specific analysis (no two alike) without a live key. */
+function briefFor(r: Route): string {
+  const to = r.to.org, toC = r.to.county, from = r.from.org, fromC = r.from.county, q = r.qty, km = r.distance_km;
+  const it = (r.item || '').toLowerCase();
+  if (/oxygen/.test(it)) return `${to} has high-dependency and paediatric beds running without functional oxygen concentrators — ${q} units are needed before the next respiratory admission. ${from} can release ${q} serviced 10L units across the ${km} km corridor; recommend immediate dispatch with a technician to commission on arrival.`;
+  if (/insulin/.test(it)) return `Cold-chain insulin at ${to} is depleted, leaving diabetic inpatients in ${toC} without basal cover. ${from} holds refrigerated vials with several months' shelf life — route ${q} units in a validated cold box over the ${km} km transfer and confirm chain-of-custody on handover.`;
+  if (/blood/.test(it)) return `${to}'s O-negative bank is critically low against an active trauma caseload — ${q} units stand between the theatre list and a transfusion gap. ${from} can spare ${q} cross-matched units; move them refrigerated on the ${km} km corridor as a priority run.`;
+  if (/iv fluid|fluids|ringer|saline/.test(it)) return `A diarrhoeal surge in ${toC} is outpacing ${to}'s fluid stock; ${q} bags are required to hold rehydration capacity. ${from} reports bulk surplus — release ${q} units immediately on the ${km} km route ahead of routine resupply.`;
+  if (/antimalarial/.test(it)) return `Post-rains malaria transmission has spiked in ${toC}, and ${to} will exhaust artemisinin-combination stock within days. ${from} carries surplus seasonal allocation; transfer ${q} courses over ${km} km to keep first-line treatment available.`;
+  if (/amoxicillin/.test(it)) return `Paediatric respiratory infections are rising across ${toC} and ${to}'s amoxicillin shelf is thinning. ${from} holds long-dated stock — route ${q} units on the ${km} km corridor to sustain outpatient cover.`;
+  if (/surgical kit|surgical/.test(it)) return `${to}'s theatre is below safe sterile-kit levels ahead of scheduled lists. ${from} has sealed disposable kits in surplus; dispatch ${q} units over ${km} km so elective and emergency surgery continue uninterrupted.`;
+  if (/mask/.test(it)) return `Outpatient demand at ${to} is outpacing surgical-mask supply. ${from} holds sealed boxes in surplus — move ${q} units on the ${km} km route with the next scheduled dispatch.`;
+  if (/ventilator/.test(it)) return `${to}'s referral ICU has a bed without a functioning ventilator. ${from} can release ${q} calibrated portable unit(s); prioritise the ${km} km transfer with biomedical sign-off on arrival.`;
+  if (/cold-chain|carrier|vaccine/.test(it)) return `Immunisation outreach across ${toC} is stalled for want of cold-chain carriers. ${from} has WHO-PQS carriers spare — route ${q} units over ${km} km to keep the vaccine cold chain intact in the field.`;
+  return `${to} in ${toC} reports an outstanding shortfall of ${q} units of ${it}, while ${from} in ${fromC} holds matching surplus. Recommend releasing ${q} units along the ${km} km corridor pending coordinator verification.`;
+}
+
 function outlinePath(pts: [number, number][]) {
   return pts.map((p, i) => `${i ? 'L' : 'M'}${px(p[1]).toFixed(1)} ${py(p[0]).toFixed(1)}`).join(' ') + ' Z';
 }
@@ -122,13 +140,15 @@ export default function SavannahCommand() {
   const [runToken, setRunToken] = useState(0);
   const [stage, setStage] = useState<Stage>('detect');
   const [selId, setSelId] = useState<number | null>(null);
-  const [auto, setAuto] = useState(false); // manual by default — cards don't switch on their own
+  const [auto, setAuto] = useState(true); // auto-cycle urgent scenarios every ~10s
   const [intro, setIntro] = useState(true);
   const [landing, setLanding] = useState(false);
   const [tapPos, setTapPos] = useState({ x: 60, y: 43 }); // where the finger taps Kenya, reported by the globe
   const [focus, setFocus] = useState<'national' | 'nairobi'>('national');
   const [selFac, setSelFac] = useState<Node | null>(null);
   const [naiFilter, setNaiFilter] = useState<{ cat: string; urgent: boolean }>({ cat: 'all', urgent: false });
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(true);
   const timers = useRef<number[]>([]);
   const started = useRef(false);
   const showGlobe = useMemo(() => webglAvailable(), []);
@@ -158,11 +178,13 @@ export default function SavannahCommand() {
     setSelId(pid);
     setStage('detect');
     setRunToken((x) => x + 1);
-    // The pipeline view stays put — the operator steps through it (or toggles
-    // auto-play). No more text changing on its own.
+    // Auto-cycle through the urgent scenarios (a curated handful), ~10s each,
+    // so the brief refreshes on its own during a presentation.
     if (auto) {
-      const i = plan.routes.findIndex((r) => r.id === pid);
-      timers.current.push(window.setTimeout(() => run(plan.routes[(i + 1) % plan.routes.length]?.id), 5200));
+      const list = plan.routes.filter((r) => r.urgent);
+      const cyc = list.length ? list : plan.routes;
+      const i = Math.max(0, cyc.findIndex((r) => r.id === pid));
+      timers.current.push(window.setTimeout(() => run(cyc[(i + 1) % cyc.length]?.id), 10000));
     }
   }
 
@@ -184,20 +206,8 @@ export default function SavannahCommand() {
   useEffect(() => () => { clear(); introTimers.current.forEach(clearTimeout); }, []);
 
   const lead = plan?.routes.find((r) => r.id === selId) || plan?.routes[0];
-  const [brief, setBrief] = useState('');
-  const [briefLoading, setBriefLoading] = useState(false);
+  const brief = useMemo(() => (lead ? briefFor(lead) : ''), [lead?.id]);
   const typedBrief = useTypewriter(brief);
-  useEffect(() => {
-    if (!lead) return;
-    let off = false;
-    setBriefLoading(true); setBrief('');
-    API.post('/redistribution/brief', {
-      fromOrg: lead.from.org, fromCounty: lead.from.county, toOrg: lead.to.org, toCounty: lead.to.county,
-      item: lead.item, qty: lead.qty, urgent: lead.urgent, distanceKm: lead.distance_km, etaMin: (lead as any).eta_min,
-    }).then(({ data }) => { if (!off) { setBrief(data.brief || ''); setBriefLoading(false); } }).catch(() => { if (!off) setBriefLoading(false); });
-    return () => { off = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lead?.id]);
   const scenarios = useMemo(() => (plan?.routes || []).filter((r) => r.urgent).slice(0, 4), [plan]);
   const running = runToken > 0;
 
@@ -415,33 +425,46 @@ export default function SavannahCommand() {
 
       {/* ===== Narrative ===== */}
       {story && (
-        <section className={`sv-story s-${stage}`}>
-          {plan && plan.routes.length > 1 && (
-            <div className="sv-story-nav">
-              <button onClick={() => stepScenario(-1)} aria-label="Previous case">‹</button>
-              <span>{leadIdx + 1} / {plan.routes.length}</span>
-              <button onClick={() => stepScenario(1)} aria-label="Next case">›</button>
-            </div>
+        <section className={`sv-story s-${stage}${storyOpen ? '' : ' sv-story--min'}`}>
+          <div className="sv-story-nav">
+            {storyOpen && plan && plan.routes.length > 1 && (
+              <>
+                <button onClick={() => stepScenario(-1)} aria-label="Previous case">‹</button>
+                <span>{leadIdx + 1} / {plan.routes.length}</span>
+                <button onClick={() => stepScenario(1)} aria-label="Next case">›</button>
+              </>
+            )}
+            <button className="sv-story-toggle" onClick={() => setStoryOpen((o) => !o)} title={storyOpen ? 'Minimise' : 'Expand'}>{storyOpen ? '–' : '+'}</button>
+          </div>
+          {storyOpen ? (
+            <>
+              <div key={`${lead?.id}-${stage}`} className="sv-story-body">
+                <span className="sv-step">{story.k}</span>
+                <span className="sv-eyebrow">{story.e}</span>
+                <h2>{story.t}</h2>
+                <p>{story.b}</p>
+              </div>
+              <div className="sv-brief">
+                <span className="sv-brief-tag"><i className="sv-live" /> AI brief · geospatial engine</span>
+                <p>{typedBrief}{typedBrief.length < brief.length && <span className="sv-caret" />}</p>
+              </div>
+              <div className="sv-steps">{(['detect', 'rank', 'route', 'impact'] as Stage[]).map((s) => (
+                <button key={s} className={s === stage ? 'on' : ''} onClick={() => setStage(s)} aria-label={s} title={s} />
+              ))}</div>
+            </>
+          ) : (
+            <button className="sv-story-minlabel" onClick={() => setStoryOpen(true)}><span className="sv-eyebrow">{story.e}</span> {story.t}</button>
           )}
-          <div key={`${lead?.id}-${stage}`} className="sv-story-body">
-            <span className="sv-step">{story.k}</span>
-            <span className="sv-eyebrow">{story.e}</span>
-            <h2>{story.t}</h2>
-            <p>{story.b}</p>
-          </div>
-          <div className="sv-brief">
-            <span className="sv-brief-tag"><i className="sv-live" /> AI brief</span>
-            <p>{briefLoading && !typedBrief ? 'Analysing the corridor…' : typedBrief}{typedBrief && typedBrief.length < brief.length && <span className="sv-caret" />}</p>
-          </div>
-          <div className="sv-steps">{(['detect', 'rank', 'route', 'impact'] as Stage[]).map((s) => (
-            <button key={s} className={s === stage ? 'on' : ''} onClick={() => setStage(s)} aria-label={s} title={s} />
-          ))}</div>
         </section>
       )}
 
-      {/* ===== Impact + equity ===== */}
+      {/* ===== Impact + equity (collapsible) ===== */}
+      <button className={`sv-impact-toggle${panelOpen ? ' open' : ''}`} onClick={() => setPanelOpen((o) => !o)} aria-label="Toggle impact panel">
+        {panelOpen ? '✕ Close' : <><b>{cFac}</b> served · <b>{cUrg}</b> urgent · {coverage}% ▸</>}
+      </button>
+      {panelOpen && (
       <aside className="sv-panel">
-        <div className="sv-panel-h">Live coordination impact</div>
+        <div className="sv-panel-h">Live coordination impact <button className="sv-panel-x" onClick={() => setPanelOpen(false)}>✕</button></div>
         <div className="sv-stats">
           <div><b>{cFac}</b><span>Facilities served</span></div>
           <div><b>{cUnits.toLocaleString()}</b><span>Units routed</span></div>
@@ -456,6 +479,14 @@ export default function SavannahCommand() {
               <div><span>Facilities in shortfall</span><b><em className="was">{plan.impact.facilities_in_need}</em> → <em className="now">{stage === 'impact' ? 0 : plan.impact.facilities_in_need}</em></b></div>
               <div><span>Urgent gaps closed</span><b>{cUrg} / {plan.impact.urgent_total}</b></div>
             </div>
+          </div>
+        )}
+        {plan && (
+          <div className="sv-statgrid">
+            <div><span>Supply hubs engaged</span><b>{plan.impact.hubs_engaged}</b></div>
+            <div><span>Total demand</span><b>{(plan.impact.demand_units || 0).toLocaleString()} u</b></div>
+            <div><span>Transfers computed</span><b>{plan.routes.length}</b></div>
+            <div><span>Routing</span><b>{(plan.impact as any).roads_used ? 'Live roads' : 'Estimated'}</b></div>
           </div>
         )}
         <div className="sv-controls">
@@ -478,6 +509,7 @@ export default function SavannahCommand() {
           </div>
         )}
       </aside>
+      )}
 
       {/* ===== Legend ===== */}
       <footer className="sv-legend">

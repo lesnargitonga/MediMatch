@@ -1934,3 +1934,39 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 .sv-caret { display: inline-block; width: 6px; height: 13px; margin-left: 2px; vertical-align: -2px; background: var(--gold2);
   animation: svCaret 0.7s step-end infinite; }
 @keyframes svCaret { 50% { opacity: 0; } }
+
+/* ===== collapsible impact panel ===== */
+.sv-impact-toggle { position: absolute; top: 22px; right: 22px; z-index: 30; padding: 10px 15px; border-radius: 12px; cursor: pointer;
+  background: rgba(8,13,26,0.72); backdrop-filter: blur(12px); border: 1px solid rgba(248,210,122,0.3); color: var(--cream); font-size: 13px; font-weight: 700; transition: border-color .15s; }
+.sv-impact-toggle b { color: var(--gold2); font-family: var(--font-display); }
+.sv-impact-toggle:hover { border-color: rgba(248,210,122,0.6); }
+.sv-impact-toggle.open { display: none; }
+.sv-panel { animation: svPanelIn .25s var(--ease-out) both; }
+@keyframes svPanelIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+.sv-panel-h { display: flex; align-items: center; justify-content: space-between; }
+.sv-panel-x { background: none; border: none; color: var(--sand); font-size: 15px; cursor: pointer; padding: 0 2px; }
+.sv-panel-x:hover { color: var(--cream); }
+.sv-statgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.sv-statgrid > div { padding: 9px 11px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
+.sv-statgrid span { display: block; font-size: 9.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--sand); }
+.sv-statgrid b { font-family: var(--font-display); font-size: 15px; color: var(--cream); }
+
+/* ===== collapsible story card ===== */
+.sv-story-toggle { margin-left: auto; width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05); color: var(--gold2); font-size: 16px; line-height: 1; cursor: pointer; }
+.sv-story-toggle:hover { background: rgba(255,255,255,0.12); }
+.sv-story--min { width: min(360px, calc(100vw - 44px)); }
+.sv-story-minlabel { display: block; width: 100%; text-align: left; background: none; border: none; color: var(--cream); cursor: pointer; font-size: 16px; font-weight: 800; font-family: var(--font-display); padding: 4px 0 0; }
+.sv-story-minlabel .sv-eyebrow { margin: 0 0 4px; }
+
+/* national-map heatmap toggle */
+.sv-natmap-heat { position: absolute; right: 12px; top: 12px; z-index: 3; display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 13px; border-radius: 999px; cursor: pointer; font-size: 11.5px; font-weight: 700; color: var(--cream);
+  background: rgba(8,13,26,0.72); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.12); }
+.sv-natmap-heat .dot { width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(90deg, var(--acacia), var(--terra)); }
+.sv-natmap-heat.on { border-color: rgba(232,112,60,0.6); background: rgba(232,112,60,0.18); }
+
+/* bigger Nairobi close-up */
+.sv-focus-card { width: min(1080px, 100%); }
+.sv-focus-grid { grid-template-columns: 1.55fr 1fr; }
+.sv-nmap { height: 480px; }
