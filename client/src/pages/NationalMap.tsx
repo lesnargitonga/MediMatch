@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import KENYA from '../data/kenya';
@@ -13,7 +13,7 @@ type R = { id: number; urgent: boolean; item?: string; geometry?: [number, numbe
 const STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const colorFor = (n: N) => (n.role === 'hub' ? '#37c07e' : n.role === 'mixed' ? '#f5c451' : n.urgent ? '#e8703c' : '#f25555');
 
-export default function NationalMap({ nodes, routes, leadId, onSelectRoute, onOpenNairobi }: { nodes: N[]; routes: R[]; leadId: number | null; onSelectRoute: (id: number) => void; onOpenNairobi?: () => void }) {
+export default function NationalMap({ nodes, routes, leadId, onSelectRoute, onOpenNairobi, heat }: { nodes: N[]; routes: R[]; leadId: number | null; onSelectRoute: (id: number) => void; onOpenNairobi?: () => void; heat?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const onSelRef = useRef(onSelectRoute); onSelRef.current = onSelectRoute;
@@ -129,19 +129,12 @@ export default function NationalMap({ nodes, routes, leadId, onSelectRoute, onOp
     if (map.isStyleLoaded()) apply(); else map.once('idle', apply);
   }, [leadId]);
 
-  // toggle the demand heatmap
-  const [heat, setHeat] = useState(false);
+  // toggle the demand heatmap (controlled from the command overlay)
   useEffect(() => {
     const map = mapRef.current; if (!map) return;
     const apply = () => { if (map.getLayer('heat')) map.setLayoutProperty('heat', 'visibility', heat ? 'visible' : 'none'); };
     if (map.isStyleLoaded()) apply(); else map.once('idle', apply);
   }, [heat]);
 
-  return (
-    <div className="sv-natmap" ref={ref}>
-      <button className={`sv-natmap-heat${heat ? ' on' : ''}`} onClick={() => setHeat((h) => !h)}>
-        <span className="dot" /> Demand heatmap
-      </button>
-    </div>
-  );
+  return <div className="sv-natmap" ref={ref} />;
 }

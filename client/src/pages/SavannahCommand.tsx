@@ -5,6 +5,7 @@ const GlobeIntro = lazy(() => import('./GlobeIntro'));
 const NairobiMap = lazy(() => import('./NairobiMap'));
 const NationalMap = lazy(() => import('./NationalMap'));
 const SimPanel = lazy(() => import('./SimPanel'));
+const Copilot = lazy(() => import('./Copilot'));
 
 // The 3D globe is a progressive enhancement: if WebGL is unavailable or the
 // scene throws, we silently fall back to the 2D intro + map (never break).
@@ -151,6 +152,8 @@ export default function SavannahCommand() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(true);
   const [simOpen, setSimOpen] = useState(false);
+  const [heat, setHeat] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(false);
   const timers = useRef<number[]>([]);
   const started = useRef(false);
   const showGlobe = useMemo(() => webglAvailable(), []);
@@ -268,7 +271,7 @@ export default function SavannahCommand() {
           <Suspense fallback={null}>
             <NationalMap nodes={plan.nodes} routes={plan.routes} leadId={lead?.id ?? null}
               onSelectRoute={(id) => { const r = plan.routes.find((x) => x.id === id); if (r) selectScenario(r); }}
-              onOpenNairobi={() => setFocus('nairobi')} />
+              onOpenNairobi={() => setFocus('nairobi')} heat={heat} />
           </Suspense>
         </div>
       )}
@@ -425,6 +428,17 @@ export default function SavannahCommand() {
         </div>
         <nav><a href="/about">Platform</a><a href="/listings">Listings</a><a href="/login">Coordinator</a></nav>
       </header>
+
+      {/* ===== Map controls ===== */}
+      {plan && showGlobe && (
+        <div className="sv-mapctl">
+          <button className={`sv-mapctl-btn${heat ? ' on' : ''}`} onClick={() => setHeat((h) => !h)}>
+            <span className="dot" /> Demand heatmap
+          </button>
+          <button className="sv-mapctl-btn" onClick={() => setSimOpen(true)}>↗ Project impact</button>
+          <button className="sv-mapctl-btn" onClick={() => setFocus('nairobi')} disabled={!nai}>⌖ Nairobi research base</button>
+        </div>
+      )}
 
       {/* ===== Narrative ===== */}
       {story && (
@@ -609,11 +623,25 @@ export default function SavannahCommand() {
         </div>
       )}
 
+      {plan && (
+        <button className={`sv-cp-launch${copilotOpen ? ' open' : ''}`} onClick={() => setCopilotOpen((o) => !o)}>
+          {copilotOpen ? '✕' : <>✦ Ask Copilot</>}
+        </button>
+      )}
+      {copilotOpen && plan && (
+        <Suspense fallback={null}><Copilot plan={plan as any} onClose={() => setCopilotOpen(false)} /></Suspense>
+      )}
+
       {simOpen && plan && (
         <Suspense fallback={null}>
           <SimPanel
             unitsPerCycle={plan.routes.reduce((s, r) => s + r.qty, 0)}
             urgentPerCycle={plan.routes.filter((r) => r.urgent).length}
+            equityShare={(() => {
+              const arid = new Set(['Turkana', 'Mandera', 'Wajir', 'Marsabit', 'Garissa', 'West Pokot', 'Samburu', 'Isiolo', 'Tana River', 'Baringo', 'Narok']);
+              const urg = plan.routes.filter((r) => r.urgent);
+              return urg.length ? Math.round((100 * urg.filter((r) => arid.has(r.to.county)).length) / urg.length) : 0;
+            })()}
             onClose={() => setSimOpen(false)} />
         </Suspense>
       )}
