@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { requireAdmin } from '../middleware/admin.middleware';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { pool } from '../config/db';
+import { mockDB } from '../mock/db';
 
+const MOCK = () => process.env.USE_MOCK_DB === 'true';
 const router = Router();
 
 // Test route to verify admin router is working
@@ -11,8 +13,9 @@ router.get('/test', (req, res) => res.json({ ok: true }));
 router.use(authMiddleware, requireAdmin);
 
 router.get('/stats', async (_req, res) => {
+  if (MOCK()) return res.json({ users: mockDB.users.length, listings: mockDB.listings.length, matches: mockDB.matches.length });
   try {
-    const q = `SELECT 
+    const q = `SELECT
       (SELECT COUNT(*)::int FROM users) as users,
       (SELECT COUNT(*)::int FROM listings) as listings,
       (SELECT COUNT(*)::int FROM matches) as matches`;
@@ -116,6 +119,10 @@ router.get('/reports/summary.csv', async (_req, res) => {
 });
 
 router.get('/users', async (_req, res) => {
+  if (MOCK()) return res.json(mockDB.users.map((u: any) => ({
+    id: u.id, email: u.email, name: u.name, role: u.role, org_name: u.org_name, org_type: u.org_type,
+    org_license_id: u.org_license_id, org_verified: u.org_verified, disabled: !!u.disabled, created_at: u.created_at || new Date().toISOString(),
+  })));
   try {
     const { rows } = await pool.query('SELECT id,email,name,role,org_name,org_type,org_license_id,org_verified,disabled,created_at FROM users ORDER BY created_at DESC LIMIT 200');
     return res.json(rows);
