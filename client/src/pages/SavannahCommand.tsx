@@ -184,7 +184,7 @@ export default function SavannahCommand() {
       const list = plan.routes.filter((r) => r.urgent);
       const cyc = list.length ? list : plan.routes;
       const i = Math.max(0, cyc.findIndex((r) => r.id === pid));
-      timers.current.push(window.setTimeout(() => run(cyc[(i + 1) % cyc.length]?.id), 10000));
+      timers.current.push(window.setTimeout(() => run(cyc[(i + 1) % cyc.length]?.id), 15000));
     }
   }
 

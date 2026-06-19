@@ -34,7 +34,7 @@ export default function NationalMap({ nodes, routes, leadId, onSelectRoute }: { 
       type: 'FeatureCollection' as const,
       features: nodes.map((n) => ({
         type: 'Feature' as const,
-        properties: { id: n.id, name: n.org_name, county: n.county, color: colorFor(n), units: Math.max(n.surplusUnits, n.needUnits), need: n.needUnits, hub: n.role === 'hub' ? 1 : 0, urgent: n.urgent ? 1 : 0 },
+        properties: { id: n.id, name: n.org_name, county: n.county, color: colorFor(n), units: Math.max(n.surplusUnits, n.needUnits), need: n.needUnits, surplus: n.surplusUnits, role: n.role, urgent: n.urgent ? 1 : 0, hub: n.role === 'hub' ? 1 : 0 },
         geometry: { type: 'Point' as const, coordinates: [n.lon, n.lat] },
       })),
     };
@@ -50,41 +50,48 @@ export default function NationalMap({ nodes, routes, leadId, onSelectRoute }: { 
       map.addLayer({ id: 'kenya-fill', type: 'fill', source: 'kenya', paint: { 'fill-color': '#f0b32e', 'fill-opacity': 0.05 } });
       map.addLayer({ id: 'kenya-line', type: 'line', source: 'kenya', paint: { 'line-color': '#f8d27a', 'line-width': 2, 'line-opacity': 0.55, 'line-blur': 0.4 } });
 
-      // Demand heatmap (need facilities weighted by shortfall) — hidden by default
-      map.addLayer({
-        id: 'heat', type: 'heatmap', source: 'fac', layout: { visibility: 'none' },
-        filter: ['>', ['get', 'need'], 0],
-        paint: {
-          'heatmap-weight': ['interpolate', ['linear'], ['get', 'need'], 0, 0.2, 400, 1],
-          'heatmap-intensity': 1.1,
-          'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 18, 8, 48],
-          'heatmap-opacity': 0.75,
-          'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
-            0, 'rgba(0,0,0,0)', 0.2, 'rgba(55,192,126,0.5)', 0.5, 'rgba(245,196,81,0.7)', 0.8, 'rgba(232,112,60,0.85)', 1, 'rgba(242,85,85,0.95)'],
-        },
-      });
-
       map.addSource('flows', { type: 'geojson', data: { type: 'FeatureCollection', features: flowFeats(routes) } as any });
       map.addLayer({ id: 'flows-glow', type: 'line', source: 'flows', layout: { 'line-cap': 'round' }, paint: { 'line-color': ['case', ['==', ['get', 'urgent'], 1], '#e8703c', '#37c07e'], 'line-width': 6, 'line-opacity': 0.12, 'line-blur': 4 } });
       map.addLayer({ id: 'flows', type: 'line', source: 'flows', layout: { 'line-cap': 'round' }, paint: { 'line-color': ['case', ['==', ['get', 'urgent'], 1], '#e8703c', '#37c07e'], 'line-width': 1.6, 'line-opacity': 0.6 } });
       map.addLayer({ id: 'flows-lead', type: 'line', source: 'flows', filter: ['==', ['get', 'id'], leadId ?? -1], layout: { 'line-cap': 'round' }, paint: { 'line-color': '#f8d27a', 'line-width': 3.4, 'line-opacity': 0.95 } });
 
       map.addSource('fac', { type: 'geojson', data: fac as any });
+      // Demand heatmap (need facilities weighted by shortfall) — under the dots, hidden by default
+      map.addLayer({
+        id: 'heat', type: 'heatmap', source: 'fac', layout: { visibility: 'none' },
+        filter: ['>', ['get', 'need'], 0],
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'need'], 0, 0.25, 6, 0.55, 40, 1],
+          'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 4, 1.6, 9, 3.2],
+          'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 34, 9, 80],
+          'heatmap-opacity': 0.9,
+          'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+            0, 'rgba(0,0,0,0)', 0.15, 'rgba(55,192,126,0.55)', 0.4, 'rgba(245,196,81,0.8)', 0.7, 'rgba(232,112,60,0.9)', 1, 'rgba(242,85,85,0.98)'],
+        },
+      });
       map.addLayer({ id: 'fac-glow', type: 'circle', source: 'fac', paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'units'], 0, 7, 800, 26], 'circle-color': ['get', 'color'], 'circle-blur': 1, 'circle-opacity': 0.35 } });
       map.addLayer({ id: 'fac', type: 'circle', source: 'fac', paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'units'], 0, 3.5, 800, 9], 'circle-color': ['get', 'color'], 'circle-stroke-color': '#0b1120', 'circle-stroke-width': 1.2 } });
       map.addLayer({ id: 'fac-label', type: 'symbol', source: 'fac', minzoom: 6.2, filter: ['==', ['get', 'hub'], 1], layout: { 'text-field': ['get', 'name'], 'text-size': 11, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'], 'text-optional': true }, paint: { 'text-color': '#f4ead6', 'text-halo-color': '#0b1120', 'text-halo-width': 1.4 } });
 
-      const pick = (e: any) => {
+      const popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true, offset: 12, className: 'sv-mappop', maxWidth: '260px' });
+      map.on('click', 'fac', (e) => {
         const f = e.features?.[0]; if (!f) return;
-        let rid = f.properties?.id;
-        if (f.layer.id === 'fac') {
-          const r = routesRef.current.find((x) => x.to.id === rid || x.from.id === rid);
-          rid = r?.id;
-        }
+        const p: any = f.properties;
+        const roleLabel = p.role === 'hub' ? 'Surplus hub' : p.role === 'mixed' ? 'Hub + need' : (p.urgent ? 'Urgent need' : 'In need');
+        const stock = Number(p.surplus) > 0 ? `${p.surplus} units surplus` : Number(p.need) > 0 ? `${p.need} units short` : 'No active listing';
+        const conn = routesRef.current.filter((x) => x.to.id === p.id || x.from.id === p.id).length;
+        popup.setLngLat((f.geometry as any).coordinates).setHTML(
+          `<div class="sv-mappop-in"><span class="r-${p.role}">${roleLabel}</span><h4>${p.name}</h4>` +
+          `<div class="meta">${p.county} County · ${stock}</div>` +
+          `<div class="meta">${conn} live transfer${conn === 1 ? '' : 's'} connected</div></div>`
+        ).addTo(map);
+        const r = routesRef.current.find((x) => x.to.id === p.id || x.from.id === p.id);
+        if (r) onSelRef.current(r.id);
+      });
+      map.on('click', 'flows', (e) => {
+        const rid = e.features?.[0]?.properties?.id;
         if (rid != null) onSelRef.current(rid);
-      };
-      map.on('click', 'fac', pick);
-      map.on('click', 'flows', pick);
+      });
       for (const id of ['fac', 'flows']) {
         map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
         map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });

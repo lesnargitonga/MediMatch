@@ -81,10 +81,18 @@ export default function NairobiMap({ nodes, routes, selectedId, onSelect, filter
       map.addLayer({ id: 'fac', type: 'circle', source: 'fac', paint: { 'circle-radius': ['interpolate', ['linear'], ['get', 'units'], 0, 4.5, 250, 11], 'circle-color': ['get', 'color'], 'circle-stroke-color': '#0b1120', 'circle-stroke-width': 1.6 } });
       map.addLayer({ id: 'fac-label', type: 'symbol', source: 'fac', layout: { 'text-field': ['get', 'name'], 'text-size': 11, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'], 'text-optional': true }, paint: { 'text-color': '#f4ead6', 'text-halo-color': '#0b1120', 'text-halo-width': 1.4 } });
 
+      const popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true, offset: 12, className: 'sv-mappop', maxWidth: '260px' });
       map.on('click', 'fac', (e) => {
-        const id = e.features?.[0]?.properties?.id;
+        const f = e.features?.[0]; if (!f) return;
+        const id = f.properties?.id;
         const n = nodesRef.current.find((x) => x.id === id);
-        if (n) onSelectRef.current(n);
+        if (!n) return;
+        const roleLabel = n.role === 'hub' ? 'Surplus hub' : n.role === 'mixed' ? 'Hub + need' : (n.urgent ? 'Urgent need' : 'In need');
+        const stock = n.surplusUnits > 0 ? `${n.surplusUnits} units surplus` : n.needUnits > 0 ? `${n.needUnits} units short` : 'No active listing';
+        popup.setLngLat((f.geometry as any).coordinates).setHTML(
+          `<div class="sv-mappop-in"><span class="r-${n.role}">${roleLabel}</span><h4>${n.org_name}</h4><div class="meta">${n.county} County · ${stock}</div></div>`
+        ).addTo(map);
+        onSelectRef.current(n);
       });
       map.on('mouseenter', 'fac', () => { map.getCanvas().style.cursor = 'pointer'; });
       map.on('mouseleave', 'fac', () => { map.getCanvas().style.cursor = ''; });
