@@ -3,6 +3,7 @@ import API from '../services/api';
 
 const GlobeIntro = lazy(() => import('./GlobeIntro'));
 const NairobiMap = lazy(() => import('./NairobiMap'));
+const NationalMap = lazy(() => import('./NationalMap'));
 
 // The 3D globe is a progressive enhancement: if WebGL is unavailable or the
 // scene throws, we silently fall back to the 2D intro + map (never break).
@@ -223,7 +224,17 @@ export default function SavannahCommand() {
       <div className="sv-grain" aria-hidden />
       <div className="sv-glow" aria-hidden />
 
-      {/* ===== Bespoke SVG map ===== */}
+      {/* ===== Real national map (MapLibre) — falls back to the bespoke SVG ===== */}
+      {plan && showGlobe && (
+        <div className={`sv-natwrap${landing ? ' sv-natwrap--land' : ''}`}>
+          <Suspense fallback={null}>
+            <NationalMap nodes={plan.nodes} routes={plan.routes} leadId={lead?.id ?? null}
+              onSelectRoute={(id) => { const r = plan.routes.find((x) => x.id === id); if (r) selectScenario(r); }} />
+          </Suspense>
+        </div>
+      )}
+      {/* Bespoke SVG map — fallback when WebGL is unavailable */}
+      {(!showGlobe) && (
       <svg className={`sv-map${landing ? ' sv-map--land' : ''}`} viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid meet" aria-hidden>
         <defs>
           <radialGradient id="svLand" cx="42%" cy="38%" r="75%">
@@ -340,6 +351,7 @@ export default function SavannahCommand() {
           </g>
         </g>
       </svg>
+      )}
 
       {/* ===== Intro: a hand flips the globe, taps Kenya, then the map ===== */}
       {intro && plan && showGlobe && (

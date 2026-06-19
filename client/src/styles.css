@@ -1914,3 +1914,14 @@ blockquote p::after { content: '"'; color: var(--primary); font-size: 1.4rem; li
 .auth .btn-primary:hover { transform: translateY(-2px); }
 .auth .btn-primary:disabled { opacity: 0.6; transform: none; }
 .auth .auth-card form { max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+
+/* real national map behind the command overlays */
+.sv-natwrap { position: absolute; inset: 0; z-index: 0; }
+.sv-natwrap .sv-natmap, .sv-natmap { position: absolute; inset: 0; }
+.sv-natwrap canvas { outline: none; }
+.sv-natwrap--land { animation: svNatLand 1.2s var(--ease-out) both; }
+@keyframes svNatLand { 0% { opacity: 0; transform: scale(1.04); } 100% { opacity: 1; transform: none; } }
+.sv-natwrap .maplibregl-ctrl-group { background: rgba(10,18,34,0.86); border: 1px solid rgba(255,255,255,0.12); box-shadow: none; }
+.sv-natwrap .maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(0.92) sepia(0.2) saturate(1.4) hue-rotate(2deg); }
+.sv-natwrap .maplibregl-ctrl-attrib { background: rgba(10,18,34,0.5); font-size: 9px; }
+.sv-natwrap .maplibregl-ctrl-attrib a { color: var(--sand); }
