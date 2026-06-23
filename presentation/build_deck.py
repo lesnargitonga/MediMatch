@@ -6,6 +6,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.util import Inches, Pt
+from pptx.oxml.ns import qn
 
 
 ROOT = Path(__file__).resolve().parent
@@ -26,8 +27,51 @@ MINT = RGBColor(67, 213, 174)
 RED = RGBColor(255, 91, 102)
 BLUE = RGBColor(82, 155, 255)
 WHITE = RGBColor(255, 255, 255)
+VIOLET = RGBColor(124, 92, 255)
+TEAL = RGBColor(67, 213, 174)
 
 FONT = "Noto Sans"
+
+
+def set_gradient(shape, stops, angle=0):
+    """Linear gradient fill. stops: list of (pos0-100, RGBColor[, alpha0-100])."""
+    sp = shape.fill._xPr
+    for tag in ('a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill'):
+        for el in sp.findall(qn(tag)):
+            sp.remove(el)
+    grad = sp.makeelement(qn('a:gradFill'), {})
+    gsLst = grad.makeelement(qn('a:gsLst'), {})
+    for pos, color, *alpha in stops:
+        gs = grad.makeelement(qn('a:gs'), {'pos': str(int(pos * 1000))})
+        c = grad.makeelement(qn('a:srgbClr'), {'val': str(color)})
+        if alpha:
+            c.append(grad.makeelement(qn('a:alpha'), {'val': str(int(alpha[0] * 1000))}))
+        gs.append(c)
+        gsLst.append(gs)
+    grad.append(gsLst)
+    grad.append(grad.makeelement(qn('a:lin'), {'ang': str(int(angle * 60000)), 'scaled': '1'}))
+    ln = sp.find(qn('a:ln'))
+    (ln.addprevious(grad) if ln is not None else sp.append(grad))
+
+
+def set_radial(shape, inner, outer, inner_a=40, outer_a=0):
+    """Radial (circular) gradient — used for soft background glows."""
+    sp = shape.fill._xPr
+    for tag in ('a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill'):
+        for el in sp.findall(qn(tag)):
+            sp.remove(el)
+    grad = sp.makeelement(qn('a:gradFill'), {})
+    gsLst = grad.makeelement(qn('a:gsLst'), {})
+    for pos, color, al in ((0, inner, inner_a), (100, outer, outer_a)):
+        gs = grad.makeelement(qn('a:gs'), {'pos': str(pos * 1000)})
+        c = grad.makeelement(qn('a:srgbClr'), {'val': str(color)})
+        c.append(grad.makeelement(qn('a:alpha'), {'val': str(al * 1000)}))
+        gs.append(c)
+        gsLst.append(gs)
+    grad.append(gsLst)
+    grad.append(grad.makeelement(qn('a:path'), {'path': 'circle'}))
+    ln = sp.find(qn('a:ln'))
+    (ln.addprevious(grad) if ln is not None else sp.append(grad))
 
 
 def rect(slide, x, y, w, h, fill, radius=True, line=None, transparency=0):
@@ -140,7 +184,7 @@ def title(slide, text, y=Inches(.67), size=30, color=CREAM):
 
 
 def footer(slide, n, source=None):
-    textbox(slide, f"MEDIMATCH  /  {n:02d}", Inches(.55), Inches(7.13), Inches(2.0), Inches(.18), 8, MUTED, True)
+    textbox(slide, "MEDIMATCH", Inches(.55), Inches(7.13), Inches(2.0), Inches(.18), 8, MUTED, True)
     if source:
         textbox(slide, source, Inches(2.6), Inches(7.08), Inches(10.15), Inches(.28), 7.5, MUTED, False, PP_ALIGN.RIGHT)
 
@@ -187,6 +231,31 @@ def showcase(slide, img, caption, h=5.55, y=1.32):
             12, MUTED, False, PP_ALIGN.CENTER)
 
 
+def section_divider(presentation, num, name, subtitle, accent):
+    """A full-bleed section break: giant ghost number, accent rule, section title."""
+    s = presentation.slides.add_slide(blank)
+    bg(s)
+    # oversized faint section numeral, right side
+    ghost = s.shapes.add_textbox(Inches(6.7), Inches(.2), Inches(6.5), Inches(7.1))
+    tf = ghost.text_frame
+    tf.word_wrap = False
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.RIGHT
+    r = p.add_run()
+    r.text = num
+    r.font.name = FONT
+    r.font.size = Pt(290)
+    r.font.bold = True
+    r.font.color.rgb = PANEL_2
+    # accent rule + label + title
+    rect(s, Inches(.85), Inches(3.02), Inches(.85), Inches(.13), accent, False)
+    textbox(s, f"SECTION {num}", Inches(.88), Inches(3.32), Inches(6), Inches(.3), 14, accent, True)
+    textbox(s, name, Inches(.82), Inches(3.74), Inches(8.6), Inches(1.4), 46, CREAM, True)
+    textbox(s, subtitle, Inches(.87), Inches(5.18), Inches(7.8), Inches(.6), 17, MUTED)
+    return s
+
+
 prs = Presentation()
 prs.slide_width = W
 prs.slide_height = H
@@ -209,9 +278,13 @@ textbox(s, "Lesnar Gitonga  ·  USIU–Africa  ·  23 June 2026", Inches(.88), I
 textbox(s, "Conference demo · synthetic inventory · no patient records", Inches(.88), Inches(5.85), Inches(6.8), Inches(.28), 10, MUTED)
 
 
+# Divider — Section 01
+section_divider(prs, "01", "The coordination gap", "Why medical-supply redistribution fails today", ORANGE)
+
+
 # 2 — Problem and evidence
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "01  /  The coordination gap")
+kicker(s, "The coordination gap")
 textbox(s, "The problem is not only scarcity.\nIt is disconnected visibility.", Inches(.55), Inches(.67), Inches(12.2), Inches(.9), 26, CREAM, True)
 textbox(s, "Facilities can hold usable surplus while others face urgent shortfalls. MediMatch makes both sides visible in one operating picture.", Inches(.58), Inches(1.62), Inches(12.0), Inches(.4), 14, MUTED)
 metric(s, "56.3%", "face weekly or monthly stockouts", Inches(.58), Inches(2.25), Inches(2.85), ORANGE)
@@ -228,9 +301,13 @@ textbox(s, "The baseline is historical; the deck does not present it as the curr
 footer(s, 2, "Sources: MediMatch Nairobi County field study (n=64 healthcare professionals, 80% response, 2025); KEMSA order-fill rate 57%, mid-2025")
 
 
+# Divider — Section 02
+section_divider(prs, "02", "The field evidence", "What 64 healthcare professionals told us", TEAL)
+
+
 # 3 — Survey: respondent profile (Q1–Q3)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "02  /  The field evidence")
+kicker(s, "The field evidence")
 title(s, "Who we surveyed", size=28)
 textbox(s, "64 healthcare professionals  ·  Nairobi County  ·  80% response rate  ·  unedited Google Forms output",
         Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
@@ -247,7 +324,7 @@ footer(s, 3, "Source: MediMatch Nairobi County field study · n=64 · 2025")
 
 # 4 — Survey: the current system (Q4–Q6)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "03  /  The field evidence")
+kicker(s, "The field evidence")
 title(s, "The current system, in their words", size=28)
 textbox(s, "Questions 4–6  ·  frequency of stockouts, how surplus is handled, and how they rate today’s methods",
         Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
@@ -263,7 +340,7 @@ footer(s, 4, "Source: MediMatch survey, n=64 · Q4 and Q6 are the abstract’s 5
 
 # 5 — Survey: challenges, value & readiness (Q7–Q9)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "04  /  The field evidence")
+kicker(s, "The field evidence")
 title(s, "Challenges, value & readiness", size=28)
 textbox(s, "Questions 7–9  ·  the main system challenges, the benefits they value, and willingness to pilot",
         Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
@@ -277,9 +354,13 @@ survey_row(s, [
 footer(s, 5, "Source: MediMatch survey, n=64 · Q7 and Q9 are the abstract’s 57.8% and 89.1% figures, shown from the raw responses")
 
 
+# Divider — Section 03
+section_divider(prs, "03", "The platform", "From redistribution engine to live demonstration", VIOLET)
+
+
 # 6 — How the engine works (concept, no screenshots)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "05  /  How it works")
+kicker(s, "How it works")
 title(s, "How the redistribution engine works", size=27)
 textbox(s, "Every listing becomes a geocoded surplus offer or an urgent request, then flows through a transparent pipeline.",
         Inches(.55), Inches(1.22), Inches(12.2), Inches(.3), 14, MUTED)
@@ -323,7 +404,7 @@ footer(s, 6, "Explainable matching · plain-language situation briefs · human v
 
 # 7 — Architecture
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "06  /  Architecture and safeguards")
+kicker(s, "Architecture and safeguards")
 textbox(s, "A production-minded spatial stack\nwith a human decision boundary", Inches(.55), Inches(.66), Inches(12.2), Inches(1.05), 27, CREAM, True, PP_ALIGN.CENTER)
 
 boxes = [
@@ -349,7 +430,7 @@ footer(s, 7, "Production data layer: PostgreSQL 15 + PostGIS 3")
 
 # 8 — Live demonstration
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "07  /  Live demonstration")
+kicker(s, "Live demonstration")
 title(s, "See it run — live", size=30)
 textbox(s, "Switching to the running platform.", Inches(.55), Inches(1.25), Inches(12.2), Inches(.3), 15, MUTED)
 demo = [
@@ -370,7 +451,7 @@ footer(s, 8, "Recommended demo uses curated local briefs and synthetic inventory
 
 # 9 — Close
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "08  /  Closing")
+kicker(s, "Closing")
 rich_text(s, [
     ("Location is not just a field.\n", CREAM, True, 35),
     ("It is a coordination advantage.", MINT, True, 35),
@@ -408,7 +489,7 @@ def ref_column(slide, items, x, y, w, size=10.5):
         p.line_spacing = 1.04
 
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "09  /  References")
+kicker(s, "References")
 title(s, "References & sources", size=27)
 left_refs = [
     "Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. MIS Quarterly, 13(3), 319–340.",
@@ -432,15 +513,38 @@ footer(s, 10, "Primary data: MediMatch Nairobi County field study (n=64 healthca
 
 
 def polish(presentation):
-    """Final pass: kill spell-check red squiggles and add a consistent top accent."""
-    for idx, slide in enumerate(presentation.slides):
-        # subtle gold hairline along the top edge of every content slide (not the cover)
+    """Final pass: soft background glow, gradient accent bar, progress meter, no red squiggles."""
+    RECT = MSO_AUTO_SHAPE_TYPE.RECTANGLE
+    OVAL = MSO_AUTO_SHAPE_TYPE.OVAL
+    slides = list(presentation.slides)
+    total = len(slides)
+    glow_cols = [VIOLET, TEAL, ORANGE]
+    for idx, slide in enumerate(slides):
+        # gradient accent bar across the very top of EVERY slide
+        bar = slide.shapes.add_shape(RECT, 0, 0, W, Inches(.085))
+        bar.line.fill.background()
+        bar.shadow.inherit = False
+        set_gradient(bar, [(0, GOLD), (50, TEAL), (100, VIOLET)], angle=0)
         if idx != 0:
-            bar = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.RECTANGLE, 0, 0, W, Inches(.06))
-            bar.fill.solid()
-            bar.fill.fore_color.rgb = GOLD
-            bar.line.fill.background()
-            bar.shadow.inherit = False
+            spTree = slide.shapes._spTree
+            # 1) soft radial glow blooming from a corner, tucked behind all content
+            col = glow_cols[idx % len(glow_cols)]
+            corner = idx % 2 == 0
+            gx = 8.7 if corner else -2.3
+            glow = slide.shapes.add_shape(OVAL, Inches(gx), Inches(2.4), Inches(7.6), Inches(7.6))
+            glow.line.fill.background()
+            glow.shadow.inherit = False
+            set_radial(glow, col, BG, 26, 0)
+            el = glow._element
+            spTree.remove(el)
+            spTree.insert(3, el)  # just above the background fill, below content
+            # 3) thin progress meter along the bottom edge
+            track = slide.shapes.add_shape(RECT, 0, Inches(7.45), W, Inches(.05))
+            track.fill.solid(); track.fill.fore_color.rgb = PANEL_2
+            track.line.fill.background(); track.shadow.inherit = False
+            prog = slide.shapes.add_shape(RECT, 0, Inches(7.45), int(W * (idx + 1) / total), Inches(.05))
+            prog.line.fill.background(); prog.shadow.inherit = False
+            set_gradient(prog, [(0, GOLD), (100, TEAL)], angle=0)
         # disable proofing on every run so proper nouns stop getting red-underlined
         for shape in slide.shapes:
             if not shape.has_text_frame:
