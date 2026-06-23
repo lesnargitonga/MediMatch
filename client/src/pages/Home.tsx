@@ -5,10 +5,10 @@ import API from '../services/api';
 import { useInView, Counter } from '../components/Reveal';
 
 const FIELD = [
-  { v: '55.7%', d: 'face stockouts at least monthly' },
-  { v: '80.8%', d: 'call current systems ineffective' },
-  { v: '57.7%', d: 'report routine supply wastage' },
-  { v: '90.3%', d: 'would adopt MediMatch' },
+  { v: '56.3%', d: 'face weekly or monthly stockouts' },
+  { v: '82.8%', d: 'call manual redistribution ineffective or slow' },
+  { v: '57.8%', d: 'report wastage of valid supplies' },
+  { v: '89.1%', d: 'willing to pilot the system' },
 ];
 
 const PIPELINE = [
@@ -89,7 +89,7 @@ export default function Home() {
         <div className="lx-hero-stats">
           <div><b><Counter end={stats.users || 39} /></b><span>Facilities connected</span></div>
           <div><b><Counter end={stats.listings || 60} /></b><span>Surplus &amp; need listings</span></div>
-          <div><b>52</b><span>Professionals surveyed</span></div>
+          <div><b>64</b><span>Professionals surveyed</span></div>
           <div><b>Urgent-first</b><span>Equity triage</span></div>
         </div>
       </section>
@@ -107,7 +107,7 @@ export default function Home() {
             <div key={s.v}><b>{s.v}</b><span>{s.d}</span></div>
           ))}
         </div>
-        <p className="lx-foot">Survey of 52 clinical, pharmacy &amp; administrative staff, Nairobi County (2025). Nationally, KEMSA’s order-fill rate sat at just <b>57%</b> mid-2025.</p>
+        <p className="lx-foot">Survey of 64 healthcare professionals across Nairobi County, 80% response rate (2025). Nationally, KEMSA’s order-fill rate sat at just <b>57%</b> mid-2025.</p>
       </section>
 
       {/* ===== Engine ===== */}
@@ -174,7 +174,7 @@ export default function Home() {
           <div className="lx-eyebrow">Who we are</div>
           <h2 className="lx-h2 sm">Built in Kenya, engineered for Africa</h2>
           <p className="lx-lead">
-            MediMatch is the work of <b>Lesnar Gitonga</b>, United States International University-Africa (USIU-Africa) —
+            MediMatch is the work of <b>Dr Lesnar Gitonga</b>, United States International University-Africa (USIU-Africa) —
             research presented as <em>“Leveraging Geospatial Technology for Equitable Medical Supply Redistribution:
             A Case Study of Nairobi County.”</em> The mission: give African health systems the coordination layer that
             ensures no usable supply goes to waste while a clinic down the road runs out.

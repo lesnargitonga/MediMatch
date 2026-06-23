@@ -19,7 +19,7 @@
 ### 🔬 Nairobi research-base deep-dive
 - Click the **Nairobi pin** → a street-scale close-up of ~24 city facilities on the real Nairobi map, with intra-city flows.
 - An **ops console**: filter the network by supply category (equipment / medication / supplies) and urgency, with live stat pills and a legend.
-- The **field-study findings** surfaced inline: 52 professionals surveyed, 55.7% face monthly stockouts, 80.8% call current systems ineffective, 57.7% report wastage, 90.3% would adopt — alongside KEMSA's 57% national order-fill rate.
+- The **field-study findings** surfaced inline: 64 healthcare professionals surveyed (80% response), 56.3% face weekly/monthly stockouts, 82.8% call manual redistribution ineffective or slow, 57.8% report wastage of valid supplies, 89.1% willing to pilot — alongside KEMSA's 57% national order-fill rate.
 
 ### 📈 Impact projection simulator
 Extrapolates the engine's live throughput against **real, citable baselines** over **1 month / 6 months / 1 year**: units redistributed, patient courses enabled, stockouts averted, units saved from expiry, demand coverage trajectory (**57% → 85%**), value recovered, equity reach — with a status-quo→MediMatch comparison and assumptions on screen.
@@ -120,7 +120,7 @@ You're presenting online from your own machine — the safest setup. A 3-minute 
 - The globe intro → national map (Kenya highlighted, real road flows).
 - Toggle the **Demand heatmap** (top-right controls).
 - Click a **facility** → popup.
-- Open **Nairobi research base** → filters, the 52-facility study stats.
+- Open **Nairobi research base** → filters, the 64-professional study stats.
 - **Project impact over time** → 1 month vs 1 year.
 - **Ask Copilot** → "which facilities need urgent approval".
 - The landing page (`/about`) and listings for the platform story.

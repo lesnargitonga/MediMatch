@@ -70,12 +70,12 @@ const C = { gold: '#f0b32e', gold2: '#f8d27a', acacia: '#37c07e', terra: '#e8703
 
 // Real findings from the MediMatch field study (Nairobi County, 2025).
 const RESEARCH = {
-  n: 52,
+  n: 64,
   stats: [
-    { v: '55.7%', label: 'face stockouts at least monthly' },
-    { v: '80.8%', label: 'rate current systems ineffective' },
-    { v: '57.7%', label: 'report routine supply wastage' },
-    { v: '90.3%', label: 'would adopt MediMatch' },
+    { v: '56.3%', label: 'face weekly or monthly stockouts' },
+    { v: '82.8%', label: 'rate manual methods ineffective or slow' },
+    { v: '57.8%', label: 'report wastage of valid supplies' },
+    { v: '89.1%', label: 'willing to pilot the system' },
   ],
 };
 
@@ -621,7 +621,7 @@ export default function SavannahCommand() {
                   <div key={s.label}><b>{s.v}</b><span>{s.label}</span></div>
                 ))}
               </div>
-              <p className="sv-research-foot">Survey of {RESEARCH.n} clinical, pharmacy & administrative staff across Nairobi County hospitals (2025). Nationally, KEMSA’s order-fill rate sat at just <b>57%</b> mid-2025 — the gap MediMatch closes.</p>
+              <p className="sv-research-foot">Survey of {RESEARCH.n} healthcare professionals across Nairobi County, 80% response rate (2025). Nationally, KEMSA’s order-fill rate sat at just <b>57%</b> mid-2025 — the gap MediMatch closes.</p>
             </div>
           </div>
         </div>

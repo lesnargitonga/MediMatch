@@ -41,7 +41,7 @@ export default function Login() {
 					<div className="auth-stats">
 						<div><b>50</b><span>Nairobi facilities</span></div>
 						<div><b>96%</b><span>Demand coverage</span></div>
-						<div><b>90.3%</b><span>Would adopt</span></div>
+						<div><b>89.1%</b><span>Would adopt</span></div>
 					</div>
 				</aside>
 				<div className="auth-card">

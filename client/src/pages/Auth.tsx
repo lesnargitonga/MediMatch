@@ -58,8 +58,8 @@ export default function Auth() {
           <h1>Put your surplus<br /><span className="hl">to work.</span></h1>
           <p>Create a facility account to list surplus, flag urgent needs and receive ranked, verified transfer recommendations.</p>
           <div className="auth-stats">
-            <div><b>57.7%</b><span>Report wastage</span></div>
-            <div><b>55.7%</b><span>Monthly stockouts</span></div>
+            <div><b>57.8%</b><span>Report wastage</span></div>
+            <div><b>56.3%</b><span>Weekly–monthly stockouts</span></div>
             <div><b>Equity</b><span>Urgent-first</span></div>
           </div>
         </aside>

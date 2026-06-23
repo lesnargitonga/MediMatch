@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 /* Impact projection — "if this ran for real, for N months". The selling point.
- * Grounded in citable baselines (KEMSA order-fill 57%, mid-2025; a 52-facility
- * Nairobi field study: 55.7% monthly stockouts, 57.7% wastage) and extrapolated
+ * Grounded in citable baselines (KEMSA order-fill 57%, mid-2025; a 64-professional
+ * Nairobi field study: 56.3% monthly stockouts, 57.8% wastage) and extrapolated
  * from the engine's own live throughput. A transparent model, assumptions shown. */
 
 const BASE_COVERAGE = 57;     // KEMSA national order-fill rate, mid-2025 (%)
 const CEIL_COVERAGE = 86;     // projected ceiling as facilities onboard
-const BASE_STOCKOUT = 55.7;   // % facilities facing monthly stockouts (survey)
-const BASE_WASTAGE = 57.7;    // % facilities reporting routine wastage (survey)
+const BASE_STOCKOUT = 56.3;   // % facilities facing monthly stockouts (survey)
+const BASE_WASTAGE = 57.8;    // % facilities reporting routine wastage (survey)
 const CYCLES_PER_MONTH = 4;   // weekly coordination cycles
 const WASTAGE_SHARE = 0.42;   // share of moved units recovered from near-expiry surplus
 const VALUE_PER_UNIT = 1150;  // KES, blended avg value of a redistributed unit (estimate)
@@ -58,7 +58,7 @@ export default function SimPanel({ unitsPerCycle, urgentPerCycle, equityShare, o
         <div className="sim-head">
           <span className="sv-eyebrow"><i className="sv-live" /> Impact projection · real baselines</span>
           <h2>If MediMatch ran for {TF.find((t) => t.k === months)?.label}</h2>
-          <p>Modelled from KEMSA's <b>57%</b> national order-fill rate (mid-2025) and a <b>52-facility</b> Nairobi field study, extrapolating the engine's own live throughput.</p>
+          <p>Modelled from KEMSA's <b>57%</b> national order-fill rate (mid-2025) and a <b>64-professional</b> Nairobi field study, extrapolating the engine's own live throughput.</p>
         </div>
 
         <div className="sim-tf">
@@ -96,7 +96,7 @@ export default function SimPanel({ unitsPerCycle, urgentPerCycle, equityShare, o
           <div className="sim-compare">
             <div className="sim-chart-h"><span>Status quo → with MediMatch</span></div>
             <Row label="Order-fill rate" from={`${BASE_COVERAGE}%`} to={`${p.coverage}%`} good />
-            <Row label="Facilities w/ monthly stockouts" from={`${BASE_STOCKOUT}%`} to={`${Math.round(p.stockoutNow)}%`} />
+            <Row label="Facilities w/ weekly–monthly stockouts" from={`${BASE_STOCKOUT}%`} to={`${Math.round(p.stockoutNow)}%`} />
             <Row label="Routine supply wastage" from={`${BASE_WASTAGE}%`} to={`${Math.round(p.wasteNow)}%`} />
             <div className="sim-equity">
               <b>{equityShare}%</b> of urgent transfers reach arid &amp; marginalised counties — Turkana, Mandera, Wajir, Marsabit, Garissa, West Pokot.
