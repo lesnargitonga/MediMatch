@@ -16,47 +16,55 @@ Do not describe MediMatch as a clinical decision system. Call it a public-health
 
 The 57% KEMSA figure is a historical baseline from mid-2025, not the current 2026 rate.
 
-## 3. The field evidence — 60 seconds
+## 3. The field evidence — survey results — 70 seconds
 
-“We engaged 64 healthcare professionals across Nairobi County, with an 80% response rate. The findings are stark: 56.3% experience stockouts on a weekly or monthly basis; 82.8% rate the current manual, ad-hoc redistribution as ineffective or slow; 57.8% identify wastage of valid medical supplies as a primary operational challenge; and 89.1% are willing to pilot the platform. The need is not contested — it is quantified by the people who run the supply rooms.”
+These are real, unedited Google Forms charts (n=64). Each maps to a headline figure in the abstract:
+- Stockouts: 12.5% weekly + 43.8% monthly = **56.3%** weekly or monthly.
+- Effectiveness: 23.4% ineffective + 59.4% slow = **82.8%** ineffective or slow.
+- Challenges: wastage of valid supplies cited by 37 respondents = **57.8%**.
+- Pilot: 57.8% Yes + 31.3% Maybe = **89.1%** willing to pilot.
 
-These are the four headline figures printed in the abstract. State them as published; do not introduce a different sample size.
+“We engaged 64 healthcare professionals across Nairobi County, with an 80% response rate. The findings are stark — and these are the raw survey charts, not a redrawn summary. 56.3% face weekly or monthly stockouts; 82.8% rate current methods ineffective or slow; 57.8% cite wastage of valid supplies; and 89.1% are willing to pilot. The need is not contested — it is quantified by the people who run the supply rooms.”
 
-## 4. National operating picture — 60 seconds
+## 4. Respondent profile — 40 seconds
+
+“Who answered matters. Half are clinical staff — nurses and pharmacists who handle stock daily — alongside administrators and technical personnel. The workforce is predominantly under 40 and digitally fluent, and gender is balanced with a slight female majority. Today they cope with ad-hoc methods: informal redistribution, returns to KEMSA, and WhatsApp. That is the gap MediMatch formalises.”
+
+## 5. National operating picture — 60 seconds
 
 “The national command floor brings demand, surplus, routes and operational context into one view. The workflow is detect, rank, route and verify. The live demo uses real Kenyan facility names and approximate geocodes, with synthetic inventory.”
 
-## 5. Demand heatmap — 55 seconds
+## 6. Demand heatmap — 55 seconds
 
 “The heatmap reveals concentration. It stops us treating every request as an isolated ticket and helps the coordinator see clusters, nearby hubs and feasible corridors. Distance matters, but it is not the only signal.”
 
-## 6. Nairobi research base — 70 seconds
+## 7. Nairobi research base — 70 seconds
 
 “Nairobi is the research base and the street-scale test case. Here the same logic works at facility level: detect shortfalls, rank candidate hubs by distance, urgency and product fit, then inspect the route on real roads.”
 
 Mention that inventory values are demonstration data. Avoid presenting the onscreen totals as deployed real-world performance.
 
-## 7. Explainable matching — 65 seconds
+## 8. Explainable matching — 65 seconds
 
 “A good match is not simply the nearest facility. It also needs the right product, enough quantity, a verified source and a practical route. MediMatch exposes those reasons in the situation brief, so the coordinator can challenge the recommendation.”
 
 “The demo-safe brief is deterministic and grounded in the plan data. Claude can be enabled for richer analysis, but the presentation does not depend on an API key.”
 
-## 8. Impact projection — 75 seconds
+## 9. Impact projection — 75 seconds
 
 Lead with the disclaimer: “This is a transparent model, not measured impact and not a guarantee.”
 
 Then say: “At the engine’s current synthetic throughput, a one-year projection extrapolates from the 57% KEMSA baseline and the 64-professional field study — redistributed units, stockouts averted, units saved from expiry and demand coverage rising from 57% toward the mid-80s. Every assumption is displayed on screen.”
 
-## 9. Copilot — 55 seconds
+## 10. Copilot — 55 seconds
 
 “The Copilot is not a general chatbot. It answers from the live coordination state: what needs approval, what is moving, where a shortfall exists and which hubs have surplus. Its role is to compress operational state, not to replace judgment.”
 
-## 10. Architecture and safeguards — 60 seconds
+## 11. Architecture and safeguards — 60 seconds
 
 “The experience is React and MapLibre. The API is Node and Express. Spatial persistence is PostgreSQL and PostGIS, with routing and map services around it. The intelligence layer can use curated fallbacks or Claude. The important boundary is the human coordinator: no diagnosis and no autonomous transfer.”
 
-## 11. Close and transition to demo — 30 seconds
+## 12. Close and transition to demo — 30 seconds
 
 “MediMatch turns location from a passive data field into a coordination advantage, in service of equitable access and SDG 12. Let me show the live workflow.”
 
