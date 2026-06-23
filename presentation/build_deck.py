@@ -393,6 +393,44 @@ textbox(s, "Thank you", Inches(7.55), Inches(5.05), Inches(4.5), Inches(.4), 18,
 footer(s, 9, "Dr Lesnar Gitonga · USIU-Africa · Global Public Health 2026")
 
 
+# 10 — References
+def ref_column(slide, items, x, y, w, size=10.5):
+    box = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(5.4))
+    tf = box.text_frame
+    tf.word_wrap = True
+    for i, it in enumerate(items):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.text = it
+        p.font.name = FONT
+        p.font.size = Pt(size)
+        p.font.color.rgb = MUTED
+        p.space_after = Pt(9)
+        p.line_spacing = 1.04
+
+s = prs.slides.add_slide(blank); bg(s)
+kicker(s, "09  /  References")
+title(s, "References & sources", size=27)
+left_refs = [
+    "Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. MIS Quarterly, 13(3), 319–340.",
+    "HealthcareMEA. (2025). Supply chain challenges and the impact of wastage in East African healthcare.",
+    "Kenya Medical Supplies Authority (KEMSA). (2025). Supply chain performance and order-fill rates: Mid-year report 2025. Nairobi: KEMSA.",
+    "Kenya Ministry of Health. (2023). National health supply chain strategy and universal health coverage. Nairobi: Ministry of Health.",
+    "Kenya News Agency. (2025). Addressing stockouts: Inter-county redistribution measures.",
+    "Lee, H. L., Padmanabhan, V., & Whang, S. (1997). Information distortion in a supply chain: The bullwhip effect. Management Science, 43(4), 546–558.",
+]
+right_refs = [
+    "MedShare. (2024). Recovering surplus medical supplies: Global impact report.",
+    "Ministry of Health Kenya. (2020). Kenya National e-Health Policy 2016–2030. Nairobi: Ministry of Health.",
+    "Mugenda, O. M., & Mugenda, A. G. (2003). Research methods: Quantitative and qualitative approaches. Nairobi: Acts Press.",
+    "Nation Africa. (2024). Global Fund audit reveals inconsistencies in Kenya’s stock management. Daily Nation.",
+    "NHS England. (2022). NHS supply chain redistribution programme: Lessons from the COVID-19 pandemic. London: NHS.",
+    "Republic of Kenya. (2019). The Data Protection Act. Nairobi: Government Printer.",
+]
+ref_column(s, left_refs, .58, 1.55, 5.95)
+ref_column(s, right_refs, 6.83, 1.55, 5.95)
+footer(s, 10, "Primary data: MediMatch Nairobi County field study (n=64 healthcare professionals, 80% response, 2025)")
+
+
 prs.core_properties.title = "MediMatch — Geospatial Intelligence for Medical-Supply Redistribution"
 prs.core_properties.subject = "Conference presentation"
 prs.core_properties.author = "Lesnar Gitonga"
