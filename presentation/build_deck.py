@@ -277,70 +277,53 @@ survey_row(s, [
 footer(s, 5, "Source: MediMatch survey, n=64 · Q7 and Q9 are the abstract’s 57.8% and 89.1% figures, shown from the raw responses")
 
 
-# 6 — National operating picture
+# 6 — How the engine works (concept, no screenshots)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "05  /  National command floor")
-title(s, "From isolated reports to one national operating picture", size=27)
-showcase(s, ASSETS / "app-national.png",
-         "Detect → Rank → Route → Verify  ·  real Kenyan facility geocodes  ·  road-routed flows")
-footer(s, 6, "Live app: Savannah Command · MapLibre + CARTO + OSRM")
+kicker(s, "05  /  How it works")
+title(s, "How the redistribution engine works", size=27)
+textbox(s, "Every listing becomes a geocoded surplus offer or an urgent request, then flows through a transparent pipeline.",
+        Inches(.55), Inches(1.22), Inches(12.2), Inches(.3), 14, MUTED)
 
+pipeline = [
+    ("DETECT", "Parse each listing into a\ngeocoded surplus or need", ORANGE, .6),
+    ("RANK",   "Score candidates urgent-first\non multiple signals",   GOLD, 3.72),
+    ("ROUTE",  "Resolve real road geometry\nvia OSRM, arc fallback",   MINT, 6.84),
+    ("VERIFY", "Coordinator confirms before\nany real-world transfer", BLUE, 9.96),
+]
+for i, (h, b, c, xx) in enumerate(pipeline):
+    x = Inches(xx)
+    rect(s, x, Inches(1.92), Inches(2.75), Inches(1.9), PANEL, True, c)
+    rect(s, x, Inches(1.92), Inches(2.75), Inches(.08), c, False)
+    textbox(s, h, x + Inches(.22), Inches(2.2), Inches(2.3), Inches(.34), 16, c, True, PP_ALIGN.CENTER)
+    textbox(s, b, x + Inches(.22), Inches(2.72), Inches(2.3), Inches(.85), 12, MUTED, False, PP_ALIGN.CENTER)
+    if i < 3:
+        textbox(s, "→", x + Inches(2.79), Inches(2.5), Inches(.3), Inches(.5), 22, GOLD, True, PP_ALIGN.CENTER)
 
-# 7 — Heatmap
-s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "06  /  Geospatial triage")
-title(s, "See demand concentration before routing", size=27)
-showcase(s, ASSETS / "app-heatmap.png",
-         "The heatmap reveals where shortfall clusters — read against hubs and road corridors. Distance is one signal among urgency, product fit and verification.")
-footer(s, 7, "Demand heatmap from the live build · geography supports triage; it does not authorise a transfer")
-
-
-# 8 — Nairobi research base
-s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "07  /  Research base")
-title(s, "Nairobi: the national model at street scale", size=27)
-showcase(s, ASSETS / "app-nairobi.png",
-         "The 64-facility study area at street scale: shortfalls detected, hubs ranked, transfers routed on real roads.")
-footer(s, 8, "Nairobi County research view · demonstration inventory")
-
-
-# 9 — Explainable matching
-s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "08  /  Explainable matching")
-title(s, "The system shows why a source was selected", size=27)
-showcase(s, ASSETS / "app-explainable.png",
-         "A plain-language situation brief accompanies every recommended route.", h=4.85, y=1.28)
-signals = [("Proximity", MINT), ("Urgency", RED), ("Product fit", GOLD), ("Quantity", BLUE), ("Verification", ORANGE)]
+textbox(s, "Ranking signals", Inches(.6), Inches(4.15), Inches(12.2), Inches(.32), 16, CREAM, True)
+signals = [
+    ("Proximity", "routed distance", MINT),
+    ("Urgency", "clinical priority", RED),
+    ("Product fit", "category & cold-chain", GOLD),
+    ("Quantity", "full or partial cover", BLUE),
+    ("Verification", "trusted source", ORANGE),
+]
 cw = 2.3; gap = 0.18; x0 = (13.333 - (len(signals) * cw + (len(signals) - 1) * gap)) / 2
-for i, (name, c) in enumerate(signals):
+for i, (name, desc, c) in enumerate(signals):
     x = x0 + i * (cw + gap)
-    rect(s, Inches(x), Inches(6.55), Inches(cw), Inches(.46), PANEL, True, c)
-    rect(s, Inches(x), Inches(6.55), Inches(.07), Inches(.46), c, False)
-    textbox(s, name, Inches(x + .2), Inches(6.63), Inches(cw - .25), Inches(.3), 12.5, CREAM, True, PP_ALIGN.LEFT)
-footer(s, 9, "Briefs use a deterministic fallback for demo reliability; Claude is optional")
+    rect(s, Inches(x), Inches(4.6), Inches(cw), Inches(.92), PANEL, True, c)
+    rect(s, Inches(x), Inches(4.6), Inches(.07), Inches(.92), c, False)
+    textbox(s, name, Inches(x + .22), Inches(4.72), Inches(cw - .3), Inches(.3), 13, CREAM, True)
+    textbox(s, desc, Inches(x + .22), Inches(5.06), Inches(cw - .3), Inches(.3), 10.5, MUTED, False)
+
+rect(s, Inches(.6), Inches(5.85), Inches(12.13), Inches(.78), PANEL, True, PANEL_2)
+textbox(s, "Beyond routing: a demand heatmap surfaces clusters, a one-year impact projection models the gain, and a live Copilot answers from current state — all shown next in the demo.",
+        Inches(.9), Inches(6.04), Inches(11.5), Inches(.45), 12.5, MUTED, False, PP_ALIGN.CENTER)
+footer(s, 6, "Explainable matching · plain-language situation briefs · human verification before any transfer")
 
 
-# 10 — Projection
+# 7 — Architecture
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "09  /  Impact projection")
-title(s, "What the current throughput could unlock over one year", size=27)
-showcase(s, ASSETS / "app-impact.png",
-         "MODEL — NOT A GUARANTEE. Weekly cycles, 42% near-expiry recovery, coverage saturating as facilities onboard.")
-footer(s, 10, "Projection baseline: KEMSA 57% order-fill rate (mid-2025) + MediMatch field study (n=64)")
-
-
-# 11 — Copilot
-s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "10  /  Live coordination intelligence")
-title(s, "Coordination intelligence, grounded in live state", size=27)
-showcase(s, ASSETS / "app-copilot.png",
-         "Answers drawn from the live coordination state — urgent approvals, in-transit transfers, county shortfalls, surplus hubs — not a general model.")
-footer(s, 11, "Copilot is advisory; coordinator verification remains mandatory")
-
-
-# 12 — Architecture
-s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "11  /  Architecture and safeguards")
+kicker(s, "06  /  Architecture and safeguards")
 textbox(s, "A production-minded spatial stack\nwith a human decision boundary", Inches(.55), Inches(.66), Inches(12.2), Inches(1.05), 27, CREAM, True, PP_ALIGN.CENTER)
 
 boxes = [
@@ -361,12 +344,33 @@ rect(s, Inches(.6), Inches(4.65), Inches(12.1), Inches(1.4), PANEL, True, PANEL_
 textbox(s, "Human verification is the final control", Inches(.9), Inches(4.9), Inches(11.5), Inches(.36), 20, CREAM, True, PP_ALIGN.CENTER)
 textbox(s, "No diagnosis · no autonomous transfers · synthetic demo inventory · explicit assumptions · coordinator sign-off", Inches(.9), Inches(5.38), Inches(11.5), Inches(.32), 12, MUTED, False, PP_ALIGN.CENTER)
 rect(s, Inches(.9), Inches(5.66), Inches(11.3), Inches(.04), GOLD, False)
-footer(s, 12, "Production data layer: PostgreSQL 15 + PostGIS 3 · demo mode: in-memory mock DB")
+footer(s, 7, "Production data layer: PostgreSQL 15 + PostGIS 3")
 
 
-# 10 — Close and live demo
+# 8 — Live demonstration
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "12  /  Closing")
+kicker(s, "07  /  Live demonstration")
+title(s, "See it run — live", size=30)
+textbox(s, "Switching to the running platform.", Inches(.55), Inches(1.25), Inches(12.2), Inches(.3), 15, MUTED)
+demo = [
+    ("National command floor", "Detect, rank and route surplus to urgent need across Kenya"),
+    ("Demand heatmap", "Where shortfall concentrates, against hubs and corridors"),
+    ("Nairobi research base", "The 64-facility study area at street scale"),
+    ("Impact projection", "A transparent one-year model of the gain"),
+    ("Copilot", "Live coordination questions, answered from current state"),
+]
+for i, (h, d) in enumerate(demo):
+    yy = 2.05 + i * .92
+    rect(s, Inches(.9), Inches(yy), Inches(.6), Inches(.6), PANEL, True, GOLD)
+    textbox(s, str(i + 1), Inches(.9), Inches(yy + .08), Inches(.6), Inches(.42), 20, GOLD, True, PP_ALIGN.CENTER)
+    textbox(s, h, Inches(1.75), Inches(yy + .02), Inches(6.5), Inches(.34), 18, CREAM, True)
+    textbox(s, d, Inches(1.75), Inches(yy + .36), Inches(10.5), Inches(.3), 13, MUTED, False)
+footer(s, 8, "Recommended demo uses curated local briefs and synthetic inventory")
+
+
+# 9 — Close
+s = prs.slides.add_slide(blank); bg(s)
+kicker(s, "08  /  Closing")
 rich_text(s, [
     ("Location is not just a field.\n", CREAM, True, 35),
     ("It is a coordination advantage.", MINT, True, 35),
@@ -386,7 +390,7 @@ rect(s, Inches(7.1), Inches(2.75), Inches(5.45), Inches(3.0), PANEL, True, GOLD)
 textbox(s, "MEDIMATCH", Inches(7.55), Inches(3.22), Inches(4.5), Inches(.45), 27, CREAM, True, PP_ALIGN.CENTER)
 textbox(s, "See surplus. Detect need.\nCoordinate impact.", Inches(7.55), Inches(3.95), Inches(4.5), Inches(.9), 20, GOLD, True, PP_ALIGN.CENTER)
 textbox(s, "Thank you", Inches(7.55), Inches(5.05), Inches(4.5), Inches(.4), 18, MUTED, False, PP_ALIGN.CENTER)
-footer(s, 13, "Live build: main@d7be7d4 · /home/lesnar/publish-stage/MediMatch")
+footer(s, 9, "Dr Lesnar Gitonga · USIU-Africa · Global Public Health 2026")
 
 
 prs.core_properties.title = "MediMatch — Geospatial Intelligence for Medical-Supply Redistribution"
