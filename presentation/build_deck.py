@@ -160,6 +160,33 @@ def chart_card(slide, img, x, y, w, h, caption, ccolor=GOLD):
             11.5, ccolor, True, PP_ALIGN.CENTER)
 
 
+def survey_row(slide, items, y=2.55):
+    """A numeric-order row of survey charts on white cards, each captioned."""
+    n = len(items)
+    gap = 0.3
+    cw = (12.4 - (n - 1) * gap) / n
+    ch = cw / 2.42 + 0.2
+    x0 = (13.333 - (n * cw + (n - 1) * gap)) / 2
+    for i, (img, cap, c) in enumerate(items):
+        x = x0 + i * (cw + gap)
+        rect(slide, Inches(x), Inches(y), Inches(cw), Inches(ch), WHITE, True, PANEL_2)
+        add_contain_image(slide, img, Inches(x + .1), Inches(y + .1), Inches(cw - .2), Inches(ch - .2))
+        rect(slide, Inches(x), Inches(y + ch), Inches(cw), Inches(.36), PANEL, True, c)
+        textbox(slide, cap, Inches(x + .08), Inches(y + ch + .05), Inches(cw - .16), Inches(.28),
+                11, c, True, PP_ALIGN.CENTER)
+    return y + ch + 0.36
+
+
+def showcase(slide, img, caption, h=5.55, y=1.32):
+    """A full app screenshot shown whole (never cropped), centred and large."""
+    iw = h * 1.60
+    x = (13.333 - iw) / 2
+    rect(slide, Inches(x - .04), Inches(y - .04), Inches(iw + .08), Inches(h + .08), PANEL_2, True, PANEL_2)
+    add_contain_image(slide, img, Inches(x), Inches(y), Inches(iw), Inches(h))
+    textbox(slide, caption, Inches(.7), Inches(y + h + .14), Inches(12.0), Inches(.3),
+            12, MUTED, False, PP_ALIGN.CENTER)
+
+
 prs = Presentation()
 prs.slide_width = W
 prs.slide_height = H
@@ -201,139 +228,119 @@ textbox(s, "The baseline is historical; the deck does not present it as the curr
 footer(s, 2, "Sources: MediMatch Nairobi County field study (n=64 healthcare professionals, 80% response, 2025); KEMSA order-fill rate 57%, mid-2025")
 
 
-# 3 — The field evidence (real survey results)
+# 3 — Survey: respondent profile (Q1–Q3)
 s = prs.slides.add_slide(blank); bg(s)
 kicker(s, "02  /  The field evidence")
-title(s, "Survey results from 64 healthcare professionals", size=27)
-textbox(s, "Nairobi County field study  ·  80% response rate  ·  unedited Google Forms output",
-        Inches(.58), Inches(1.16), Inches(12.0), Inches(.3), 13, GOLD, True)
-
+title(s, "Who we surveyed", size=28)
+textbox(s, "64 healthcare professionals  ·  Nairobi County  ·  80% response rate  ·  unedited Google Forms output",
+        Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
+textbox(s, "A frontline sample — the clinicians and staff who manage stock every day.",
+        Inches(.55), Inches(1.62), Inches(12.2), Inches(.3), 14, MUTED)
 SURVEY = ASSETS / "survey"
-results = [
-    ("q4_stockouts.png",     "56.3% face weekly or monthly stockouts",   ORANGE, Inches(.55), Inches(1.55)),
-    ("q6_effectiveness.png", "82.8% rate current methods ineffective or slow", GOLD, Inches(6.83), Inches(1.55)),
-    ("q7_challenges.png",    "57.8% cite wastage of valid supplies",     RED,    Inches(.55), Inches(4.28)),
-    ("q9_pilot.png",         "89.1% would pilot the system (Yes + Maybe)", MINT,  Inches(6.83), Inches(4.28)),
-]
-for img, cap, c, x, y in results:
-    chart_card(s, SURVEY / img, x, y, Inches(5.95), Inches(2.12), cap, c)
-footer(s, 3, "Source: MediMatch survey, n=64 · the four headline figures published in the GPH2026 abstract, shown from the raw responses")
+survey_row(s, [
+    (SURVEY / "q1_gender.png", "Q1 · Gender — slight female majority", ORANGE),
+    (SURVEY / "q2_age.png",    "Q2 · Age — majority under 40",         MINT),
+    (SURVEY / "q3_role.png",   "Q3 · Role — clinical staff majority",  BLUE),
+], y=2.5)
+footer(s, 3, "Source: MediMatch Nairobi County field study · n=64 · 2025")
 
 
-# 4 — Respondent profile and current practice (real survey screenshots)
+# 4 — Survey: the current system (Q4–Q6)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "03  /  Respondent profile")
-title(s, "Who we asked — and how facilities cope today", size=27)
-textbox(s, "Nairobi County field study  ·  64 respondents  ·  unedited Google Forms output",
-        Inches(.58), Inches(1.16), Inches(12.0), Inches(.3), 13, GOLD, True)
-
-profile = [
-    ("q3_role.png",    "Mostly clinical staff — nurses & pharmacists", BLUE,  Inches(.55), Inches(1.55)),
-    ("q2_age.png",     "A predominantly under-40, digitally-fluent workforce", MINT, Inches(6.83), Inches(1.55)),
-    ("q1_gender.png",  "Balanced gender, slight female majority",     ORANGE, Inches(.55), Inches(4.28)),
-    ("q5_surplus.png", "Today: ad-hoc — informal redistribution, KEMSA returns, WhatsApp", GOLD, Inches(6.83), Inches(4.28)),
-]
-for img, cap, c, x, y in profile:
-    chart_card(s, SURVEY / img, x, y, Inches(5.95), Inches(2.12), cap, c)
-footer(s, 4, "Source: MediMatch Nairobi County field study · 64 healthcare professionals · 2025")
+kicker(s, "03  /  The field evidence")
+title(s, "The current system, in their words", size=28)
+textbox(s, "Questions 4–6  ·  frequency of stockouts, how surplus is handled, and how they rate today’s methods",
+        Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
+textbox(s, "Frequent stockouts, ad-hoc handling, and locating methods they rate as ineffective or slow.",
+        Inches(.55), Inches(1.62), Inches(12.2), Inches(.3), 14, MUTED)
+survey_row(s, [
+    (SURVEY / "q4_stockouts.png",     "Q4 · 56.3% weekly or monthly stockouts", ORANGE),
+    (SURVEY / "q5_surplus.png",       "Q5 · Surplus handled ad-hoc",            GOLD),
+    (SURVEY / "q6_effectiveness.png", "Q6 · 82.8% ineffective or slow",         RED),
+], y=2.5)
+footer(s, 4, "Source: MediMatch survey, n=64 · Q4 and Q6 are the abstract’s 56.3% and 82.8% figures, shown from the raw responses")
 
 
-# 5 — National operating picture
+# 5 — Survey: challenges, value & readiness (Q7–Q9)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "04  /  National command floor")
-title(s, "From isolated reports to one national operating picture")
-add_cover_image(s, ASSETS / "demand-signal.png", Inches(.55), Inches(1.45), Inches(12.23), Inches(5.35))
-rect(s, Inches(.68), Inches(5.77), Inches(11.95), Inches(.78), BG, True, BG, transparency=8)
-rich_text(s, [
-    ("DETECT", ORANGE, True, 11), ("  →  ", MUTED, True, 11),
-    ("RANK", GOLD, True, 11), ("  →  ", MUTED, True, 11),
-    ("ROUTE", MINT, True, 11), ("  →  ", MUTED, True, 11),
-    ("VERIFY", CREAM, True, 11),
-], Inches(.95), Inches(5.99), Inches(5.6), Inches(.25), 11)
-textbox(s, "Real Kenyan facility geocodes · road-routed flows · live operational brief", Inches(6.3), Inches(5.95), Inches(5.8), Inches(.33), 10, MUTED, False, PP_ALIGN.RIGHT)
-footer(s, 5, "Current app: Savannah Command · MapLibre + CARTO + OSRM")
+kicker(s, "04  /  The field evidence")
+title(s, "Challenges, value & readiness", size=28)
+textbox(s, "Questions 7–9  ·  the main system challenges, the benefits they value, and willingness to pilot",
+        Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
+textbox(s, "Wastage tops the operational challenges — and readiness to pilot MediMatch is high.",
+        Inches(.55), Inches(1.62), Inches(12.2), Inches(.3), 14, MUTED)
+survey_row(s, [
+    (SURVEY / "q7_challenges.png", "Q7 · 57.8% cite wastage of supplies", RED),
+    (SURVEY / "q8_benefits.png",   "Q8 · Most-valued benefits",           BLUE),
+    (SURVEY / "q9_pilot.png",      "Q9 · 89.1% would pilot (Yes + Maybe)", MINT),
+], y=2.5)
+footer(s, 5, "Source: MediMatch survey, n=64 · Q7 and Q9 are the abstract’s 57.8% and 89.1% figures, shown from the raw responses")
 
 
-# 4 — Heatmap
+# 6 — National operating picture
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "05  /  Geospatial triage")
-title(s, "See demand concentration before routing", size=29)
-add_cover_image(s, ASSETS / "heatmap.png", Inches(4.5), Inches(1.45), Inches(8.28), Inches(5.55))
-rect(s, Inches(.58), Inches(1.55), Inches(3.55), Inches(5.12), PANEL, True, PANEL_2)
-textbox(s, "What geography adds", Inches(.88), Inches(1.88), Inches(2.95), Inches(.38), 21, CREAM, True)
-bullet_list(s, [
-    "Reveal where shortfall clusters—not just where the loudest request originated.",
-    "Compare demand against available hubs and connected road corridors.",
-    "Use distance as one signal alongside urgency, product fit and verification.",
-    "Move from ‘nearest’ to ‘best feasible match’."
-], Inches(.86), Inches(2.5), Inches(3.02), Inches(3.2), 13, MUTED, GOLD, 10)
-textbox(s, "Geography supports triage; it does not authorize a transfer.", Inches(.88), Inches(5.95), Inches(2.92), Inches(.48), 11, GOLD, True)
-footer(s, 6, "Demand heatmap shown from the live build")
+kicker(s, "05  /  National command floor")
+title(s, "From isolated reports to one national operating picture", size=27)
+showcase(s, ASSETS / "app-national.png",
+         "Detect → Rank → Route → Verify  ·  real Kenyan facility geocodes  ·  road-routed flows")
+footer(s, 6, "Live app: Savannah Command · MapLibre + CARTO + OSRM")
 
 
-# 5 — Nairobi research base
+# 7 — Heatmap
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "06  /  Research base")
-title(s, "Nairobi: the national model at street scale", size=28)
-add_cover_image(s, ASSETS / "nairobi-research.png", Inches(.55), Inches(1.5), Inches(12.23), Inches(5.55))
-rect(s, Inches(.78), Inches(6.22), Inches(11.8), Inches(.58), BG, True, BG, transparency=8)
-textbox(s, "50 facilities  ·  43 in shortfall  ·  43 transfers  ·  2,236 units moved", Inches(1.0), Inches(6.37), Inches(11.2), Inches(.25), 12, CREAM, True, PP_ALIGN.CENTER)
-footer(s, 7, "Nairobi County research view · demonstration inventory")
+kicker(s, "06  /  Geospatial triage")
+title(s, "See demand concentration before routing", size=27)
+showcase(s, ASSETS / "app-heatmap.png",
+         "The heatmap reveals where shortfall clusters — read against hubs and road corridors. Distance is one signal among urgency, product fit and verification.")
+footer(s, 7, "Demand heatmap from the live build · geography supports triage; it does not authorise a transfer")
 
 
-# 6 — Explainable matching
+# 8 — Nairobi research base
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "07  /  Explainable matching")
-title(s, "The system shows why a source was selected")
-add_cover_image(s, ASSETS / "selected-route.png", Inches(4.7), Inches(1.43), Inches(8.08), Inches(5.65))
-rect(s, Inches(.58), Inches(1.55), Inches(3.72), Inches(5.1), PANEL, True, PANEL_2)
-textbox(s, "Decision signals", Inches(.9), Inches(1.88), Inches(3.1), Inches(.38), 21, CREAM, True)
-for i, (name, desc, c) in enumerate([
-    ("Proximity", "direct and routed distance", MINT),
-    ("Urgency", "clinical supply priority", RED),
-    ("Product fit", "category and cold-chain needs", GOLD),
-    ("Quantity", "full or partial coverage", BLUE),
-    ("Verification", "trusted source and ownership", ORANGE),
-]):
-    yy = 2.48 + i * .64
-    rect(s, Inches(.9), Inches(yy), Inches(.09), Inches(.36), c, False)
-    textbox(s, name, Inches(1.18), Inches(yy-.02), Inches(1.1), Inches(.25), 12, CREAM, True)
-    textbox(s, desc, Inches(2.25), Inches(yy-.02), Inches(1.62), Inches(.3), 10, MUTED)
-textbox(s, "Curated situation briefs explain the route in plain operational language.", Inches(.9), Inches(5.88), Inches(3.1), Inches(.55), 11, GOLD, True)
-footer(s, 8, "Briefs use a deterministic fallback for demo reliability; Claude is optional")
+kicker(s, "07  /  Research base")
+title(s, "Nairobi: the national model at street scale", size=27)
+showcase(s, ASSETS / "app-nairobi.png",
+         "The 64-facility study area at street scale: shortfalls detected, hubs ranked, transfers routed on real roads.")
+footer(s, 8, "Nairobi County research view · demonstration inventory")
 
 
-# 7 — Projection
+# 9 — Explainable matching
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "08  /  Impact projection")
-title(s, "What the current throughput could unlock over one year")
-add_contain_image(s, ASSETS / "impact-projection.png", Inches(.55), Inches(1.38), Inches(12.23), Inches(5.72))
-rect(s, Inches(.7), Inches(6.55), Inches(11.93), Inches(.38), BG, True, BG, transparency=5)
-textbox(s, "MODEL — NOT A GUARANTEE. Weekly cycles, 42% near-expiry recovery, coverage saturates as facilities onboard.", Inches(.9), Inches(6.65), Inches(11.5), Inches(.18), 8.5, GOLD, True, PP_ALIGN.CENTER)
-footer(s, 9, "Projection baseline: KEMSA 57% order-fill rate (mid-2025) + MediMatch field study (n=64)")
+kicker(s, "08  /  Explainable matching")
+title(s, "The system shows why a source was selected", size=27)
+showcase(s, ASSETS / "app-explainable.png",
+         "A plain-language situation brief accompanies every recommended route.", h=4.85, y=1.28)
+signals = [("Proximity", MINT), ("Urgency", RED), ("Product fit", GOLD), ("Quantity", BLUE), ("Verification", ORANGE)]
+cw = 2.3; gap = 0.18; x0 = (13.333 - (len(signals) * cw + (len(signals) - 1) * gap)) / 2
+for i, (name, c) in enumerate(signals):
+    x = x0 + i * (cw + gap)
+    rect(s, Inches(x), Inches(6.55), Inches(cw), Inches(.46), PANEL, True, c)
+    rect(s, Inches(x), Inches(6.55), Inches(.07), Inches(.46), c, False)
+    textbox(s, name, Inches(x + .2), Inches(6.63), Inches(cw - .25), Inches(.3), 12.5, CREAM, True, PP_ALIGN.LEFT)
+footer(s, 9, "Briefs use a deterministic fallback for demo reliability; Claude is optional")
 
 
-# 8 — Copilot
+# 10 — Projection
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "09  /  Live coordination intelligence")
-title(s, "Coordination intelligence, grounded in live state")
-add_cover_image(s, ASSETS / "copilot.png", Inches(5.1), Inches(1.43), Inches(7.68), Inches(5.62))
-rect(s, Inches(.58), Inches(1.55), Inches(4.12), Inches(5.12), PANEL, True, PANEL_2)
-textbox(s, "What the Copilot surfaces", Inches(.9), Inches(1.88), Inches(3.45), Inches(.38), 21, CREAM, True)
-bullet_list(s, [
-    "Facilities awaiting urgent approval",
-    "Transfers currently in transit",
-    "Shortfalls located by county",
-    "Hubs holding redistributable surplus",
-    "A concise national situation summary",
-], Inches(.9), Inches(2.5), Inches(3.4), Inches(2.7), 15, CREAM, GOLD, 10)
-textbox(s, "Answers are drawn from the live coordination state, not a general model. The demonstration runs without an API key; an Anthropic key enables Claude-written briefs.", Inches(.9), Inches(5.48), Inches(3.35), Inches(.85), 11, MUTED)
-footer(s, 10, "Copilot is advisory; coordinator verification remains mandatory")
+kicker(s, "09  /  Impact projection")
+title(s, "What the current throughput could unlock over one year", size=27)
+showcase(s, ASSETS / "app-impact.png",
+         "MODEL — NOT A GUARANTEE. Weekly cycles, 42% near-expiry recovery, coverage saturating as facilities onboard.")
+footer(s, 10, "Projection baseline: KEMSA 57% order-fill rate (mid-2025) + MediMatch field study (n=64)")
 
 
-# 9 — Architecture
+# 11 — Copilot
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "10  /  Architecture and safeguards")
+kicker(s, "10  /  Live coordination intelligence")
+title(s, "Coordination intelligence, grounded in live state", size=27)
+showcase(s, ASSETS / "app-copilot.png",
+         "Answers drawn from the live coordination state — urgent approvals, in-transit transfers, county shortfalls, surplus hubs — not a general model.")
+footer(s, 11, "Copilot is advisory; coordinator verification remains mandatory")
+
+
+# 12 — Architecture
+s = prs.slides.add_slide(blank); bg(s)
+kicker(s, "11  /  Architecture and safeguards")
 textbox(s, "A production-minded spatial stack\nwith a human decision boundary", Inches(.55), Inches(.66), Inches(12.2), Inches(1.05), 27, CREAM, True, PP_ALIGN.CENTER)
 
 boxes = [
@@ -354,12 +361,12 @@ rect(s, Inches(.6), Inches(4.65), Inches(12.1), Inches(1.4), PANEL, True, PANEL_
 textbox(s, "Human verification is the final control", Inches(.9), Inches(4.9), Inches(11.5), Inches(.36), 20, CREAM, True, PP_ALIGN.CENTER)
 textbox(s, "No diagnosis · no autonomous transfers · synthetic demo inventory · explicit assumptions · coordinator sign-off", Inches(.9), Inches(5.38), Inches(11.5), Inches(.32), 12, MUTED, False, PP_ALIGN.CENTER)
 rect(s, Inches(.9), Inches(5.66), Inches(11.3), Inches(.04), GOLD, False)
-footer(s, 11, "Production data layer: PostgreSQL 15 + PostGIS 3 · demo mode: in-memory mock DB")
+footer(s, 12, "Production data layer: PostgreSQL 15 + PostGIS 3 · demo mode: in-memory mock DB")
 
 
 # 10 — Close and live demo
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "11  /  Closing")
+kicker(s, "12  /  Closing")
 rich_text(s, [
     ("Location is not just a field.\n", CREAM, True, 35),
     ("It is a coordination advantage.", MINT, True, 35),
@@ -379,7 +386,7 @@ rect(s, Inches(7.1), Inches(2.75), Inches(5.45), Inches(3.0), PANEL, True, GOLD)
 textbox(s, "MEDIMATCH", Inches(7.55), Inches(3.22), Inches(4.5), Inches(.45), 27, CREAM, True, PP_ALIGN.CENTER)
 textbox(s, "See surplus. Detect need.\nCoordinate impact.", Inches(7.55), Inches(3.95), Inches(4.5), Inches(.9), 20, GOLD, True, PP_ALIGN.CENTER)
 textbox(s, "Thank you", Inches(7.55), Inches(5.05), Inches(4.5), Inches(.4), 18, MUTED, False, PP_ALIGN.CENTER)
-footer(s, 12, "Live build: main@d7be7d4 · /home/lesnar/publish-stage/MediMatch")
+footer(s, 13, "Live build: main@d7be7d4 · /home/lesnar/publish-stage/MediMatch")
 
 
 prs.core_properties.title = "MediMatch — Geospatial Intelligence for Medical-Supply Redistribution"
