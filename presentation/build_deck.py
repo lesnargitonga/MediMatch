@@ -21,14 +21,17 @@ PANEL = RGBColor(18, 29, 49)
 PANEL_2 = RGBColor(26, 38, 59)
 CREAM = RGBColor(248, 243, 231)
 MUTED = RGBColor(174, 186, 204)
-GOLD = RGBColor(246, 190, 76)
-ORANGE = RGBColor(255, 119, 68)
-MINT = RGBColor(67, 213, 174)
-RED = RGBColor(255, 91, 102)
-BLUE = RGBColor(82, 155, 255)
+GOLD = RGBColor(232, 184, 96)        # the single accent
+STEEL = RGBColor(120, 140, 170)      # muted secondary, for quiet differentiation
+GLOW = RGBColor(26, 38, 60)          # tonal slate for soft background depth
 WHITE = RGBColor(255, 255, 255)
-VIOLET = RGBColor(124, 92, 255)
-TEAL = RGBColor(67, 213, 174)
+# Restrained palette: decorative accents collapse to gold / muted steel / neutrals
+ORANGE = GOLD
+RED = GOLD
+MINT = STEEL
+BLUE = STEEL
+VIOLET = STEEL
+TEAL = STEEL
 
 FONT = "Noto Sans"
 
@@ -270,7 +273,7 @@ rect(s, Inches(.58), Inches(.65), Inches(8.2), Inches(5.7), BG, True, BG, transp
 textbox(s, "MEDIMATCH  ·  NATIONAL REDISTRIBUTION COMMAND", Inches(.86), Inches(1.0), Inches(7.5), Inches(.3), 11, GOLD, True)
 rich_text(s, [
     ("See surplus.\nDetect need.\n", CREAM, True, 38),
-    ("Coordinate impact.", MINT, True, 38),
+    ("Coordinate impact.", GOLD, True, 38),
 ], Inches(.84), Inches(1.48), Inches(7.65), Inches(2.45), 38)
 textbox(s, "Leveraging geospatial intelligence\nfor equitable medical-supply redistribution", Inches(.88), Inches(4.08), Inches(6.9), Inches(.9), 18, MUTED)
 rect(s, Inches(.88), Inches(5.18), Inches(5.7), Inches(.03), GOLD, radius=False)
@@ -279,7 +282,7 @@ textbox(s, "Conference demo · synthetic inventory · no patient records", Inche
 
 
 # Divider — Section 01
-section_divider(prs, "01", "The coordination gap", "Why medical-supply redistribution fails today", ORANGE)
+section_divider(prs, "01", "The coordination gap", "Why medical-supply redistribution fails today", GOLD)
 
 
 # 2 — Problem and evidence
@@ -302,7 +305,7 @@ footer(s, 2, "Sources: MediMatch Nairobi County field study (n=64 healthcare pro
 
 
 # Divider — Section 02
-section_divider(prs, "02", "The field evidence", "What 64 healthcare professionals told us", TEAL)
+section_divider(prs, "02", "The field evidence", "What 64 healthcare professionals told us", GOLD)
 
 
 # 3 — Survey: respondent profile (Q1–Q3)
@@ -355,7 +358,7 @@ footer(s, 5, "Source: MediMatch survey, n=64 · Q7 and Q9 are the abstract’s 5
 
 
 # Divider — Section 03
-section_divider(prs, "03", "The platform", "From redistribution engine to live demonstration", VIOLET)
+section_divider(prs, "03", "The platform", "From redistribution engine to live demonstration", GOLD)
 
 
 # 6 — How the engine works (concept, no screenshots)
@@ -454,7 +457,7 @@ s = prs.slides.add_slide(blank); bg(s)
 kicker(s, "Closing")
 rich_text(s, [
     ("Location is not just a field.\n", CREAM, True, 35),
-    ("It is a coordination advantage.", MINT, True, 35),
+    ("It is a coordination advantage.", GOLD, True, 35),
 ], Inches(.6), Inches(1.05), Inches(8.0), Inches(1.55), 35)
 takeaways = [
     ("Evidence-based", "64 healthcare professionals quantified the coordination gap."),
@@ -518,33 +521,30 @@ def polish(presentation):
     OVAL = MSO_AUTO_SHAPE_TYPE.OVAL
     slides = list(presentation.slides)
     total = len(slides)
-    glow_cols = [VIOLET, TEAL, ORANGE]
     for idx, slide in enumerate(slides):
-        # gradient accent bar across the very top of EVERY slide
-        bar = slide.shapes.add_shape(RECT, 0, 0, W, Inches(.085))
+        # thin gold accent rule across the very top of EVERY slide
+        bar = slide.shapes.add_shape(RECT, 0, 0, W, Inches(.05))
+        bar.fill.solid(); bar.fill.fore_color.rgb = GOLD
         bar.line.fill.background()
         bar.shadow.inherit = False
-        set_gradient(bar, [(0, GOLD), (50, TEAL), (100, VIOLET)], angle=0)
         if idx != 0:
             spTree = slide.shapes._spTree
-            # 1) soft radial glow blooming from a corner, tucked behind all content
-            col = glow_cols[idx % len(glow_cols)]
-            corner = idx % 2 == 0
-            gx = 8.7 if corner else -2.3
-            glow = slide.shapes.add_shape(OVAL, Inches(gx), Inches(2.4), Inches(7.6), Inches(7.6))
+            # 1) one subtle tonal glow for depth (no colour), tucked behind all content
+            gx = 8.9 if idx % 2 == 0 else -2.5
+            glow = slide.shapes.add_shape(OVAL, Inches(gx), Inches(2.6), Inches(7.4), Inches(7.4))
             glow.line.fill.background()
             glow.shadow.inherit = False
-            set_radial(glow, col, BG, 26, 0)
+            set_radial(glow, GLOW, BG, 60, 0)
             el = glow._element
             spTree.remove(el)
             spTree.insert(3, el)  # just above the background fill, below content
-            # 3) thin progress meter along the bottom edge
-            track = slide.shapes.add_shape(RECT, 0, Inches(7.45), W, Inches(.05))
+            # 2) thin progress meter along the bottom edge
+            track = slide.shapes.add_shape(RECT, 0, Inches(7.45), W, Inches(.045))
             track.fill.solid(); track.fill.fore_color.rgb = PANEL_2
             track.line.fill.background(); track.shadow.inherit = False
-            prog = slide.shapes.add_shape(RECT, 0, Inches(7.45), int(W * (idx + 1) / total), Inches(.05))
+            prog = slide.shapes.add_shape(RECT, 0, Inches(7.45), int(W * (idx + 1) / total), Inches(.045))
+            prog.fill.solid(); prog.fill.fore_color.rgb = GOLD
             prog.line.fill.background(); prog.shadow.inherit = False
-            set_gradient(prog, [(0, GOLD), (100, TEAL)], angle=0)
         # disable proofing on every run so proper nouns stop getting red-underlined
         for shape in slide.shapes:
             if not shape.has_text_frame:
