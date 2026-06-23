@@ -431,6 +431,31 @@ ref_column(s, right_refs, 6.83, 1.55, 5.95)
 footer(s, 10, "Primary data: MediMatch Nairobi County field study (n=64 healthcare professionals, 80% response, 2025)")
 
 
+def polish(presentation):
+    """Final pass: kill spell-check red squiggles and add a consistent top accent."""
+    for idx, slide in enumerate(presentation.slides):
+        # subtle gold hairline along the top edge of every content slide (not the cover)
+        if idx != 0:
+            bar = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.RECTANGLE, 0, 0, W, Inches(.06))
+            bar.fill.solid()
+            bar.fill.fore_color.rgb = GOLD
+            bar.line.fill.background()
+            bar.shadow.inherit = False
+        # disable proofing on every run so proper nouns stop getting red-underlined
+        for shape in slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            for para in shape.text_frame.paragraphs:
+                for run in para.runs:
+                    rPr = run._r.get_or_add_rPr()
+                    rPr.set('lang', 'en-US')
+                    rPr.set('noProof', '1')
+                    rPr.set('dirty', '0')
+                    rPr.set('err', '0')
+
+
+polish(prs)
+
 prs.core_properties.title = "MediMatch — Geospatial Intelligence for Medical-Supply Redistribution"
 prs.core_properties.subject = "Conference presentation"
 prs.core_properties.author = "Lesnar Gitonga"
