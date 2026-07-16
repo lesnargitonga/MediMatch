@@ -22,3 +22,6 @@ yarn-error.log*
 # Tests compiled by mistake
 server/test/*.js
 .~lock.*#
+
+# local file-backed dev DB (contains seed users; never commit)
+server/data/filedb.json

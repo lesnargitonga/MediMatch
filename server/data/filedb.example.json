@@ -2,57 +2,57 @@
   "users": [
     {
       "id": 1,
-      "email": "lesnar@example.com",
-      "name": "lesnar",
-      "password_hash": "$2b$10$soNavvqD/FOLfJ/OM6WZIuhzLOt9cUkXLpA/vUGL.ASY3AALEwy3W"
+      "email": "user1@example.com",
+      "name": "Demo User 1",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 2,
-      "email": "demo21@example.com",
-      "name": "kjg",
-      "password_hash": "$2b$10$maR4P05rNElt416s80FSy.2vIZu9bJcDRkVuNnR0Sl/4JnqXzqZO6"
+      "email": "user2@example.com",
+      "name": "Demo User 2",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 3,
-      "email": "de@example.com",
-      "name": "lejkej",
-      "password_hash": "$2b$10$M1O.rcY2c9d23xkvrhXGguACOSaqXYsl3ivi3NWTw.Uf1YEqT27kK"
+      "email": "user3@example.com",
+      "name": "Demo User 3",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 4,
-      "email": "1@example.com",
-      "name": "lesnar",
-      "password_hash": "$2b$10$GNua2jVHQ4w99eW8S81/rOw.JyXQ8SMBXZpGAtsSS3vhj4aRLII6i"
+      "email": "user4@example.com",
+      "name": "Demo User 4",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 5,
-      "email": "12@example.com",
-      "name": "lesss",
-      "password_hash": "$2b$10$hQTZgS31g/NypJ7grQTr6.KjSNhZffwO6dpXfND0EKCCYh6mR2S9m"
+      "email": "user5@example.com",
+      "name": "Demo User 5",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 6,
-      "email": "123@example.com",
-      "name": "lesnar",
-      "password_hash": "$2b$10$8cjYjxonPHFrL3Zbi2dbbe446hODm26AKob9O9Pyjch2lfxSz9qlO"
+      "email": "user6@example.com",
+      "name": "Demo User 6",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 7,
-      "email": "ltosh289@example.com",
-      "name": "lesnar",
-      "password_hash": "$2b$10$Ugw.a6lsKcWk52mgTiuQje0hH8z3TJQ46kFO9ImPE0nk6klAObggm"
+      "email": "user7@example.com",
+      "name": "Demo User 7",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 8,
-      "email": "q@example.com",
-      "name": "lesbb",
-      "password_hash": "$2b$10$TkTlL/NmBHT449xTaQZ7D.2pQG4nM9u0HuKk/NraLBJ2P1aef5rdO"
+      "email": "user8@example.com",
+      "name": "Demo User 8",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     },
     {
       "id": 9,
-      "email": "les@gmail.com",
-      "name": "lrd",
-      "password_hash": "$2b$10$m4D4vcSeppGAB9h3gCEMguqTJvXt1oDKQK3GxYYRM01ZjNYum2zom"
+      "email": "user9@example.com",
+      "name": "Demo User 9",
+      "password_hash": "$2b$10$REPLACE_WITH_LOCALLY_GENERATED_HASH"
     }
   ],
   "listings": [
