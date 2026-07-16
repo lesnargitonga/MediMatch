@@ -1,0 +1,143 @@
+# MediMatch — 15-minute read-aloud script
+
+Read the plain text aloud. Lines in [brackets] are silent cues — don't read them.
+Pace ~140 words/min. Pause at the — dashes. Look up at the audience at each ❖.
+
+────────────────────────────────────────
+## [SLIDE 1 — Cover]  ~1:00
+
+Thank you. ❖ Good [morning / afternoon], everyone — and thank you to Unique Conferences Canada for having me.
+
+My name is Lesnar Gitonga, from the United States International University-Africa, in Nairobi. ❖ And I want to start with a contradiction that anyone who has worked in a health facility will recognise.
+
+Somewhere in a county hospital right now, there is a box of medicine slowly counting down to its expiry date — usable, paid for, and about to be thrown away. And maybe forty minutes down the road, another clinic is turning patients away because they have run out of that exact same item. ❖
+
+Same country. Same week. Same supply. The problem there isn't really scarcity — it's that the two facilities can't see each other. That missing layer — coordination — is what this project is about.
+
+[advance]
+
+────────────────────────────────────────
+## [SLIDE 2 — The coordination gap]  ~1:30
+
+So let me frame the problem properly. ❖
+
+Across developing health systems, we keep hitting the same paradox — wastage and shortage, happening at the same time. In Kenya, you can see it in the national numbers. The Kenya Medical Supplies Authority — KEMSA — reported an order-fill rate of just 57% as of mid-2025. ❖
+
+Think about what that means. For roughly four in every ten orders, the supply simply isn't arriving as requested. And the response, historically, has been to buy more — to push more stock into the top of the pipeline.
+
+But our argument is that more stock doesn't fix a visibility problem. ❖ If a facility doesn't know that the item it desperately needs is sitting in surplus a few kilometres away, the shortage is really a coordination failure dressed up as a supply failure.
+
+So the question I set out to answer was a geographic one: given an urgent need, which available source is close enough, has enough, is verified, is product-compatible — and is actually practical to move from, right now?
+
+[advance]
+
+────────────────────────────────────────
+## [SLIDE 3 — Who we surveyed]  ~1:00
+
+Now, I didn't want to design this from assumptions. So before building anything, I went to the people who live this problem every day. ❖
+
+What you're seeing here is the raw output of that field study — sixty-four healthcare professionals across Nairobi County, with an eighty percent response rate.
+
+And it's a frontline sample. The majority are clinical staff — nurses and pharmacists — the people who physically open the cupboard and find it empty. It's a young, digitally-fluent workforce, balanced across gender. ❖ In other words: the people whose daily reality this is, and the people who would actually use a tool like this.
+
+[advance]
+
+────────────────────────────────────────
+## [SLIDE 4 — The current system, in their words]  ~1:30
+
+And what they told us was blunt. ❖
+
+Fifty-six point three percent — more than half — said they face stockouts of essential items on a weekly or monthly basis. Not once in a while. Routinely. ❖
+
+When I asked how they handle surplus or near-expiry stock today, the answer was a patchwork — phone calls, paper memos, returning things to the central store, and a surprising amount of informal WhatsApp messaging between friends at other facilities. Resourceful, yes — but invisible, untraceable, and impossible to scale. ❖
+
+And here's the one that, for me, justified the whole project: eighty-two point eight percent rated their current method of locating emergency supplies as either ineffective, or slow.
+
+So the people inside the system are telling us the system isn't working. This isn't a hypothesis anymore — it's measured.
+
+[advance]
+
+────────────────────────────────────────
+## [SLIDE 5 — Challenges, value & readiness]  ~1:30
+
+When I asked them to name the biggest challenges, ❖ wastage of valid medical supplies came out on top — fifty-seven point eight percent. Read that next to the stockouts and you have the paradox in a single survey: things expiring on one shelf while another shelf sits empty.
+
+What did they say they'd value in a solution? Real-time redistribution. Cost efficiency. And — importantly for a public-health audience — equitable access across regions, so the benefit doesn't just pool in the well-resourced urban centres. ❖
+
+And then the question that matters most for whether any of this is worth doing — would you recommend your facility pilot a platform like this? Eighty-nine point one percent said yes or maybe. ❖
+
+So there is a real problem, it is quantified, and there is genuine appetite for a digital solution. That's the mandate. The rest of the talk is what I built with it.
+
+[advance]
+
+────────────────────────────────────────
+## [SLIDE 6 — How the engine works]  ~2:00
+
+I called it MediMatch. At its heart it's a redistribution engine, and I deliberately kept it transparent — no black box. ❖
+
+It works in four steps. First, **detect** — every listing a facility posts gets parsed into either a surplus offer or an urgent request, and anchored to a real, geocoded location. Second, **rank** — and this is the important one — the engine triages urgent needs first, then scores possible sources. Third, **route** — it resolves the transfer onto real road geometry, the actual drive, not a straight line on a map. And fourth, **verify** — and I'll come back to this — nothing happens without a human signing off. ❖
+
+Now, the ranking isn't just "what's nearest." ❖ It weighs several signals together: proximity by road, clinical urgency, product fit — including cold-chain requirements — whether the source can cover the full or partial quantity, and whether the source is a verified, trusted facility.
+
+So instead of "nearest," the engine reaches for "best feasible match" — and crucially, it can explain why it picked what it picked. ❖ Beyond the matching, there's a demand heatmap to show where need clusters, a one-year impact projection, and a live assistant — and rather than read those to you, let me just show you the whole thing running.
+
+[advance]
+
+────────────────────────────────────────
+## [SLIDE 7 — Architecture & safeguards]  ~1:30
+
+One quick word on how it's built, because the engineering choices were deliberate. ❖
+
+The interface is React and a mapping engine called MapLibre. The coordination logic runs on Node and Express. The spatial brain is PostgreSQL with the PostGIS extension — that's what lets us do real geographic queries — with open routing services around it. Everything sits on open standards: OpenStreetMap, open routing, open tiles. Nothing proprietary locking a health ministry in. ❖
+
+But the most important box on this slide isn't a technology. ❖ It's the line at the bottom: human verification is the final control. MediMatch does not diagnose. It does not move stock by itself. It surfaces a ranked, explainable recommendation — and a human coordinator confirms it before anything happens in the real world. And to be clear, the inventory in the demo is synthetic — the facility locations are real and public, but no patient data is ever touched.
+
+That boundary is what makes this responsible to deploy.
+
+[advance]
+
+────────────────────────────────────────
+## [SLIDE 8 — Live demonstration]  ~3:30
+[Switch to the browser — http://localhost:5173. Talk while it loads.]
+
+So let me show you the platform itself. ❖
+
+[Globe resolves to Kenya] This is the national command floor. Every dot is a real Kenyan facility. The orange points are urgent needs, the green are surplus hubs, and the lines you see are live transfer recommendations — already routed along real roads. On the left, the engine is narrating an actual case: an urgent need, and the source it chose, in plain language.
+
+[Click Demand heatmap] Now watch this. ❖ When I turn on the demand heatmap, you immediately see where the pressure concentrates — this isn't about the loudest request, it's about where shortfall actually clusters. That's the geography doing triage for the coordinator.
+
+[Open Nairobi research base] Let me drop into the case study — Nairobi County, at street scale. ❖ Same logic, ground level: shortfalls detected, hubs ranked, transfers drawn on the real road network across the city. This is the sixty-four-facility study area made operational.
+
+[Open Project impact → 1 year] Now, the question everyone asks — so what? ❖ This is a transparent projection — a model, not a promise — of what one year at this throughput could unlock: units redistributed, stockouts averted, supplies saved from expiry, and demand coverage climbing from that 57% baseline. Every assumption is on the screen; nothing is hidden.
+
+[Open Copilot → "Which facilities need urgent approval?"] And finally — ❖ this isn't a chatbot that makes things up. I'll ask it what needs urgent approval right now... and it answers straight from the live state of the system — the actual transfers waiting, with their sources. It compresses the operating picture; it doesn't replace the coordinator's judgment.
+
+[Return to the deck]
+
+────────────────────────────────────────
+## [SLIDE 9 — Close]  ~1:00
+
+[advance to closing slide]
+
+So let me bring it home. ❖
+
+The whole argument of this work is a simple shift in mindset: location is not just a field in a database — it's a coordination advantage we are leaving on the table.
+
+We have evidence — sixty-four professionals telling us the gap is real. We have a method — real-time, road-aware, explainable matching. And we have a safeguard — a human in the loop on every transfer. ❖
+
+This is a viable mechanism for reducing waste, narrowing inequity between regions, and moving us toward Sustainable Development Goal 12 — responsible consumption and production — in one of the places it matters most. My recommendation is a phased pilot with willing early adopters, and a roadmap toward integration with the national health information system.
+
+Thank you very much. ❖ I'd be glad to take your questions.
+
+────────────────────────────────────────
+### If you run short on time
+Cut the architecture slide (7) to two sentences and trim the projection step in the demo.
+
+### If asked "is the data real?"
+"Facility names and locations are public and real. Inventory quantities are synthetic demonstration data, and no patient records are ever used. The survey numbers — the 64 professionals — are real field data."
+
+### If asked "does it scale beyond Nairobi?"
+"Yes — Nairobi is the case study, but the national command map you saw runs the same engine across all of Kenya, and by design, other African health systems."
+
+### Memorise these numbers
+n=64 · 80% response · 56.3% · 82.8% · 57.8% · 89.1% · KEMSA 57% · SDG 12.
