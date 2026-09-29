@@ -211,7 +211,11 @@ export default function SavannahCommand() {
   useEffect(() => () => { clear(); introTimers.current.forEach(clearTimeout); }, []);
 
   const lead = plan?.routes.find((r) => r.id === selId) || plan?.routes[0];
-  const brief = useMemo(() => (lead ? briefFor(lead) : ''), [lead?.id]);
+  // The plan is fetched twice: curved arcs first, then real road geometry.
+  // Route ids are stable across that upgrade but distance_km is not, so a memo
+  // keyed on the id alone kept the arc distance in the brief while the headline
+  // re-rendered with the road distance (806 km vs 1141 km on Nairobi to Mandera).
+  const brief = useMemo(() => (lead ? briefFor(lead) : ''), [lead?.id, lead?.distance_km]);
   const typedBrief = useTypewriter(brief);
   const scenarios = useMemo(() => (plan?.routes || []).filter((r) => r.urgent).slice(0, 4), [plan]);
   const running = runToken > 0;
