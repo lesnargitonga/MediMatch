@@ -21,3 +21,4 @@ yarn-error.log*
 
 # Tests compiled by mistake
 server/test/*.js
+server/data/filedb.json
