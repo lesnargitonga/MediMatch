@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { mockDB } from '../mock/db';
 import { fileDb } from '../db/fileDb';
 import { pool } from '../config/db';
+import { cachedRoute, liveRoute } from '../routing/roadRoutes';
 
 /**
  * Redistribution planning endpoint — the geospatial brain made visible.
@@ -10,8 +11,10 @@ import { pool } from '../config/db';
  *  - Normalises listings into surplus offers and urgent requests.
  *  - Greedily matches each request to the nearest compatible surplus
  *    (triage order: urgent first), allocating quantity.
- *  - Returns map nodes, routed supply lines (real road geometry via OSRM,
- *    with a graceful curved-arc fallback), and aggregate impact metrics.
+ *  - Returns map nodes, supply lines along real roads (a stored route cache
+ *    built on OpenStreetMap with a self-hosted OSRM, or a live router named by
+ *    ROUTING_URL), an estimated curve labelled as such when neither has the
+ *    route, and aggregate impact metrics.
  *
  * Public (no auth) so it can anchor the landing experience.
  */
@@ -47,7 +50,7 @@ function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: num
   return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
 }
 
-/** Curved great-circle-ish arc between two points (fallback when roads unavailable). */
+/** Estimated curve between two points, used only when no road route is known. */
 function arc(a: { lat: number; lon: number }, b: { lat: number; lon: number }, steps = 28): [number, number][] {
   const mid = { lat: (a.lat + b.lat) / 2, lon: (a.lon + b.lon) / 2 };
   // perpendicular offset for a gentle curve
@@ -62,25 +65,6 @@ function arc(a: { lat: number; lon: number }, b: { lat: number; lon: number }, s
     pts.push([lat, lon]);
   }
   return pts;
-}
-
-async function osrmRoute(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
-  const url = `https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 3500);
-  try {
-    const r = await fetch(url, { signal: ctrl.signal });
-    if (!r.ok) return null;
-    const j: any = await r.json();
-    const route = j?.routes?.[0];
-    if (!route?.geometry?.coordinates?.length) return null;
-    const coords: [number, number][] = route.geometry.coordinates.map((c: number[]) => [c[1], c[0]]);
-    return { coords, distanceKm: route.distance / 1000, durationMin: route.duration / 60 };
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 function loadListings(): Norm[] {
@@ -182,7 +166,7 @@ export async function getRedistributionPlan(req: Request, res: Response) {
       matches.push({ req, off: best.o, qty, distanceKm: best.d });
     }
 
-    // ---- Resolve geometry (roads via OSRM, arc fallback) ----
+    // ---- Resolve geometry: stored road route, then a live router, then an estimate ----
     const routes = await Promise.all(matches.map(async (m, idx) => {
       const from = { lat: m.off.lat, lon: m.off.lon };
       const to = { lat: m.req.lat, lon: m.req.lon };
@@ -190,10 +174,8 @@ export async function getRedistributionPlan(req: Request, res: Response) {
       let distanceKm = m.distanceKm;
       let durationMin: number | null = null;
       let routed = false;
-      if (useRoads) {
-        const r = await osrmRoute(from, to);
-        if (r) { geometry = r.coords; distanceKm = r.distanceKm; durationMin = r.durationMin; routed = true; }
-      }
+      const r = cachedRoute(from, to) || (useRoads ? await liveRoute(from, to) : null);
+      if (r) { geometry = r.coords; distanceKm = r.distanceKm; durationMin = r.durationMin; routed = true; }
       if (!geometry) geometry = arc(from, to);
       return {
         id: idx + 1,
