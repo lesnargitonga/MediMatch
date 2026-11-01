@@ -2,13 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 /* Impact projection — "if this ran for real, for N months". The selling point.
  * Grounded in one citable baseline (KEMSA order-fill 57%, mid-2025) and illustrative
- * rates from a synthetic survey (56.3% monthly stockouts, 57.8% wastage; generated
- * responses, not participant research), extrapolated
+ * rates from a survey whose 64 responses are 52 generated and 12 of unverified provenance
+ * (56.3% monthly stockouts, 57.8% wastage; not validated participant research), extrapolated
  * from the engine's own live throughput. A transparent model, assumptions shown. */
 
 const BASE_COVERAGE = 57;     // KEMSA national order-fill rate, mid-2025 (%)
 const CEIL_COVERAGE = 86;     // projected ceiling as facilities onboard
-const BASE_STOCKOUT = 56.3;   // % facing monthly stockouts (synthetic survey, illustrative)
+const BASE_STOCKOUT = 56.3;   // % facing monthly stockouts (survey: 52 generated + 12 unverified; illustrative)
 const BASE_WASTAGE = 57.8;    // % facilities reporting routine wastage (survey)
 const CYCLES_PER_MONTH = 4;   // weekly coordination cycles
 const WASTAGE_SHARE = 0.42;   // share of moved units recovered from near-expiry surplus
@@ -59,7 +59,7 @@ export default function SimPanel({ unitsPerCycle, urgentPerCycle, equityShare, o
         <div className="sim-head">
           <span className="sv-eyebrow"><i className="sv-live" /> Impact projection · illustrative model</span>
           <h2>If MediMatch ran for {TF.find((t) => t.k === months)?.label}</h2>
-          <p>Modelled from KEMSA's <b>57%</b> national order-fill rate (mid-2025) and illustrative rates from a <b>synthetic survey</b> (generated responses, not participant research), extrapolating the engine's own live throughput.</p>
+          <p>Modelled from KEMSA's <b>57%</b> national order-fill rate (mid-2025) and illustrative rates from a <b>survey of 64 responses, 52 generated and 12 of unverified provenance</b> (not validated participant research), extrapolating the engine's own live throughput.</p>
         </div>
 
         <div className="sim-tf">

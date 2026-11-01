@@ -301,18 +301,18 @@ rect(s, Inches(6.65), Inches(4.08), Inches(.04), Inches(1.35), GOLD, radius=Fals
 textbox(s, "57%", Inches(7.02), Inches(4.02), Inches(1.65), Inches(.62), 34, GOLD, True)
 textbox(s, "KEMSA national order-fill rate,\nas of mid-2025 (per the abstract)", Inches(8.35), Inches(4.13), Inches(3.55), Inches(.65), 13, MUTED)
 textbox(s, "The baseline is historical; the deck does not present it as the current 2026 rate.", Inches(7.02), Inches(5.08), Inches(4.8), Inches(.45), 10, MUTED)
-footer(s, 2, "Sources: KEMSA order-fill rate 57%, mid-2025. Survey figures are from a synthetic survey and are illustrative, not participant research")
+footer(s, 2, "Sources: KEMSA order-fill rate 57%, mid-2025. Survey figures: 64 responses, 52 generated and 12 of unverified provenance; not validated participant research")
 
 
 # Divider — Section 02
-section_divider(prs, "02", "An illustrative survey", "Synthetic data used to exercise the prototype", GOLD)
+section_divider(prs, "02", "An illustrative survey", "52 generated responses, 12 of unverified provenance", GOLD)
 
 
 # 3 — Survey: respondent profile (Q1–Q3)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "Illustrative survey · synthetic")
+kicker(s, "Illustrative survey · not validated")
 title(s, "Survey design (synthetic responses)", size=28)
-textbox(s, "64 responses, including generated entries  ·  not participant research  ·  illustrative only",
+textbox(s, "64 responses  ·  52 generated  ·  12 of unverified provenance  ·  not validated participant research",
         Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
 textbox(s, "A frontline sample — the clinicians and staff who manage stock every day.",
         Inches(.55), Inches(1.62), Inches(12.2), Inches(.3), 14, MUTED)
@@ -322,12 +322,12 @@ survey_row(s, [
     (SURVEY / "q2_age.png",    "Q2 · Age — majority under 40",         MINT),
     (SURVEY / "q3_role.png",   "Q3 · Role — clinical staff majority",  BLUE),
 ], y=2.5)
-footer(s, 3, "Source: synthetic survey (responses include generated entries) · illustrative, not participant research")
+footer(s, 3, "Source: survey form, 64 responses (52 generated, 12 unverified) · illustrative only")
 
 
 # 4 — Survey: the current system (Q4–Q6)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "Illustrative survey · synthetic")
+kicker(s, "Illustrative survey · not validated")
 title(s, "The current system, in their words", size=28)
 textbox(s, "Questions 4–6  ·  frequency of stockouts, how surplus is handled, and how they rate today’s methods",
         Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
@@ -338,12 +338,12 @@ survey_row(s, [
     (SURVEY / "q5_surplus.png",       "Q5 · Surplus handled ad-hoc",            GOLD),
     (SURVEY / "q6_effectiveness.png", "Q6 · 82.8% ineffective or slow",         RED),
 ], y=2.5)
-footer(s, 4, "Source: synthetic survey · Q4 and Q6 figures are illustrative, not participant research")
+footer(s, 4, "Source: survey form, 64 responses (52 generated, 12 unverified) · Q4 and Q6 illustrative only")
 
 
 # 5 — Survey: challenges, value & readiness (Q7–Q9)
 s = prs.slides.add_slide(blank); bg(s)
-kicker(s, "Illustrative survey · synthetic")
+kicker(s, "Illustrative survey · not validated")
 title(s, "Challenges, value & readiness", size=28)
 textbox(s, "Questions 7–9  ·  the main system challenges, the benefits they value, and willingness to pilot",
         Inches(.55), Inches(1.18), Inches(12.2), Inches(.3), 13, GOLD, True)
@@ -354,7 +354,7 @@ survey_row(s, [
     (SURVEY / "q8_benefits.png",   "Q8 · Most-valued benefits",           BLUE),
     (SURVEY / "q9_pilot.png",      "Q9 · 89.1% would pilot (Yes + Maybe)", MINT),
 ], y=2.5)
-footer(s, 5, "Source: synthetic survey · Q7 and Q9 figures are illustrative, not participant research")
+footer(s, 5, "Source: survey form, 64 responses (52 generated, 12 unverified) · Q7 and Q9 illustrative only")
 
 
 # Divider — Section 03
@@ -512,7 +512,7 @@ right_refs = [
 ]
 ref_column(s, left_refs, .58, 1.55, 5.95)
 ref_column(s, right_refs, 6.83, 1.55, 5.95)
-footer(s, 10, "Data: facility names and locations are real; inventory and survey figures are synthetic and illustrative")
+footer(s, 10, "Data: facility names and locations are real; inventory is synthetic; survey figures are not validated participant research")
 
 
 def polish(presentation):
