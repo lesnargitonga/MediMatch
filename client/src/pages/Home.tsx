@@ -89,18 +89,19 @@ export default function Home() {
         <div className="lx-hero-stats">
           <div><b><Counter end={stats.users || 39} /></b><span>Facilities connected</span></div>
           <div><b><Counter end={stats.listings || 60} /></b><span>Surplus &amp; need listings</span></div>
-          <div><b>64</b><span>Professionals surveyed</span></div>
+          <div><b>Synthetic</b><span>Demonstration data</span></div>
           <div><b>Urgent-first</b><span>Equity triage</span></div>
         </div>
       </section>
 
-      {/* ===== The problem, from the field ===== */}
+      {/* ===== The problem, with illustrative synthetic-survey figures ===== */}
       <section className="lx-band lx-problem">
-        <div className="lx-eyebrow">The problem — from the field</div>
+        <div className="lx-eyebrow">The problem</div>
         <h2 className="lx-h2">Supplies expire in one facility while another runs out.</h2>
         <p className="lx-lead">
           The gap is rarely a shortage of supplies — it is a shortage of <b>visibility and coordination</b>.
-          Our field study of healthcare professionals across Nairobi County put numbers to it:
+          The figures below come from a synthetic survey generated to exercise this prototype.
+          They are illustrative, not participant research:
         </p>
         <div className="lx-bigstats">
           {FIELD.map((s) => (

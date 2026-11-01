@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 /* Impact projection — "if this ran for real, for N months". The selling point.
- * Grounded in citable baselines (KEMSA order-fill 57%, mid-2025; a 64-professional
- * Nairobi field study: 56.3% monthly stockouts, 57.8% wastage) and extrapolated
+ * Grounded in one citable baseline (KEMSA order-fill 57%, mid-2025) and illustrative
+ * rates from a synthetic survey (56.3% monthly stockouts, 57.8% wastage; generated
+ * responses, not participant research), extrapolated
  * from the engine's own live throughput. A transparent model, assumptions shown. */
 
 const BASE_COVERAGE = 57;     // KEMSA national order-fill rate, mid-2025 (%)
 const CEIL_COVERAGE = 86;     // projected ceiling as facilities onboard
-const BASE_STOCKOUT = 56.3;   // % facilities facing monthly stockouts (survey)
+const BASE_STOCKOUT = 56.3;   // % facing monthly stockouts (synthetic survey, illustrative)
 const BASE_WASTAGE = 57.8;    // % facilities reporting routine wastage (survey)
 const CYCLES_PER_MONTH = 4;   // weekly coordination cycles
 const WASTAGE_SHARE = 0.42;   // share of moved units recovered from near-expiry surplus
@@ -56,9 +57,9 @@ export default function SimPanel({ unitsPerCycle, urgentPerCycle, equityShare, o
       <div className="sim-card">
         <button className="sim-x" onClick={onClose}>✕</button>
         <div className="sim-head">
-          <span className="sv-eyebrow"><i className="sv-live" /> Impact projection · real baselines</span>
+          <span className="sv-eyebrow"><i className="sv-live" /> Impact projection · illustrative model</span>
           <h2>If MediMatch ran for {TF.find((t) => t.k === months)?.label}</h2>
-          <p>Modelled from KEMSA's <b>57%</b> national order-fill rate (mid-2025) and a <b>64-professional</b> Nairobi field study, extrapolating the engine's own live throughput.</p>
+          <p>Modelled from KEMSA's <b>57%</b> national order-fill rate (mid-2025) and illustrative rates from a <b>synthetic survey</b> (generated responses, not participant research), extrapolating the engine's own live throughput.</p>
         </div>
 
         <div className="sim-tf">

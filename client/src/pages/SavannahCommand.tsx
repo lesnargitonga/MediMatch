@@ -68,7 +68,8 @@ const CITIES = [
 
 const C = { gold: '#f0b32e', gold2: '#f8d27a', acacia: '#37c07e', terra: '#e8703c', red: '#f25555', cream: '#f4ead6' };
 
-// Real findings from the MediMatch field study (Nairobi County, 2025).
+// Illustrative figures from a synthetic survey generated to exercise this prototype.
+// They are not participant research and must not be presented as field findings.
 const RESEARCH = {
   n: 64,
   stats: [
@@ -379,7 +380,7 @@ export default function SavannahCommand() {
           );
         })}
 
-        {/* Research origin — Nairobi, where the field study was done (click to dive in) */}
+        {/* Research base — Nairobi County close-up (click to dive in) */}
         <g className="sv-origin sv-clickable" transform={`translate(${px(36.817).toFixed(1)} ${py(-1.286).toFixed(1)})`}
           onClick={() => setFocus('nairobi')}><title>Open Nairobi County — research base & geospatial AI close-up</title>
           {/* generous invisible hit target so it's easy to click */}
@@ -556,7 +557,7 @@ export default function SavannahCommand() {
             <div className="sv-focus-head">
               <span className="sv-eyebrow"><i className="sv-live" /> Nairobi County · research base & geospatial AI</span>
               <h2>Inside Nairobi County</h2>
-              <p>Our field study was conducted here. Kenyatta National Hospital’s surplus is matched to sub-county facilities in shortfall — ranked by distance, urgency and product fit, then routed on real roads.</p>
+              <p>The research base. Kenyatta National Hospital’s surplus is matched to sub-county facilities in shortfall — ranked by distance, urgency and product fit, then routed on real roads.</p>
             </div>
             <div className="sv-ops">
               <div className="sv-ops-stats">
@@ -617,8 +618,8 @@ export default function SavannahCommand() {
 
             <div className="sv-research">
               <div className="sv-research-h">
-                <span>Field study · Nairobi County</span>
-                <em>Why this matters — what {RESEARCH.n} healthcare professionals told us</em>
+                <span>Synthetic survey · illustrative</span>
+                <em>{RESEARCH.n} survey responses that include generated entries; not participant research</em>
               </div>
               <div className="sv-research-stats">
                 {RESEARCH.stats.map((s) => (
